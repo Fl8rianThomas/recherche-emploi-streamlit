@@ -124,12 +124,11 @@ max_offres = st.sidebar.slider(
     help="Plafond par recherche. Avec plusieurs variantes, le total cumulé "
          "peut être bien plus élevé.",
 )
-mois_max = st.sidebar.slider(
-    "Ancienneté max (mois)", 0, 12, 2,
-    help="Exclut les offres parues il y a plus de N mois. 0 = pas de limite. "
+jours_max = st.sidebar.slider(
+    "Ancienneté max (jours)", 0, 90, 7,
+    help="Exclut les offres parues il y a plus de N jours. 0 = pas de limite. "
          "Les offres sans date sont conservées.",
 )
-jours_max = mois_max * 30 if mois_max else None
 
 filtre_pertinence = st.sidebar.checkbox(
     "Titre pertinent obligatoire", value=True,
@@ -152,6 +151,15 @@ exclusions_txt = st.sidebar.text_area(
          "(accents/casse ignorés). Pour virer les métiers voisins.",
 )
 exclure_titres = [x.strip() for x in exclusions_txt.splitlines() if x.strip()]
+
+profil_txt = st.sidebar.text_area(
+    "Profil Optimum (compétences, une par ligne)",
+    value="\n".join(ro.PROFIL_OPTIMUM), height=200,
+    help="Classe les offres de l'onglet ⭐ Optimum. Chaque ligne vaut son poids : "
+         "« terme » = 1, ou « terme:poids » (ex. mutuelle:3). Les domaines (RH, "
+         "mutuelle, assurance, banque) sont pondérés plus fort. Titre = ×2.",
+)
+profil_optimum = [x.strip() for x in profil_txt.splitlines() if x.strip()]
 
 go = st.sidebar.button("🔎 Rechercher", type="primary", use_container_width=True)
 
@@ -242,7 +250,7 @@ c5.metric("Doublons", stats["doublons"])
 champs = ["intitule", "entreprise", "lieu", "contrat", "date", "url"]
 
 
-def afficher_offre(o):
+def afficher_offre(o, match=None, score=None):
     titre = o.get("intitule", "Sans titre")
     ent = ro.nom_entreprise(o) or "Entreprise non précisée"
     lieu = champ(o, "lieuTravail", "libelle", defaut="-")
@@ -262,6 +270,10 @@ def afficher_offre(o):
         if salaire:
             meta += f" · 💶 {salaire}"
         st.markdown(meta)
+        if match:
+            chips = " ".join(f"`{m}`" for m in match)
+            tete = f"⭐ **Score {score}**" if score is not None else f"⭐ **{len(match)} compétences**"
+            st.markdown(f"{tete} ({len(match)} en commun) : {chips}")
         badges = " ".join(f"`{x}`" for x in (src, f"via {via}" if via else "") if x)
         if badges:
             st.caption(badges)
@@ -283,11 +295,37 @@ def afficher_liste(offres, nom_fichier):
         afficher_offre(o)
 
 
-onglet_fr, onglet_int, onglet_exc = st.tabs([
+# Classement Optimum : offres France triées par adéquation avec le profil
+optimum = []
+for o in francaises:
+    sc, comp = ro.score_optimum(o, profil_optimum)
+    optimum.append((sc, comp, o))
+# Tri : score décroissant, puis date décroissante (offres récentes d'abord)
+optimum.sort(key=lambda x: (x[0], (x[2].get("dateCreation", "") or "")[:10]), reverse=True)
+
+onglet_opt, onglet_fr, onglet_int, onglet_exc = st.tabs([
+    f"⭐ Optimum ({len(optimum)})",
     f"🇫🇷 France ({len(francaises)})",
     f"🌍 International ({len(internationales)})",
     f"🗑️ Exclues ({len(exclues)})",
 ])
+with onglet_opt:
+    st.caption("Offres France classées par adéquation avec ton profil "
+               "(compétences en commun, titre compté double). Profil éditable à gauche.")
+    avec_match = [t for t in optimum if t[0] > 0]
+    st.download_button(
+        "⬇️ Télécharger le classement Optimum (CSV)",
+        data=csv_bytes([dict(ro.ligne(o), score=sc, competences=", ".join(comp))
+                        for sc, comp, o in optimum],
+                       champs + ["score", "competences"]),
+        file_name="offres_optimum.csv", mime="text/csv", key="optimum_csv",
+        disabled=not optimum,
+    )
+    if not avec_match:
+        st.info("Aucune offre ne correspond au profil. Vérifie la liste de compétences.")
+    for sc, comp, o in optimum:
+        if sc > 0:
+            afficher_offre(o, match=comp, score=sc)
 with onglet_fr:
     if francaises:
         afficher_liste(francaises, "offres_france.csv")

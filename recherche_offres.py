@@ -38,7 +38,7 @@ SYNONYMES_PAR_DEFAUT = [
     "analyste d'affaires",
     "analyste métier",
     "analyste fonctionnel",
-    "consultant AMOA",
+    "AMOA",
 ]
 
 # Le TITRE doit contenir au moins un de ces mots (sinon l'offre est ecartee).
@@ -54,10 +54,29 @@ INCLUSIONS_TITRE_PAR_DEFAUT = [
 # Mots dont la presence dans le TITRE exclut l'offre (metiers voisins / hors sujet).
 # Editable dans l'interface.
 EXCLUSIONS_TITRE_PAR_DEFAUT = [
+    "consultant",
     "eaux usees",
     "assainissement",
     "reseaux humides",
     "affaires reglementaires",
+]
+
+# Profil "Optimum" : competences / domaines servant a classer les offres par
+# adequation. Format "terme" (poids 1) ou "terme:poids". Les DOMAINES d'experience
+# (RH, mutuelle, assurance, banque...) sont volontairement pondered plus fort.
+# Editable dans l'interface.
+PROFIL_OPTIMUM = [
+    # Domaines / secteurs d'experience (poids fort)
+    "ressources humaines:3", "rh:3", "sirh:3", "mutuelle:3", "assurance:3",
+    "protection sociale:3", "prevoyance:3", "banque:3", "recrutement:2",
+    "paie:2", "remuneration:2", "force de vente:2", "commercial:2",
+    # Metier / methodes (poids moyen)
+    "amoa:2", "analyse fonctionnelle:2", "maitrise d'ouvrage:2",
+    "specifications fonctionnelles:1", "regles de gestion:1", "bpmn:1",
+    "modelisation:1", "processus:1", "product owner:1",
+    # Outils & agile (poids leger)
+    "sql:1", "figma:1", "jira:1", "confluence:1", "salesforce:1",
+    "agile:1", "scrum:1", "kanban:1", "psm:1", "backlog:1",
 ]
 
 # === 2. LISTES D'EXCLUSION ==================================================
@@ -74,7 +93,7 @@ ESN_CONNUES = {
     "tata consultancy", "cognizant", "synapse", "positive thinking",
     "alteca", "seyos", "kapa it", "kapa", "geser best", "geser-best", "geser",
     "horisis", "horisis conseil", "brain logic", "ciorane", "alphavote",
-    "bpce solutions informatiques",
+    "bpce solutions informatiques", "viveris", "dcs easyware", "dcs group",
 }
 
 AGENCES_RECRUTEMENT = {
@@ -86,8 +105,8 @@ AGENCES_RECRUTEMENT = {
 
 SIGNAUX_ESN = [
     "esn", "ssii", "societe de services", "societe de service", "regie",
-    "chez notre client", "chez nos clients", "client final",
-    "au sein de nos clients", "pour notre client", "mission chez",
+    "notre client", "nos clients", "client final",
+    "au sein de nos clients", "mission chez",
     "en prestation", "cabinet de conseil", "societe de conseil en informatique",
 ]
 
@@ -307,6 +326,38 @@ def est_international(o):
         if n in MARQUEURS_ETRANGERS:
             return True
     return False
+
+def _competence_poids(brut):
+    """'mutuelle:3' -> ('mutuelle', 3) ; 'sql' -> ('sql', 1)."""
+    terme, sep, p = brut.rpartition(":")
+    if sep and p.strip().isdigit():
+        return terme.strip(), max(1, int(p))
+    return brut.strip(), 1
+
+def score_optimum(o, profil):
+    """Adequation d'une offre avec un profil de competences pondere.
+
+    Chaque ligne du profil vaut son poids (defaut 1, ou "terme:poids"). Une
+    competence trouvee dans le titre compte double (signal plus fort que la
+    description, souvent un simple extrait cote Adzuna/Jooble).
+    Retourne (score, competences_trouvees) ou competences_trouvees liste les termes.
+    """
+    titre = normaliser(o.get("intitule", ""))
+    txt = titre + " " + normaliser(o.get("description") or "")
+    trouves = []
+    score = 0
+    for brut in profil:
+        terme, poids = _competence_poids(brut)
+        c = normaliser(terme)
+        if not c:
+            continue
+        if c in titre:
+            trouves.append(terme)
+            score += poids * 2
+        elif c in txt:
+            trouves.append(terme)
+            score += poids
+    return score, trouves
 
 def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None):
     """Filtrage ESN + titre + ancienneté + dedoublonnage sur une liste d'offres.

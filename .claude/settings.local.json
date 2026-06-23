@@ -16,7 +16,16 @@
       "WebFetch(domain:www.openwebninja.com)",
       "WebFetch(domain:groupecreditagricole.jobs)",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git config *)",
+      "Bash(echo \"name=$\\(git config user.name\\)\")",
+      "Bash(echo \"email=$\\(git config user.email\\)\")",
+      "Bash(git branch *)",
+      "Bash(git commit *)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(git remote *)",
+      "Bash(git push *)"
     ]
   }
 }

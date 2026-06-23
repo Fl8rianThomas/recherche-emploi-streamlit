@@ -124,6 +124,8 @@ max_offres = st.sidebar.slider(
     help="Plafond par recherche. Avec plusieurs variantes, le total cumulé "
          "peut être bien plus élevé.",
 )
+st.sidebar.divider()
+st.sidebar.subheader("🧹 Filtres")
 jours_max = st.sidebar.slider(
     "Ancienneté max (jours)", 0, 90, 7,
     help="Exclut les offres parues il y a plus de N jours. 0 = pas de limite. "
@@ -152,6 +154,8 @@ exclusions_txt = st.sidebar.text_area(
 )
 exclure_titres = [x.strip() for x in exclusions_txt.splitlines() if x.strip()]
 
+st.sidebar.divider()
+st.sidebar.subheader("⭐ Profil Optimum")
 profil_txt = st.sidebar.text_area(
     "Profil Optimum (compétences, une par ligne)",
     value="\n".join(ro.PROFIL_OPTIMUM), height=200,
@@ -247,6 +251,35 @@ c3.metric("International", len(internationales))
 c4.metric("Exclues", stats["exclues"])
 c5.metric("Doublons", stats["doublons"])
 
+# Récapitulatif visible de tout ce qui est filtré (y compris les listes du code)
+with st.expander("🔧 Filtres actifs — rappel de ce qui est recherché et exclu"):
+    col_g, col_d = st.columns(2)
+    with col_g:
+        st.markdown("**Recherche**")
+        st.markdown(f"- **Sources** : {', '.join(sources)}")
+        st.markdown(f"- **Métiers** : {', '.join(variantes)}")
+        st.markdown(f"- **Lieu** : {lieu_saisi.strip() or 'toute la France'}")
+        st.markdown(f"- **Contrat** : {type_contrat or 'tous'}")
+        st.markdown(f"- **Ancienneté** : {('≤ ' + str(jours_max) + ' jours') if jours_max else 'illimitée'}")
+        st.markdown("**Filtres sur le titre**")
+        if inclure_titres:
+            st.markdown(f"- ✅ Doit contenir : {', '.join(inclure_titres)}")
+        else:
+            st.markdown("- Pertinence par titre : *désactivée*")
+        st.markdown(f"- 🚫 Exclu si contient : {', '.join(exclure_titres) or '—'}")
+    with col_d:
+        st.markdown(f"**🚫 ESN / sociétés de conseil exclues par nom** ({len(ro.ESN_CONNUES)})")
+        st.caption(", ".join(sorted(ro.ESN_CONNUES)))
+        st.markdown("**🚫 Signaux « régie / prestation » dans le texte**")
+        st.caption(", ".join(ro.SIGNAUX_ESN))
+        if ro.EXCLURE_AGENCES:
+            st.markdown(f"**🚫 Cabinets de recrutement exclus** ({len(ro.AGENCES_RECRUTEMENT)})")
+            st.caption(", ".join(sorted(ro.AGENCES_RECRUTEMENT)))
+        else:
+            st.caption("Cabinets de recrutement : *non exclus* (option désactivée)")
+    st.caption("Les ESN et signaux sont définis dans le code (recherche_offres.py). "
+               "Demande-moi d'en ajouter/retirer à tout moment.")
+
 champs = ["intitule", "entreprise", "lieu", "contrat", "date", "url"]
 
 
@@ -338,6 +371,10 @@ with onglet_int:
         st.info("Aucune offre hors de France.")
 with onglet_exc:
     if exclues:
+        compte = stats["compte"]
+        st.markdown("**Répartition par motif d'exclusion :**")
+        for raison, n in sorted(compte.items(), key=lambda x: -x[1]):
+            st.markdown(f"- {raison} : **{n}**")
         st.dataframe(exclues, use_container_width=True, hide_index=True)
     else:
         st.info("Aucune offre exclue.")

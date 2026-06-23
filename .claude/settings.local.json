@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(pip show *)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('recherche_offres.py',encoding='utf-8'\\).read\\(\\)\\); print\\('OK syntaxe'\\)\")",
+      "Bash(pip install *)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py',encoding='utf-8'\\).read\\(\\)\\); print\\('OK syntaxe app.py'\\)\")",
+      "Bash(python -c \"import streamlit; print\\('streamlit', streamlit.__version__\\)\")",
+      "WebFetch(domain:developer.adzuna.com)",
+      "Bash(PYTHONPATH=\"c:/Users/dylan/OneDrive/Main/Perso/Projet/recherche-emploi\" python /tmp/test_adzuna.py)",
+      "WebFetch(domain:jooble.org)",
+      "WebFetch(domain:help.jooble.org)",
+      "WebSearch",
+      "WebFetch(domain:www.openwebninja.com)",
+      "WebFetch(domain:groupecreditagricole.jobs)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}

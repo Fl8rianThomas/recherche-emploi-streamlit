@@ -149,6 +149,14 @@ def nom_entreprise(o):
 def classer(o):
     ent = normaliser(nom_entreprise(o))
     txt = normaliser(o.get("intitule", "") + " " + o.get("description", ""))
+    if ent and REGEX_AGENCES.search(ent):
+        # Cabinet de recrutement explicite : intermediaire legitime (souvent des
+        # CDI chez le client final). On l'exclut seulement si EXCLURE_AGENCES ;
+        # sinon on le CONSERVE en contournant les filtres ESN (nom) et signaux
+        # texte ("notre client", "en prestation"...), qui ici sont des faux positifs.
+        if EXCLURE_AGENCES:
+            return False, "cabinet de recrutement"
+        return True, ""
     if not ent:
         # Entreprise masquee : un nom d'ESN connue dans le texte trahit l'employeur
         # (ex: offre anonyme dont la description dit "Sopra Steria, acteur majeur...").
@@ -159,8 +167,6 @@ def classer(o):
     else:
         if REGEX_ESN.search(ent):
             return False, "ESN (nom)"
-        if EXCLURE_AGENCES and REGEX_AGENCES.search(ent):
-            return False, "cabinet de recrutement"
     if EXCLURE_PAR_TEXTE and REGEX_SIGNAUX.search(txt):
         return False, "indice ESN dans le texte"
     return True, ""
@@ -194,6 +200,10 @@ def rechercher(token, config):
         base["distance"] = config["distance"]
     if config.get("type_contrat"):
         base["typeContrat"] = config["type_contrat"]
+    if config.get("jours_max"):
+        mind = date.today() - timedelta(days=config["jours_max"])
+        base["minCreationDate"] = mind.isoformat() + "T00:00:00Z"
+        base["maxCreationDate"] = date.today().isoformat() + "T23:59:59Z"
     offres, taille, debut = [], 50, 0
     while len(offres) < config["max_offres"]:
         params = dict(base, range=f"{debut}-{debut + taille - 1}")
@@ -279,6 +289,43 @@ def resoudre_lieu(saisie):
         return code, DEPARTEMENTS[code]
     code_depuis_nom = _NOM_VERS_CODE.get(normaliser(s))
     return code_depuis_nom, s
+
+# Departement -> region (pour la repartition territoriale du tableau de bord).
+_REGIONS_DEPTS = {
+    "Auvergne-Rhône-Alpes": ["01","03","07","15","26","38","42","43","63","69","73","74"],
+    "Bourgogne-Franche-Comté": ["21","25","39","58","70","71","89","90"],
+    "Bretagne": ["22","29","35","56"],
+    "Centre-Val de Loire": ["18","28","36","37","41","45"],
+    "Corse": ["2A","2B"],
+    "Grand Est": ["08","10","51","52","54","55","57","67","68","88"],
+    "Hauts-de-France": ["02","59","60","62","80"],
+    "Île-de-France": ["75","77","78","91","92","93","94","95"],
+    "Normandie": ["14","27","50","61","76"],
+    "Nouvelle-Aquitaine": ["16","17","19","23","24","33","40","47","64","79","86","87"],
+    "Occitanie": ["09","11","12","30","31","32","34","46","48","65","66","81","82"],
+    "Pays de la Loire": ["44","49","53","72","85"],
+    "Provence-Alpes-Côte d'Azur": ["04","05","06","13","83","84"],
+    "Outre-mer": ["971","972","973","974","976"],
+}
+DEPT_REGION = {c: reg for reg, codes in _REGIONS_DEPTS.items() for c in codes}
+
+def region_offre(o):
+    """Devine la region française d'une offre depuis son lieu. 'Autre' sinon."""
+    lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
+    if not lieu.strip():
+        return "Non précisé"
+    m = re.match(r"\s*(2[AB]|\d{2,3})\b", lieu)           # "75 - Paris" (France Travail)
+    if m:
+        return DEPT_REGION.get(m.group(1).upper(), "Autre")
+    norm = normaliser(lieu)
+    for reg in _REGIONS_DEPTS:                             # nom de region dans le libelle (Adzuna)
+        if normaliser(reg) in norm:
+            return reg
+    for part in re.split(r"[,/]", lieu):                  # ville chef-lieu -> code -> region
+        code = _NOM_VERS_CODE.get(normaliser(part))
+        if code:
+            return DEPT_REGION.get(code, "Autre")
+    return "Autre"
 
 def date_offre(o):
     """Date de parution d'une offre (les 10 premiers caracteres ISO), ou None."""
@@ -454,6 +501,8 @@ def rechercher_adzuna(config, app_id, app_key):
     }
     if config.get("where_adzuna"):
         base["where"] = config["where_adzuna"]
+    if config.get("jours_max"):
+        base["max_days_old"] = config["jours_max"]
     if config.get("type_contrat") == "CDI":
         base["permanent"] = 1
     elif config.get("type_contrat") == "CDD":

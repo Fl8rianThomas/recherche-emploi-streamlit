@@ -6,8 +6,10 @@ Lancement :  streamlit run app.py
 import io
 import csv
 import os
-from datetime import date
+from collections import Counter
+from datetime import date, timedelta
 
+import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -19,7 +21,7 @@ load_dotenv(override=True)
 
 # === Recuperation par source (mise en cache par criteres) ===================
 @st.cache_data(show_spinner=False)
-def chercher_france_travail(mots_cles, departement, type_contrat, max_offres):
+def chercher_france_travail(mots_cles, departement, type_contrat, max_offres, jours_max):
     cid, secret = os.getenv("FT_CLIENT_ID"), os.getenv("FT_CLIENT_SECRET")
     if not cid or not secret:
         raise RuntimeError(
@@ -28,7 +30,7 @@ def chercher_france_travail(mots_cles, departement, type_contrat, max_offres):
     token = ro.obtenir_token(cid, secret)
     config = dict(
         ro.CONFIG, mots_cles=mots_cles, departement=departement or None,
-        type_contrat=type_contrat or None, max_offres=max_offres,
+        type_contrat=type_contrat or None, max_offres=max_offres, jours_max=jours_max,
     )
     offres = ro.rechercher(token, config)
     for o in offres:
@@ -37,7 +39,7 @@ def chercher_france_travail(mots_cles, departement, type_contrat, max_offres):
 
 
 @st.cache_data(show_spinner=False)
-def chercher_adzuna(mots_cles, lieu, type_contrat, max_offres):
+def chercher_adzuna(mots_cles, lieu, type_contrat, max_offres, jours_max):
     app_id, app_key = os.getenv("ADZUNA_APP_ID"), os.getenv("ADZUNA_APP_KEY")
     if not app_id or not app_key:
         raise RuntimeError(
@@ -46,7 +48,7 @@ def chercher_adzuna(mots_cles, lieu, type_contrat, max_offres):
         )
     config = dict(
         ro.CONFIG, mots_cles=mots_cles, type_contrat=type_contrat or None,
-        max_offres=max_offres, where_adzuna=lieu or None,
+        max_offres=max_offres, where_adzuna=lieu or None, jours_max=jours_max,
     )
     return ro.rechercher_adzuna(config, app_id, app_key)
 
@@ -127,11 +129,17 @@ max_offres = st.sidebar.slider(
 )
 st.sidebar.divider()
 st.sidebar.subheader("🧹 Filtres")
-jours_max = st.sidebar.slider(
-    "Ancienneté max (jours)", 0, 90, 7,
-    help="Exclut les offres parues il y a plus de N jours. 0 = pas de limite. "
-         "Les offres sans date sont conservées.",
-)
+jours_recent = int(st.sidebar.number_input(
+    "🆕 Offres récentes (jours)", min_value=0, max_value=60, value=1, step=1,
+    help="Seuil de nouveauté : une offre parue il y a ≤ N jours est marquée 🆕 et "
+         "remontée en tête. N'exclut rien (c'est juste la priorité d'affichage).",
+))
+jours_max = int(st.sidebar.number_input(
+    "Ancienneté max (jours)", min_value=0, max_value=365, value=7, step=1,
+    help="Date la plus ancienne des offres à afficher : exclut celles parues il y "
+         "a plus de N jours (0 = pas de limite). Envoyé aux API → change la valeur "
+         "puis relance « Rechercher » pour élargir la fenêtre.",
+))
 
 filtre_pertinence = st.sidebar.checkbox(
     "Titre pertinent obligatoire", value=True,
@@ -193,10 +201,10 @@ if go:
     fetchers = []
     if "France Travail" in sources:
         fetchers.append(("France Travail", lambda t: chercher_france_travail(
-            t, departement or "", type_contrat, max_offres)))
+            t, departement or "", type_contrat, max_offres, jours_max)))
     if "Adzuna" in sources:
         fetchers.append(("Adzuna", lambda t: chercher_adzuna(
-            t, lieu_nom or "", type_contrat, max_offres)))
+            t, lieu_nom or "", type_contrat, max_offres, jours_max)))
     if "Jooble" in sources:
         fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
 
@@ -287,16 +295,20 @@ with st.expander("🔧 Filtres actifs — rappel de ce qui est recherché et exc
             st.markdown(f"**🚫 Cabinets de recrutement exclus** ({len(ro.AGENCES_RECRUTEMENT)})")
             st.caption(", ".join(sorted(ro.AGENCES_RECRUTEMENT)))
         else:
-            st.caption("Cabinets de recrutement : *non exclus* (option désactivée)")
+            st.markdown(f"**✅ Cabinets de recrutement conservés (prioritaires)** ({len(ro.AGENCES_RECRUTEMENT)})")
+            st.caption("Une offre d'un de ces cabinets est gardée même si elle "
+                       "matche un filtre ESN (nom) ou un signal régie/prestation : "
+                       + ", ".join(sorted(ro.AGENCES_RECRUTEMENT)))
     st.caption("Les ESN et signaux sont définis dans le code (recherche_offres.py). "
                "Demande-moi d'en ajouter/retirer à tout moment.")
 
 champs = ["intitule", "entreprise", "lieu", "contrat", "date", "url"]
-AUJ_ISO = date.today().isoformat()
+SEUIL_RECENT = (date.today() - timedelta(days=jours_recent)).isoformat()
 
 
-def _est_aujourdhui(o):
-    return (o.get("dateCreation", "") or "")[:10] == AUJ_ISO
+def _est_recente(o):
+    d = (o.get("dateCreation", "") or "")[:10]
+    return bool(d) and d >= SEUIL_RECENT
 
 
 def afficher_detail(it):
@@ -346,6 +358,18 @@ def _csv_items(items):
     return csv_bytes(rows, champs + (["score", "competences"] if has_score else []))
 
 
+# Items de liste : texte aligné à gauche et limité à UNE seule ligne (… si trop long)
+st.markdown(
+    "<style>"
+    "section.main div.stButton > button "
+    "{ text-align:left; justify-content:flex-start; overflow:hidden; }"
+    "section.main div.stButton > button p "
+    "{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0; }"
+    "</style>",
+    unsafe_allow_html=True,
+)
+
+
 def vue_liste_detail(items, cle, csv_nom):
     """Affichage façon LinkedIn : liste cliquable à gauche, détail à droite."""
     if not items:
@@ -359,42 +383,49 @@ def vue_liste_detail(items, cle, csv_nom):
     sel = min(st.session_state.get(sel_key, 0), len(items) - 1)
     col_liste, col_detail = st.columns([2, 3], gap="medium")
     with col_liste:
-        boite = st.container(height=680)
-        for i, it in enumerate(items):
-            o = it["o"]
-            titre = o.get("intitule", "Sans titre")
-            ent = ro.nom_entreprise(o) or "Entreprise non précisée"
-            d = (o.get("dateCreation", "") or "")[:10]
-            prefix = "🆕 " if it.get("today") else ""
-            suffix = f"  ·  ⭐{it['score']}" if it.get("score") else ""
-            date_txt = f"  ·  📅 {d}" if d else ""
-            label = f"{prefix}{titre} — {ent}{date_txt}{suffix}"
-            if boite.button(label, key=f"{cle}_{i}", use_container_width=True,
-                            type="primary" if i == sel else "secondary"):
-                st.session_state[sel_key] = i
-                st.rerun()
+        with st.container(height=680):
+            for i, it in enumerate(items):
+                # Séparateur entre les offres récentes (🆕) et les plus anciennes
+                if i > 0 and items[i - 1].get("recent") and not it.get("recent"):
+                    st.divider()
+                    st.caption("🕒 Offres plus anciennes")
+                o = it["o"]
+                titre = o.get("intitule", "Sans titre")
+                ent = ro.nom_entreprise(o) or "Entreprise non précisée"
+                d = (o.get("dateCreation", "") or "")[:10]
+                bdg = ("🆕 " if it.get("recent") else "")
+                if it.get("score"):
+                    bdg += f"⭐{it['score']} "
+                if d:
+                    bdg += f"📅{d} "
+                label = f"{bdg}· {titre} — {ent}"
+                if st.button(label, key=f"{cle}_{i}", use_container_width=True,
+                             type="primary" if i == sel else "secondary"):
+                    st.session_state[sel_key] = i
+                    st.rerun()
     with col_detail:
         with st.container(height=680):
             afficher_detail(items[sel])
 
 
-# Onglet France : ordre = aujourd'hui d'abord (Optimum > reste dedans), puis
-# Optimum (pertinentes), puis reste France. => tri (today, score, date) décroissant.
+# Onglet France : ordre = récentes d'abord (Optimum > reste dedans), puis
+# Optimum (pertinentes), puis reste France. => tri (recent, score, date) décroissant.
 france_items = []
 for o in francaises:
     sc, comp = ro.score_optimum(o, profil_optimum)
-    france_items.append({"o": o, "score": sc, "comp": comp, "today": _est_aujourdhui(o)})
-france_items.sort(key=lambda it: (it["today"], it["score"],
+    france_items.append({"o": o, "score": sc, "comp": comp, "recent": _est_recente(o)})
+france_items.sort(key=lambda it: (it["recent"], it["score"],
                                   (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
 
-onglet_fr, onglet_autres = st.tabs([
+onglet_fr, onglet_autres, onglet_dash = st.tabs([
     f"🎯 France ({len(france_items)})",
     f"🌍 International + 🗑️ Exclues ({len(internationales) + len(exclues)})",
+    "📊 Tableau de bord",
 ])
 with onglet_fr:
-    st.caption("Toutes les offres France. Ordre : 🆕 parues aujourd'hui d'abord "
-               "(les plus pertinentes en tête), puis par adéquation profil (⭐), "
-               "puis par date. Clique une annonce pour son détail.")
+    st.caption(f"Toutes les offres France. Ordre : 🆕 récentes (≤ {jours_recent} j) "
+               "d'abord (les plus pertinentes en tête), puis par adéquation profil "
+               "(⭐), puis par date. Clique une annonce pour son détail.")
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_autres:
@@ -446,3 +477,35 @@ with onglet_autres:
                 "date": "Date", "source": "Source",
             },
         )
+
+with onglet_dash:
+    if not francaises:
+        st.info("Aucune offre France à analyser.")
+    else:
+        dates = [(o.get("dateCreation", "") or "")[:10] for o in francaises]
+        dates = [d for d in dates if d]
+        regions = [ro.region_offre(o) for o in francaises]
+        par_region = Counter(regions)
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Offres France", len(francaises))
+        m2.metric(f"Récentes (≤ {jours_recent} j)", sum(1 for o in francaises if _est_recente(o)))
+        m3.metric("Régions couvertes", sum(1 for r in par_region if r not in ("Autre", "Non précisé")))
+        top = par_region.most_common(1)
+        m4.metric("Région n°1", top[0][0] if top else "—")
+
+        st.subheader("📈 Évolution du nombre d'offres (par date de parution)")
+        if dates:
+            par_date = Counter(dates)
+            jours = sorted(par_date)
+            df_dates = pd.DataFrame({"Offres": [par_date[j] for j in jours]}, index=jours)
+            df_dates.index.name = "Date"
+            st.bar_chart(df_dates, color="#2E86DE")
+        else:
+            st.caption("Pas de dates exploitables.")
+
+        st.subheader("🗺️ Répartition par région")
+        regions_tri = sorted(par_region, key=lambda r: par_region[r], reverse=True)
+        df_reg = pd.DataFrame({"Offres": [par_region[r] for r in regions_tri]}, index=regions_tri)
+        df_reg.index.name = "Région"
+        st.bar_chart(df_reg, horizontal=True, color="#27AE60")

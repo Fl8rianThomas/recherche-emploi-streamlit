@@ -6,6 +6,7 @@ Lancement :  streamlit run app.py
 import io
 import csv
 import os
+from datetime import date
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -172,68 +173,78 @@ go = st.sidebar.button("🔎 Rechercher", type="primary", use_container_width=Tr
 st.title("🔎 Recherche d'offres")
 st.caption("Recherche multi-variantes, filtrée des ESN, cabinets et doublons.")
 
-if not go:
-    st.info("Renseigne tes critères à gauche puis clique sur **Rechercher**.")
-    st.stop()
-
-# Recuperation : chaque variante de metier x chaque source
-brutes, erreurs = [], []
-if not sources:
-    st.warning("Sélectionne au moins une source.")
-    st.stop()
-if not variantes:
-    st.warning("Indique au moins un métier à rechercher.")
-    st.stop()
-
 def _tag(offres, terme):
     """Marque chaque offre avec la variante qui l'a ramenée (badge « via »)."""
     for o in offres:
         o.setdefault("_variante", terme)
     return offres
 
-# Fonctions de recherche actives selon les sources cochées
-fetchers = []
-if "France Travail" in sources:
-    fetchers.append(("France Travail", lambda t: chercher_france_travail(
-        t, departement or "", type_contrat, max_offres)))
-if "Adzuna" in sources:
-    fetchers.append(("Adzuna", lambda t: chercher_adzuna(
-        t, lieu_nom or "", type_contrat, max_offres)))
-if "Jooble" in sources:
-    fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
+# Une recherche n'est lancée qu'au clic sur "Rechercher". Les offres brutes sont
+# mémorisées (session_state) pour survivre aux reruns (clic sur une annonce,
+# changement de filtre) sans tout relancer.
+if go:
+    if not sources:
+        st.warning("Sélectionne au moins une source.")
+        st.stop()
+    if not variantes:
+        st.warning("Indique au moins un métier à rechercher.")
+        st.stop()
 
-total = len(variantes) * len(fetchers)
-with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
-               f"({total} requêtes)…", expanded=True) as statut:
-    barre = st.progress(0.0)
-    journal = st.empty()
-    lignes, fait = [], 0
-    for terme in variantes:
-        for nom_src, fn in fetchers:
-            fait += 1
-            barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
-            try:
-                res = _tag(fn(terme), terme)
-                brutes += res
-                lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
-                              f"_(cumul brut : {len(brutes)})_")
-            except Exception as e:  # noqa: BLE001
-                erreurs.append(f"{nom_src} « {terme} » : {e}")
-                lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
-            journal.markdown("\n".join(f"- {x}" for x in lignes))
-    barre.empty()
-    statut.update(
-        label=f"Recherche terminée — {len(brutes)} offres brutes récupérées",
-        state="complete", expanded=False,
-    )
+    fetchers = []
+    if "France Travail" in sources:
+        fetchers.append(("France Travail", lambda t: chercher_france_travail(
+            t, departement or "", type_contrat, max_offres)))
+    if "Adzuna" in sources:
+        fetchers.append(("Adzuna", lambda t: chercher_adzuna(
+            t, lieu_nom or "", type_contrat, max_offres)))
+    if "Jooble" in sources:
+        fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
 
-for msg in erreurs:
+    brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
+    with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
+                   f"({total} requêtes)…", expanded=True) as statut:
+        barre = st.progress(0.0)
+        journal = st.empty()
+        lignes, fait = [], 0
+        for terme in variantes:
+            for nom_src, fn in fetchers:
+                fait += 1
+                barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
+                try:
+                    res = _tag(fn(terme), terme)
+                    brutes += res
+                    lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
+                                  f"_(cumul brut : {len(brutes)})_")
+                except Exception as e:  # noqa: BLE001
+                    erreurs.append(f"{nom_src} « {terme} » : {e}")
+                    lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
+                journal.markdown("\n".join(f"- {x}" for x in lignes))
+        barre.empty()
+        statut.update(
+            label=f"Recherche terminée — {len(brutes)} offres brutes récupérées",
+            state="complete", expanded=False,
+        )
+    st.session_state["brutes"] = brutes
+    st.session_state["erreurs"] = erreurs
+    st.session_state["lancee"] = True
+    # Re-rendu propre, sans le bloc de progression, pour figer la mise en page :
+    # évite le "recadrement" au premier clic sur une offre.
+    st.rerun()
+
+# Tant qu'aucune recherche n'a été lancée : écran d'accueil
+if not st.session_state.get("lancee"):
+    st.info("Renseigne tes critères à gauche puis clique sur **Rechercher**.")
+    st.stop()
+
+brutes = st.session_state["brutes"]
+for msg in st.session_state.get("erreurs", []):
     st.warning(msg)
 if not brutes:
     st.error("Aucune offre récupérée.")
     st.stop()
 
-# Filtrage ESN + titre + ancienneté + dedoublonnage (croise les sources)
+# Filtrage (ré-appliqué à chaque rerun : les filtres se modifient sans relancer
+# la recherche, et le clic sur une annonce conserve les résultats)
 gardees, exclues, stats = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres)
 
 if not gardees:
@@ -281,9 +292,16 @@ with st.expander("🔧 Filtres actifs — rappel de ce qui est recherché et exc
                "Demande-moi d'en ajouter/retirer à tout moment.")
 
 champs = ["intitule", "entreprise", "lieu", "contrat", "date", "url"]
+AUJ_ISO = date.today().isoformat()
 
 
-def afficher_offre(o, match=None, score=None):
+def _est_aujourdhui(o):
+    return (o.get("dateCreation", "") or "")[:10] == AUJ_ISO
+
+
+def afficher_detail(it):
+    """Panneau de droite : détail complet de l'offre sélectionnée."""
+    o = it["o"]
     titre = o.get("intitule", "Sans titre")
     ent = ro.nom_entreprise(o) or "Entreprise non précisée"
     lieu = champ(o, "lieuTravail", "libelle", defaut="-")
@@ -291,90 +309,140 @@ def afficher_offre(o, match=None, score=None):
     d = (o.get("dateCreation", "") or "")[:10]
     salaire = champ(o, "salaire", "libelle")
     url = champ(o, "origineOffre", "urlOrigine")
+    src, via = o.get("_source", ""), o.get("_variante", "")
     desc = (o.get("description", "") or "").strip()
-    src = o.get("_source", "")
-    via = o.get("_variante", "")
 
-    with st.container(border=True):
-        st.markdown(f"### {titre}")
-        meta = f"**{ent}** · {lieu} · {contrat}"
-        if d:
-            meta += f" · {d}"
-        if salaire:
-            meta += f" · 💶 {salaire}"
-        st.markdown(meta)
-        if match:
-            chips = " ".join(f"`{m}`" for m in match)
-            tete = f"⭐ **Score {score}**" if score is not None else f"⭐ **{len(match)} compétences**"
-            st.markdown(f"{tete} ({len(match)} en commun) : {chips}")
-        badges = " ".join(f"`{x}`" for x in (src, f"via {via}" if via else "") if x)
-        if badges:
-            st.caption(badges)
-        if desc:
-            with st.expander("Description"):
-                st.write(desc)
-        if url:
-            st.markdown(f"[➡️ Voir l'offre]({url})")
+    st.markdown(f"## {titre}")
+    meta = f"**{ent}** · {lieu} · {contrat}"
+    if d:
+        meta += f" · {d}"
+    if salaire:
+        meta += f" · 💶 {salaire}"
+    st.markdown(meta)
+    if it.get("comp"):
+        chips = " ".join(f"`{m}`" for m in it["comp"])
+        st.markdown(f"⭐ **Score {it['score']}** ({len(it['comp'])} compétences) : {chips}")
+    badges = " ".join(f"`{x}`" for x in (src, f"via {via}" if via else "") if x)
+    if badges:
+        st.caption(badges)
+    if url:
+        st.link_button("➡️ Voir / postuler", url, type="primary")
+    st.divider()
+    if desc:
+        st.write(desc)
+    else:
+        st.caption("Pas de description fournie par cette source — ouvre l'offre via le lien.")
 
 
-def afficher_liste(offres, nom_fichier):
+def _csv_items(items):
+    has_score = bool(items) and "score" in items[0]
+    rows = []
+    for it in items:
+        row = ro.ligne(it["o"])
+        if has_score:
+            row["score"] = it["score"]
+            row["competences"] = ", ".join(it.get("comp") or [])
+        rows.append(row)
+    return csv_bytes(rows, champs + (["score", "competences"] if has_score else []))
+
+
+def vue_liste_detail(items, cle, csv_nom):
+    """Affichage façon LinkedIn : liste cliquable à gauche, détail à droite."""
+    if not items:
+        st.info("Aucune offre à afficher.")
+        return
     st.download_button(
-        "⬇️ Télécharger ce résultat (CSV)",
-        data=csv_bytes([ro.ligne(o) for o in offres], champs),
-        file_name=nom_fichier, mime="text/csv", key=nom_fichier,
-        disabled=not offres,
+        "⬇️ Télécharger (CSV)", data=_csv_items(items),
+        file_name=csv_nom, mime="text/csv", key=f"dl_{cle}",
     )
-    for o in offres:
-        afficher_offre(o)
+    sel_key = f"sel_{cle}"
+    sel = min(st.session_state.get(sel_key, 0), len(items) - 1)
+    col_liste, col_detail = st.columns([2, 3], gap="medium")
+    with col_liste:
+        boite = st.container(height=680)
+        for i, it in enumerate(items):
+            o = it["o"]
+            titre = o.get("intitule", "Sans titre")
+            ent = ro.nom_entreprise(o) or "Entreprise non précisée"
+            d = (o.get("dateCreation", "") or "")[:10]
+            prefix = "🆕 " if it.get("today") else ""
+            suffix = f"  ·  ⭐{it['score']}" if it.get("score") else ""
+            date_txt = f"  ·  📅 {d}" if d else ""
+            label = f"{prefix}{titre} — {ent}{date_txt}{suffix}"
+            if boite.button(label, key=f"{cle}_{i}", use_container_width=True,
+                            type="primary" if i == sel else "secondary"):
+                st.session_state[sel_key] = i
+                st.rerun()
+    with col_detail:
+        with st.container(height=680):
+            afficher_detail(items[sel])
 
 
-# Classement Optimum : offres France triées par adéquation avec le profil
-optimum = []
+# Onglet France : ordre = aujourd'hui d'abord (Optimum > reste dedans), puis
+# Optimum (pertinentes), puis reste France. => tri (today, score, date) décroissant.
+france_items = []
 for o in francaises:
     sc, comp = ro.score_optimum(o, profil_optimum)
-    optimum.append((sc, comp, o))
-# Tri : score décroissant, puis date décroissante (offres récentes d'abord)
-optimum.sort(key=lambda x: (x[0], (x[2].get("dateCreation", "") or "")[:10]), reverse=True)
+    france_items.append({"o": o, "score": sc, "comp": comp, "today": _est_aujourdhui(o)})
+france_items.sort(key=lambda it: (it["today"], it["score"],
+                                  (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
 
-onglet_opt, onglet_fr, onglet_int, onglet_exc = st.tabs([
-    f"⭐ Optimum ({len(optimum)})",
-    f"🇫🇷 France ({len(francaises)})",
-    f"🌍 International ({len(internationales)})",
-    f"🗑️ Exclues ({len(exclues)})",
+onglet_fr, onglet_autres = st.tabs([
+    f"🎯 France ({len(france_items)})",
+    f"🌍 International + 🗑️ Exclues ({len(internationales) + len(exclues)})",
 ])
-with onglet_opt:
-    st.caption("Offres France classées par adéquation avec ton profil "
-               "(compétences en commun, titre compté double). Profil éditable à gauche.")
-    avec_match = [t for t in optimum if t[0] > 0]
-    st.download_button(
-        "⬇️ Télécharger le classement Optimum (CSV)",
-        data=csv_bytes([dict(ro.ligne(o), score=sc, competences=", ".join(comp))
-                        for sc, comp, o in optimum],
-                       champs + ["score", "competences"]),
-        file_name="offres_optimum.csv", mime="text/csv", key="optimum_csv",
-        disabled=not optimum,
-    )
-    if not avec_match:
-        st.info("Aucune offre ne correspond au profil. Vérifie la liste de compétences.")
-    for sc, comp, o in optimum:
-        if sc > 0:
-            afficher_offre(o, match=comp, score=sc)
 with onglet_fr:
-    if francaises:
-        afficher_liste(francaises, "offres_france.csv")
+    st.caption("Toutes les offres France. Ordre : 🆕 parues aujourd'hui d'abord "
+               "(les plus pertinentes en tête), puis par adéquation profil (⭐), "
+               "puis par date. Clique une annonce pour son détail.")
+    vue_liste_detail(france_items, "fr", "offres_france.csv")
+
+with onglet_autres:
+    # Tableau combiné International + Exclues, filtrable + triable (clic en-tête)
+    lignes_tbl = []
+    for o in internationales:
+        r = ro.ligne(o)
+        r.update(statut="International", motif="", source=o.get("_source", ""))
+        lignes_tbl.append(r)
+    for e in exclues:
+        lignes_tbl.append({
+            "intitule": e.get("intitule", ""), "entreprise": e.get("entreprise", ""),
+            "lieu": e.get("lieu", ""), "contrat": e.get("contrat", ""),
+            "date": e.get("date", ""), "url": e.get("url", ""),
+            "statut": "Exclue", "motif": e.get("raison_exclusion", ""), "source": "",
+        })
+
+    if not lignes_tbl:
+        st.info("Aucune offre internationale ni exclue.")
     else:
-        st.info("Aucune offre en France avec ces critères.")
-with onglet_int:
-    if internationales:
-        afficher_liste(internationales, "offres_international.csv")
-    else:
-        st.info("Aucune offre hors de France.")
-with onglet_exc:
-    if exclues:
-        compte = stats["compte"]
-        st.markdown("**Répartition par motif d'exclusion :**")
-        for raison, n in sorted(compte.items(), key=lambda x: -x[1]):
-            st.markdown(f"- {raison} : **{n}**")
-        st.dataframe(exclues, use_container_width=True, hide_index=True)
-    else:
-        st.info("Aucune offre exclue.")
+        with st.expander("Répartition des exclusions par motif"):
+            for raison, n in sorted(stats["compte"].items(), key=lambda x: -x[1]):
+                st.markdown(f"- {raison} : **{n}**")
+
+        f1, f2, f3 = st.columns([1, 2, 2])
+        statuts = f1.multiselect("Statut", ["International", "Exclue"],
+                                 default=["International", "Exclue"], key="f_statut")
+        motifs_dispo = sorted({r["motif"] for r in lignes_tbl if r["motif"]})
+        motifs = f2.multiselect("Motif d'exclusion", motifs_dispo, default=motifs_dispo,
+                                key="f_motif")
+        recherche = f3.text_input("Filtrer (titre / entreprise)", key="f_txt")
+
+        rt = recherche.strip().lower()
+        table = [
+            r for r in lignes_tbl
+            if r["statut"] in statuts
+            and not (r["statut"] == "Exclue" and motifs_dispo and r["motif"] not in motifs)
+            and (not rt or rt in (r["intitule"] + " " + r["entreprise"]).lower())
+        ]
+        st.caption(f"{len(table)} ligne(s) — clique un en-tête de colonne pour trier.")
+        st.dataframe(
+            table, use_container_width=True, hide_index=True,
+            column_order=["statut", "motif", "intitule", "entreprise", "lieu",
+                          "contrat", "date", "source", "url"],
+            column_config={
+                "url": st.column_config.LinkColumn("Lien", display_text="ouvrir"),
+                "statut": "Statut", "motif": "Motif", "intitule": "Intitulé",
+                "entreprise": "Entreprise", "lieu": "Lieu", "contrat": "Contrat",
+                "date": "Date", "source": "Source",
+            },
+        )

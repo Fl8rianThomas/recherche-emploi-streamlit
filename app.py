@@ -117,13 +117,6 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
             index=contrats.index(ro.CONFIG["type_contrat"] or ""),
             format_func=lambda x: x or "Tous",
         )
-        recherche_asie = st.checkbox(
-            "🌏 Inclure l'Asie (entreprises FR à l'étranger)", value=True,
-            help="Interroge France Travail et Adzuna FR avec des mots-clés Asie "
-                 "(Asie, Singapour, Hong Kong, Shanghai, Tokyo, Dubaï) et alimente "
-                 "un onglet dédié aux annonces EN FRANÇAIS visant l'Asie. "
-                 "Consomme des appels API supplémentaires — décoche pour t'en passer.",
-        )
     variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
     departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
     if lieu_saisi.strip():
@@ -133,19 +126,6 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
         if lieu_nom:
             det.append(f"Adzuna/Jooble → « {lieu_nom} »")
         st.caption(" · ".join(det) if det else "lieu non reconnu")
-
-    if recherche_asie:
-        asie_termes_txt = st.text_area(
-            "🌏 Mots-clés Asie (un par ligne)",
-            value="\n".join(ro.TERMES_ASIE_PAR_DEFAUT), height=110,
-            help="Envoyés à France Travail + Adzuna FR pour alimenter l'onglet Asie. "
-                 "Chaque ligne lance une recherche distincte (ex: Bangkok, Vietnam, "
-                 "Chine…). Sur cet onglet : tes exclusions de titre s'appliquent, "
-                 "mais l'inclusion stricte et le filtre ESN sont désactivés.",
-        )
-        asie_termes = [x.strip() for x in asie_termes_txt.splitlines() if x.strip()]
-    else:
-        asie_termes = []
 
 # 2) Filtres (période, volume, pertinence, exclusions)
 with st.expander("🧹 Filtres — période, pertinence, exclusions"):
@@ -188,6 +168,17 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
         )
         exclure_titres = [x.strip() for x in exclusions_txt.splitlines() if x.strip()]
 
+    st.divider()
+    intl_txt = st.text_area(
+        "🌍 Onglet International — mots-clés (un par ligne)",
+        value="\n".join(ro.MOTS_INTERNATIONAL_PAR_DEFAUT), height=90,
+        help="Alimente l'onglet « 🌍 International » : parmi tes offres BA, celles "
+             "dont le titre OU la description contient un de ces mots (international, "
+             "monde, Asie, Singapour, export…). N'ajoute aucune requête API. Filtre "
+             "ESN désactivé sur cet onglet ; tri par score profil.",
+    )
+    mots_international = [x.strip() for x in intl_txt.splitlines() if x.strip()]
+
 # 3) Profil Optimum (classement par adéquation)
 with st.expander("⭐ Profil Optimum — classement par adéquation"):
     profil_txt = st.text_area(
@@ -218,7 +209,8 @@ if go:
         st.warning("Indique au moins un métier à rechercher.")
         st.stop()
 
-    # Sources France : (label, fn(terme)). La recherche normale = variantes métier.
+    # Sources France : (label, fn(terme)). La recherche = variantes métier.
+    # L'onglet International ne lance AUCUNE requête : il filtre ces mêmes offres.
     fetchers = []
     if "France Travail" in sources:
         fetchers.append(("France Travail", lambda t: chercher_france_travail(
@@ -229,43 +221,24 @@ if go:
     if "Jooble" in sources:
         fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
 
-    # Recherche Asie : on interroge les MÊMES sources françaises mais avec des
-    # mots-clés « Asie / hub » éditables (les boards étrangers ne renvoient que de
-    # l'anglais, rejeté ensuite). Ces requêtes sont indépendantes des variantes
-    # métier et bornées (ASIE_MAX) ; le tri par score profil remonte les RH/BA.
-    ASIE_MAX = 30
-    asie_fetchers = []
-    if recherche_asie and asie_termes:
-        if "France Travail" in sources:
-            asie_fetchers.append(("🌏 France Travail", lambda t: chercher_france_travail(
-                t, "", type_contrat, ASIE_MAX, jours_max)))
-        if "Adzuna" in sources:
-            asie_fetchers.append(("🌏 Adzuna FR", lambda t: chercher_adzuna(
-                t, "", type_contrat, ASIE_MAX, jours_max)))
-
-    plan = ([(t, src, fn, None) for t in variantes for src, fn in fetchers]
-            + [(t, src, fn, "Asie") for t in asie_termes for src, fn in asie_fetchers])
-    brutes, erreurs, total = [], [], len(plan)
+    brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
     with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
-                   f"+ {len(asie_fetchers)} sources Asie ({total} requêtes)…",
-                   expanded=True) as statut:
+                   f"({total} requêtes)…", expanded=True) as statut:
         barre = st.progress(0.0)
         journal = st.empty()
         lignes, fait = [], 0
-        for terme, nom_src, fn, zone in plan:
-            fait += 1
-            barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
-            try:
-                res = _tag(fn(terme), terme)
-                if zone:
-                    for o in res:
-                        o["_zone"] = zone
-                brutes += res
-                lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
-                              f"_(cumul brut : {len(brutes)})_")
-            except Exception as e:  # noqa: BLE001
-                erreurs.append(f"{nom_src} « {terme} » : {e}")
-                lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
+        for terme in variantes:
+            for nom_src, fn in fetchers:
+                fait += 1
+                barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
+                try:
+                    res = _tag(fn(terme), terme)
+                    brutes += res
+                    lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
+                                  f"_(cumul brut : {len(brutes)})_")
+                except Exception as e:  # noqa: BLE001
+                    erreurs.append(f"{nom_src} « {terme} » : {e}")
+                    lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
             journal.markdown("\n".join(f"- {x}" for x in lignes))
         barre.empty()
         statut.update(
@@ -299,30 +272,25 @@ if not gardees:
     st.warning("Aucune offre retenue avec ces critères.")
     st.stop()
 
-# Separation France / International / Asie.
-# - asie : vue transversale = toute offre en français évoquant l'Asie (qu'elle
-#   vienne d'une requête France ou d'une requête ciblée étranger).
-# - France / International : on écarte les offres issues des requêtes ciblées
-#   Asie (_zone="Asie") pour ne pas inonder ces onglets d'annonces étrangères
-#   en anglais ; elles n'apparaissent que dans l'onglet Asie si elles passent.
-# Pool Asie : on applique tes EXCLUSIONS de titre + ancienneté + doublons, mais
-# PAS l'inclusion stricte (les intitulés Asie — « Directeur zone Asie », « VIE
-# export »… — ne contiennent presque jamais analyst/business/fonctionnel, ça
-# viderait l'onglet) NI les exclusions ESN. Le tri par score profil (⭐) remonte
-# les postes RH/BA en tête.
-gardees_asie, _, _ = ro.filtrer(brutes, jours_max, exclure_titres,
-                                inclure_titres=None, ignorer_esn=True)
-asie = [o for o in gardees_asie if ro.cible_asie(o)]
-internationales = [o for o in gardees
-                   if o.get("_zone") != "Asie" and ro.est_international(o)]
-francaises = [o for o in gardees
-              if o.get("_zone") != "Asie" and not ro.est_international(o)]
+# Onglet « 🌍 BA International » : parmi les offres BA, celles dont le titre OU la
+# description mentionne un mot international (liste éditable). Mêmes filtres titre
+# que l'onglet France, MAIS sans les exclusions ESN (une ESN recrutant à
+# l'international reste une piste). Aucune requête API : on refiltre les brutes.
+gardees_intl, _, _ = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
+                                ignorer_esn=True)
+regex_intl = ro.construire_regex(mots_international) if mots_international else None
+ba_intl = [o for o in gardees_intl if regex_intl and ro.mentionne(o, regex_intl)]
+
+# Separation geographique France / International (lieu hors France) pour l'onglet
+# combiné « International + Exclues ».
+internationales = [o for o in gardees if ro.est_international(o)]
+francaises = [o for o in gardees if not ro.est_international(o)]
 
 c1, c2, c3, c4, c5, c6 = st.columns(6)
 c1.metric("Récupérées", stats["brutes"])
 c2.metric("France", len(francaises))
-c3.metric("🌏 Asie (FR)", len(asie))
-c4.metric("International", len(internationales))
+c3.metric("🌍 BA Inter.", len(ba_intl))
+c4.metric("Hors France", len(internationales))
 c5.metric("Exclues", stats["exclues"])
 c6.metric("Doublons", stats["doublons"])
 
@@ -493,12 +461,12 @@ def _items(offres):
     return items
 
 
-asie_items = _items(asie)
+ba_intl_items = _items(ba_intl)
 
-onglet_fr, onglet_asie, onglet_autres, onglet_dash = st.tabs([
+onglet_fr, onglet_intl, onglet_autres, onglet_dash = st.tabs([
     f"🎯 France ({len(france_items)})",
-    f"🌏 Asie / FR→Étranger ({len(asie_items)})",
-    f"🌍 International + 🗑️ Exclues ({len(internationales) + len(exclues)})",
+    f"🌍 BA International ({len(ba_intl_items)})",
+    f"🌐 Hors France + 🗑️ Exclues ({len(internationales) + len(exclues)})",
     "📊 Tableau de bord",
 ])
 with onglet_fr:
@@ -508,13 +476,13 @@ with onglet_fr:
                "Profil & filtres éditables en haut de page.")
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
-with onglet_asie:
-    st.caption("Entreprises FR recrutant pour l'Asie : annonces **en français** "
-               "évoquant l'Asie ou un hub (mots-clés éditables en haut), souvent "
-               "basées en France. Filtres : **exclusions de titre + ancienneté** "
-               "appliquées, **inclusion stricte et filtre ESN désactivés** (sinon "
-               "l'onglet se vide). Tri par score profil ⭐ pour remonter le RH/BA.")
-    vue_liste_detail(asie_items, "asie", "offres_asie.csv")
+with onglet_intl:
+    st.caption("Tes offres **Business Analyst** (mêmes filtres titre que l'onglet "
+               "France) dont l'intitulé **ou** la description mentionne un mot "
+               "**international** (liste éditable dans 🧹 Filtres : international, "
+               "monde, Asie, Singapour, export…). **Filtre ESN désactivé** ici. "
+               "Tri par score profil ⭐ (RH/BA en tête).")
+    vue_liste_detail(ba_intl_items, "intl", "offres_international.csv")
 
 with onglet_autres:
     # Tableau combiné International + Exclues, filtrable + triable (clic en-tête)

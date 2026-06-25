@@ -85,101 +85,101 @@ def csv_bytes(lignes, champs):
     return buf.getvalue().encode("utf-8-sig")
 
 
-# === Barre laterale : criteres =============================================
-st.sidebar.header("Critères de recherche")
-TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble"]
-sources = st.sidebar.multiselect(
-    "Sources", TOUTES_SOURCES, default=TOUTES_SOURCES,
-    help="Les offres des sources cochées sont fusionnées et dédoublonnées.",
-)
-variantes_txt = st.sidebar.text_area(
-    "Métiers recherchés (une variante par ligne)",
-    value="\n".join(ro.SYNONYMES_PAR_DEFAUT), height=180,
-    help="Chaque ligne lance une recherche distincte. Les résultats sont "
-         "fusionnés et dédoublonnés, pour capter les offres titrées avec un "
-         "synonyme (ex: « analyste d'affaires »).",
-)
-variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
-
-lieu_saisi = st.sidebar.text_input(
-    "Lieu", value="",
-    help="Code département (75, 69…) OU ville/région (Paris, Lyon…). "
-         "Vide = toute la France. Traduit automatiquement pour chaque source.",
-)
-departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
-if lieu_saisi.strip():
-    detail = []
-    if departement:
-        detail.append(f"FT → dépt {departement}")
-    if lieu_nom:
-        detail.append(f"Adzuna/Jooble → « {lieu_nom} »")
-    st.sidebar.caption(" · ".join(detail) if detail else "lieu non reconnu")
-
-contrats = ["", "CDI", "CDD", "MIS"]
-type_contrat = st.sidebar.selectbox(
-    "Type de contrat", options=contrats,
-    index=contrats.index(ro.CONFIG["type_contrat"] or ""),
-    format_func=lambda x: x or "Tous",
-    help="Pour Adzuna, MIS (intérim) n'est pas filtré (CDI/CDD seulement).",
-)
-max_offres = st.sidebar.slider(
-    "Nombre max d'offres / variante / source", 10, 200, 50, 10,
-    help="Plafond par recherche. Avec plusieurs variantes, le total cumulé "
-         "peut être bien plus élevé.",
-)
-st.sidebar.divider()
-st.sidebar.subheader("🧹 Filtres")
-jours_recent = int(st.sidebar.number_input(
-    "🆕 Offres récentes (jours)", min_value=0, max_value=60, value=1, step=1,
-    help="Seuil de nouveauté : une offre parue il y a ≤ N jours est marquée 🆕 et "
-         "remontée en tête. N'exclut rien (c'est juste la priorité d'affichage).",
-))
-jours_max = int(st.sidebar.number_input(
-    "Ancienneté max (jours)", min_value=0, max_value=365, value=7, step=1,
-    help="Date la plus ancienne des offres à afficher : exclut celles parues il y "
-         "a plus de N jours (0 = pas de limite). Envoyé aux API → change la valeur "
-         "puis relance « Rechercher » pour élargir la fenêtre.",
-))
-
-filtre_pertinence = st.sidebar.checkbox(
-    "Titre pertinent obligatoire", value=True,
-    help="Ne garde que les offres dont le TITRE contient un des mots ci-dessous. "
-         "Élimine le bruit capté via la description seule (développeurs, techniciens…).",
-)
-if filtre_pertinence:
-    inclusions_txt = st.sidebar.text_area(
-        "Le titre doit contenir un de ces mots",
-        value="\n".join(ro.INCLUSIONS_TITRE_PAR_DEFAUT), height=110,
-    )
-    inclure_titres = [x.strip() for x in inclusions_txt.splitlines() if x.strip()]
-else:
-    inclure_titres = None
-
-exclusions_txt = st.sidebar.text_area(
-    "Exclure si le titre contient (un mot par ligne)",
-    value="\n".join(ro.EXCLUSIONS_TITRE_PAR_DEFAUT), height=120,
-    help="Toute offre dont le titre contient un de ces mots est écartée "
-         "(accents/casse ignorés). Pour virer les métiers voisins.",
-)
-exclure_titres = [x.strip() for x in exclusions_txt.splitlines() if x.strip()]
-
-st.sidebar.divider()
-st.sidebar.subheader("⭐ Profil Optimum")
-profil_txt = st.sidebar.text_area(
-    "Profil Optimum (compétences, une par ligne)",
-    value="\n".join(ro.PROFIL_OPTIMUM), height=200,
-    help="Classe les offres de l'onglet ⭐ Optimum. Chaque ligne vaut son poids : "
-         "« terme » = 1, ou « terme:poids » (ex. mutuelle:3). Les domaines (RH, "
-         "mutuelle, assurance, banque) sont pondérés plus fort. Titre = ×2.",
-)
-profil_optimum = [x.strip() for x in profil_txt.splitlines() if x.strip()]
-
-go = st.sidebar.button("🔎 Rechercher", type="primary", use_container_width=True)
-
-
-# === Page principale ========================================================
+# === En-tete : critères (en haut de page) ==================================
 st.title("🔎 Recherche d'offres")
 st.caption("Recherche multi-variantes, filtrée des ESN, cabinets et doublons.")
+
+TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble"]
+contrats = ["", "CDI", "CDD", "MIS"]
+
+# 1) Recherche (métiers, lieu, sources, contrat) — repliée une fois lancée
+with st.expander("🔎 Critères de recherche", expanded=not st.session_state.get("lancee")):
+    col_m, col_p = st.columns([3, 2])
+    with col_m:
+        variantes_txt = st.text_area(
+            "Métiers recherchés (une variante par ligne)",
+            value="\n".join(ro.SYNONYMES_PAR_DEFAUT), height=150,
+            help="Chaque ligne lance une recherche distincte ; les résultats sont "
+                 "fusionnés et dédoublonnés (ex: « analyste d'affaires »).",
+        )
+    with col_p:
+        sources = st.multiselect(
+            "Sources", TOUTES_SOURCES, default=TOUTES_SOURCES,
+            help="Les sources cochées sont fusionnées et dédoublonnées.",
+        )
+        lieu_saisi = st.text_input(
+            "Lieu", value="",
+            help="Code département (75, 69…) ou ville/région (Paris, Lyon…). "
+                 "Vide = toute la France.",
+        )
+        type_contrat = st.selectbox(
+            "Type de contrat", options=contrats,
+            index=contrats.index(ro.CONFIG["type_contrat"] or ""),
+            format_func=lambda x: x or "Tous",
+        )
+    variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
+    departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
+    if lieu_saisi.strip():
+        det = []
+        if departement:
+            det.append(f"FT → dépt {departement}")
+        if lieu_nom:
+            det.append(f"Adzuna/Jooble → « {lieu_nom} »")
+        st.caption(" · ".join(det) if det else "lieu non reconnu")
+
+# 2) Filtres (période, volume, pertinence, exclusions)
+with st.expander("🧹 Filtres — période, pertinence, exclusions"):
+    fp1, fp2, fp3 = st.columns(3)
+    jours_recent = int(fp1.number_input(
+        "🆕 Offres récentes (jours)", min_value=0, max_value=60, value=1, step=1,
+        help="Seuil de nouveauté : une offre ≤ N jours est marquée 🆕 et remontée "
+             "en tête. N'exclut rien.",
+    ))
+    jours_max = int(fp2.number_input(
+        "Ancienneté max (jours)", min_value=0, max_value=365, value=7, step=1,
+        help="Exclut les offres parues il y a plus de N jours (0 = sans limite). "
+             "Envoyé aux API → relance « Rechercher » pour élargir.",
+    ))
+    max_offres = fp3.slider(
+        "Max d'offres / variante / source", 10, 200, 50, 10,
+        help="Plafond par recherche. Le total cumulé peut être bien plus élevé.",
+    )
+    col_inc, col_exc = st.columns(2)
+    with col_inc:
+        filtre_pertinence = st.checkbox(
+            "Titre pertinent obligatoire", value=True,
+            help="Ne garde que les offres dont le TITRE contient un de ces mots "
+                 "(élimine le bruit capté via la description seule).",
+        )
+        if filtre_pertinence:
+            inclusions_txt = st.text_area(
+                "Le titre doit contenir un de ces mots",
+                value="\n".join(ro.INCLUSIONS_TITRE_PAR_DEFAUT), height=120,
+            )
+            inclure_titres = [x.strip() for x in inclusions_txt.splitlines() if x.strip()]
+        else:
+            inclure_titres = None
+    with col_exc:
+        exclusions_txt = st.text_area(
+            "Exclure si le titre contient (un mot par ligne)",
+            value="\n".join(ro.EXCLUSIONS_TITRE_PAR_DEFAUT), height=152,
+            help="Offre écartée si son titre contient un de ces mots "
+                 "(accents/casse ignorés).",
+        )
+        exclure_titres = [x.strip() for x in exclusions_txt.splitlines() if x.strip()]
+
+# 3) Profil Optimum (classement par adéquation)
+with st.expander("⭐ Profil Optimum — classement par adéquation"):
+    profil_txt = st.text_area(
+        "Compétences (une par ligne ; « terme:poids », ex. mutuelle:3)",
+        value="\n".join(ro.PROFIL_OPTIMUM), height=160,
+        help="Classe l'onglet France par adéquation. Les domaines (RH, mutuelle, "
+             "assurance, banque) sont pondérés plus fort. Titre compté ×2.",
+    )
+    profil_optimum = [x.strip() for x in profil_txt.splitlines() if x.strip()]
+
+go = st.button("🔎 Rechercher", type="primary")
+st.divider()
 
 def _tag(offres, terme):
     """Marque chaque offre avec la variante qui l'a ramenée (badge « via »)."""
@@ -241,7 +241,7 @@ if go:
 
 # Tant qu'aucune recherche n'a été lancée : écran d'accueil
 if not st.session_state.get("lancee"):
-    st.info("Renseigne tes critères à gauche puis clique sur **Rechercher**.")
+    st.info("Renseigne tes critères ci-dessus puis clique sur **Rechercher**.")
     st.stop()
 
 brutes = st.session_state["brutes"]
@@ -331,6 +331,10 @@ def afficher_detail(it):
     if salaire:
         meta += f" · 💶 {salaire}"
     st.markdown(meta)
+    if it.get("rh"):
+        rh_mots = ro.competences_rh(it.get("comp") or [])
+        chips = " ".join(f"`{m}`" for m in rh_mots)
+        st.markdown(f"👥 **Domaine RH détecté** : {chips}")
     if it.get("comp"):
         chips = " ".join(f"`{m}`" for m in it["comp"])
         st.markdown(f"⭐ **Score {it['score']}** ({len(it['comp'])} compétences) : {chips}")
@@ -394,6 +398,8 @@ def vue_liste_detail(items, cle, csv_nom):
                 ent = ro.nom_entreprise(o) or "Entreprise non précisée"
                 d = (o.get("dateCreation", "") or "")[:10]
                 bdg = ("🆕 " if it.get("recent") else "")
+                if it.get("rh"):
+                    bdg += "👥 "
                 if it.get("score"):
                     bdg += f"⭐{it['score']} "
                 if d:
@@ -413,7 +419,8 @@ def vue_liste_detail(items, cle, csv_nom):
 france_items = []
 for o in francaises:
     sc, comp = ro.score_optimum(o, profil_optimum)
-    france_items.append({"o": o, "score": sc, "comp": comp, "recent": _est_recente(o)})
+    france_items.append({"o": o, "score": sc, "comp": comp,
+                         "recent": _est_recente(o), "rh": ro.comprend_rh(comp)})
 france_items.sort(key=lambda it: (it["recent"], it["score"],
                                   (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
 
@@ -425,7 +432,8 @@ onglet_fr, onglet_autres, onglet_dash = st.tabs([
 with onglet_fr:
     st.caption(f"Toutes les offres France. Ordre : 🆕 récentes (≤ {jours_recent} j) "
                "d'abord (les plus pertinentes en tête), puis par adéquation profil "
-               "(⭐), puis par date. Clique une annonce pour son détail.")
+               "(⭐), puis par date. Clique une annonce pour son détail. "
+               "Profil & filtres éditables en haut de page.")
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_autres:

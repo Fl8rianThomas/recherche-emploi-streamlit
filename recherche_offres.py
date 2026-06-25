@@ -66,10 +66,14 @@ EXCLUSIONS_TITRE_PAR_DEFAUT = [
 # (RH, mutuelle, assurance, banque...) sont volontairement pondered plus fort.
 # Editable dans l'interface.
 PROFIL_OPTIMUM = [
-    # Domaines / secteurs d'experience (poids fort)
-    "ressources humaines:3", "rh:3", "sirh:3", "mutuelle:3", "assurance:3",
-    "protection sociale:3", "prevoyance:3", "banque:3", "recrutement:2",
-    "paie:2", "remuneration:2", "force de vente:2", "commercial:2",
+    # Domaine RH (coeur d'expertise) - poids tres fort
+    "ressources humaines:5", "rh:5", "sirh:5", "human resources:5",
+    "hris:5", "hcm:5", "gpec:5", "administration du personnel:5",
+    "gestion du personnel:5", "talentsoft:5",
+    "recrutement:3", "remuneration:3",
+    # Autres domaines / secteurs d'experience
+    "mutuelle:3", "assurance:3", "protection sociale:3", "prevoyance:3",
+    "banque:3", "force de vente:2", "commercial:2",
     # Metier / methodes (poids moyen)
     "amoa:2", "analyse fonctionnelle:2", "maitrise d'ouvrage:2",
     "specifications fonctionnelles:1", "regles de gestion:1", "bpmn:1",
@@ -78,6 +82,21 @@ PROFIL_OPTIMUM = [
     "sql:1", "figma:1", "jira:1", "confluence:1", "salesforce:1",
     "agile:1", "scrum:1", "kanban:1", "psm:1", "backlog:1",
 ]
+
+# Competences relevant du domaine RH -> declenchent l'icone 👥 dans l'interface.
+COMPETENCES_RH = {
+    "ressources humaines", "rh", "sirh", "human resources", "hris", "hcm",
+    "gpec", "administration du personnel", "gestion du personnel",
+    "talentsoft", "recrutement", "remuneration",
+}
+
+def competences_rh(competences):
+    """Sous-ensemble des competences trouvees qui relevent du domaine RH."""
+    return [c for c in competences if normaliser(c) in COMPETENCES_RH]
+
+def comprend_rh(competences):
+    """True si au moins une competence trouvee releve du domaine RH."""
+    return bool(competences_rh(competences))
 
 # === 2. LISTES D'EXCLUSION ==================================================
 ESN_CONNUES = {
@@ -489,6 +508,23 @@ def _adzuna_vers_offre(j):
         "_source": "Adzuna",
     }
 
+TRANSITOIRES = (429, 500, 502, 503, 504)
+
+def _get_avec_retries(url, params, timeout=20, tentatives=3):
+    """GET avec reessais sur erreurs reseau ou statuts transitoires (5xx/429)."""
+    derniere = None
+    for n in range(tentatives):
+        try:
+            r = requests.get(url, params=params, timeout=timeout)
+            if r.status_code not in TRANSITOIRES:
+                return r
+            derniere = f"HTTP {r.status_code}"
+        except requests.exceptions.RequestException as e:
+            derniere = str(e)
+        if n < tentatives - 1:
+            time.sleep(1.5 * (n + 1))
+    raise RuntimeError(f"service indisponible après {tentatives} essais ({derniere})")
+
 def rechercher_adzuna(config, app_id, app_key):
     """Recherche Adzuna (pays 'fr' par defaut). Retourne des offres au format interne."""
     pays = config.get("pays_adzuna", "fr")
@@ -510,9 +546,9 @@ def rechercher_adzuna(config, app_id, app_key):
     offres, page = [], 1
     while len(offres) < config["max_offres"]:
         url = ADZUNA_SEARCH_URL.format(pays=pays, page=page)
-        r = requests.get(url, params=base, timeout=20)
+        r = _get_avec_retries(url, base)
         if r.status_code != 200:
-            raise RuntimeError(f"Adzuna {r.status_code} : {r.text[:200]}")
+            raise RuntimeError(f"Adzuna {r.status_code}")
         lot = r.json().get("results", [])
         if not lot:
             break

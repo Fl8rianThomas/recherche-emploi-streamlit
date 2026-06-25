@@ -91,6 +91,19 @@ def chercher_adzuna_pays(mots_cles, pays, max_offres, jours_max):
     return offres
 
 
+@st.cache_data(show_spinner=False)
+def chercher_jsearch(mots_cles, pays, max_offres):
+    """JSearch (RapidAPI) sur un pays Google for Jobs (hk, jp, vn, th…)."""
+    key = os.getenv("RAPIDAPI_KEY")
+    if not key:
+        raise RuntimeError(
+            "JSearch : RAPIDAPI_KEY manquant dans .env "
+            "(clé gratuite : abonnement JSearch sur rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch)"
+        )
+    config = dict(ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres, pays_jsearch=pays)
+    return ro.rechercher_jsearch(config, key)
+
+
 def champ(o, *chemin, defaut=""):
     cur = o
     for cle in chemin:
@@ -142,10 +155,11 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
         )
         recherche_intl = st.checkbox(
             "🌏 Inclure l'international (Asie)", value=True,
-            help="Interroge des sources étrangères gratuites — MyCareersFuture "
-                 "(Singapour) et Adzuna Singapour — avec tes variantes métier, "
-                 "et alimente l'onglet « 🌍 BA International ». Quelques requêtes "
-                 "supplémentaires ; décoche pour t'en passer.",
+            help="Interroge des sources étrangères — MyCareersFuture (Singapour) "
+                 "et Adzuna Singapour (gratuit), + JSearch (Hong Kong, Dubaï, Japon, "
+                 "Taïwan, Vietnam, Thaïlande, Malaisie) si une clé RAPIDAPI_KEY est "
+                 "présente dans .env. Alimente l'onglet « 🌍 BA International ». "
+                 "Décoche pour t'en passer.",
         )
     variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
     departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
@@ -239,8 +253,7 @@ if go:
         st.warning("Indique au moins un métier à rechercher.")
         st.stop()
 
-    # Sources : (label, fn(terme), zone). zone="International" = sources étrangères
-    # (Singapour / Inde) dont les offres alimentent l'onglet « 🌍 BA International ».
+    # Sources France : (label, fn(terme), zone), interrogées pour chaque variante.
     fetchers = []
     if "France Travail" in sources:
         fetchers.append(("France Travail", lambda t: chercher_france_travail(
@@ -251,35 +264,52 @@ if go:
     if "Jooble" in sources:
         fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres), None))
 
+    # Plan = (terme, label, fn, zone). Les sources France tournent par variante.
+    plan = [(t, label, fn, zone) for t in variantes for (label, fn, zone) in fetchers]
+
     if recherche_intl:
         INTL_MAX = 30
-        fetchers.append(("🇸🇬 MyCareersFuture",
-                         lambda t: chercher_mycareersfuture(t, INTL_MAX), "International"))
-        if "Adzuna" in sources:
-            fetchers.append(("🇸🇬 Adzuna Singapour",
-                             lambda t: chercher_adzuna_pays(t, "sg", INTL_MAX, jours_max), "International"))
+        # Singapour (par variante : MyCareersFuture + Adzuna SG)
+        for t in variantes:
+            plan.append((t, "🇸🇬 MyCareersFuture",
+                         lambda q: chercher_mycareersfuture(q, INTL_MAX), "International"))
+            if "Adzuna" in sources:
+                plan.append((t, "🇸🇬 Adzuna Singapour",
+                             lambda q: chercher_adzuna_pays(q, "sg", INTL_MAX, jours_max), "International"))
+        # JSearch : 1 requête par PAYS (indépendant des variantes → ménage le quota
+        # RapidAPI). Actif seulement si une clé est configurée.
+        if os.getenv("RAPIDAPI_KEY"):
+            JSEARCH_QUERY = "HR business analyst"
+            JSEARCH_PAYS = [("hk", "🇭🇰 Hong Kong"), ("ae", "🇦🇪 Dubaï"),
+                            ("jp", "🇯🇵 Japon"), ("tw", "🇹🇼 Taïwan"),
+                            ("vn", "🇻🇳 Vietnam"), ("th", "🇹🇭 Thaïlande"),
+                            ("my", "🇲🇾 Malaisie")]
+            for code, lib in JSEARCH_PAYS:
+                plan.append((JSEARCH_QUERY, f"JSearch {lib}",
+                             lambda q, c=code: chercher_jsearch(q, c, 10), "International"))
 
-    brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
-    with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
-                   f"({total} requêtes)…", expanded=True) as statut:
+    brutes, erreurs, total = [], [], len(plan)
+    with st.status(f"Recherche : {total} requêtes "
+                   f"({len(variantes)} variantes × {len(fetchers)} sources France"
+                   f"{' + international' if recherche_intl else ''})…",
+                   expanded=True) as statut:
         barre = st.progress(0.0)
         journal = st.empty()
         lignes, fait = [], 0
-        for terme in variantes:
-            for nom_src, fn, zone in fetchers:
-                fait += 1
-                barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
-                try:
-                    res = _tag(fn(terme), terme)
-                    if zone:
-                        for o in res:
-                            o["_zone"] = zone
-                    brutes += res
-                    lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
-                                  f"_(cumul brut : {len(brutes)})_")
-                except Exception as e:  # noqa: BLE001
-                    erreurs.append(f"{nom_src} « {terme} » : {e}")
-                    lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
+        for terme, nom_src, fn, zone in plan:
+            fait += 1
+            barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
+            try:
+                res = _tag(fn(terme), terme)
+                if zone:
+                    for o in res:
+                        o["_zone"] = zone
+                brutes += res
+                lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
+                              f"_(cumul brut : {len(brutes)})_")
+            except Exception as e:  # noqa: BLE001
+                erreurs.append(f"{nom_src} « {terme} » : {e}")
+                lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
             journal.markdown("\n".join(f"- {x}" for x in lignes))
         barre.empty()
         statut.update(
@@ -529,10 +559,11 @@ with onglet_fr:
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_intl:
-    st.caption("Uniquement de **vrais postes à l'étranger** : 🇸🇬 MyCareersFuture "
-               "(Singapour) + Adzuna Singapour, **plus** les offres FR dont le "
-               "**titre** est explicitement international (« Responsable zone Asie »…). "
-               "VIE et bruit franco-français exclus. Tri par score profil ⭐.")
+    st.caption("Uniquement de **vrais postes à l'étranger** : 🇸🇬 Singapour "
+               "(MyCareersFuture + Adzuna) et — si clé RapidAPI — 🇭🇰 Hong Kong, "
+               "🇦🇪 Dubaï, 🇯🇵 Japon, 🇹🇼 Taïwan, 🇻🇳 Vietnam, 🇹🇭 Thaïlande, 🇲🇾 Malaisie "
+               "via **JSearch** ; **plus** les offres FR au titre explicitement "
+               "international. VIE et bruit franco-français exclus. Tri par score ⭐.")
     vue_liste_detail(ba_intl_items, "intl", "offres_international.csv")
 
 with onglet_autres:

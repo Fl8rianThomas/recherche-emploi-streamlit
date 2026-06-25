@@ -43,11 +43,19 @@ pip install -r requirements.txt
 ## Étape 5 — Renseigner tes clés
 
 1. Renomme le fichier `.env.example` en **`.env`**.
-2. Ouvre-le et colle ton identifiant et ta clé secrète :
+2. Ouvre-le et colle tes identifiants :
    ```
    FT_CLIENT_ID=ton_identifiant
    FT_CLIENT_SECRET=ta_cle_secrete
+   ADZUNA_APP_ID=...
+   ADZUNA_APP_KEY=...
+   JOOBLE_API_KEY=...
+   # Optionnel — onglet « BA International » hors Singapour (Hong Kong, Dubaï,
+   # Japon, Taïwan, Vietnam, Thaïlande, Malaisie) via JSearch :
+   RAPIDAPI_KEY=ta_cle_rapidapi
    ```
+   La clé JSearch est gratuite : crée un compte sur rapidapi.com, abonne-toi à
+   l'API **JSearch** (plan Basic gratuit) et copie ta `X-RapidAPI-Key`.
 3. Enregistre. ⚠️ Ne partage jamais ce fichier.
 
 ## Étape 6 — Lancer

@@ -553,12 +553,12 @@ def _adzuna_vers_offre(j):
 
 TRANSITOIRES = (429, 500, 502, 503, 504)
 
-def _get_avec_retries(url, params, timeout=20, tentatives=3):
+def _get_avec_retries(url, params, timeout=20, tentatives=3, headers=None):
     """GET avec reessais sur erreurs reseau ou statuts transitoires (5xx/429)."""
     derniere = None
     for n in range(tentatives):
         try:
-            r = requests.get(url, params=params, timeout=timeout)
+            r = requests.get(url, params=params, timeout=timeout, headers=headers)
             if r.status_code not in TRANSITOIRES:
                 return r
             derniere = f"HTTP {r.status_code}"
@@ -714,6 +714,54 @@ def rechercher_mycareersfuture(config):
         page += 1
         time.sleep(0.3)
     return offres[: config["max_offres"]]
+
+# === 9. SOURCE JSEARCH (RapidAPI / OpenWeb Ninja) ===========================
+# Agrege Google for Jobs (LinkedIn, Indeed, Glassdoor...). Couvre l'Asie via un
+# code pays : hk, jp, tw, vn, th, my, id, ph, ae, sg, in (pas cn ni kr). Cle
+# RapidAPI requise (RAPIDAPI_KEY). 1 requete = ~10 offres (num_pages=1).
+JSEARCH_URL = "https://jsearch.p.rapidapi.com/search"
+
+def _jsearch_salaire(j):
+    bas, haut = j.get("job_min_salary"), j.get("job_max_salary")
+    cur = j.get("job_salary_currency") or ""
+    per = (j.get("job_salary_period") or "").lower()
+    if bas and haut:
+        return f"{cur} {int(bas)}–{int(haut)}/{per}".strip()
+    return ""
+
+def _jsearch_vers_offre(j):
+    """Convertit un resultat JSearch au format interne."""
+    ville, pays = j.get("job_city") or "", j.get("job_country") or ""
+    lieu = ", ".join(x for x in (ville, pays) if x)
+    return {
+        "intitule": j.get("job_title", "") or "",
+        "entreprise": {"nom": j.get("employer_name") or ""},
+        "lieuTravail": {"libelle": lieu},
+        "typeContratLibelle": j.get("job_employment_type") or "",
+        "typeContrat": "",
+        "dateCreation": j.get("job_posted_at_datetime_utc") or "",
+        "description": j.get("job_description") or "",
+        "origineOffre": {"urlOrigine": j.get("job_apply_link") or j.get("job_google_link") or ""},
+        "salaire": {"libelle": _jsearch_salaire(j)},
+        "_source": f"JSearch {pays}".strip(),
+    }
+
+def rechercher_jsearch(config, api_key):
+    """Recherche JSearch (RapidAPI). pays_jsearch = code pays Google for Jobs."""
+    headers = {"X-RapidAPI-Key": api_key, "X-RapidAPI-Host": "jsearch.p.rapidapi.com"}
+    params = {
+        "query": config["mots_cles"],
+        "page": "1",
+        "num_pages": "1",
+        "date_posted": config.get("date_posted", "month"),
+    }
+    if config.get("pays_jsearch"):
+        params["country"] = config["pays_jsearch"]
+    r = _get_avec_retries(JSEARCH_URL, params, timeout=25, headers=headers)
+    if r.status_code != 200:
+        raise RuntimeError(f"JSearch {r.status_code}")
+    data = r.json().get("data") or []
+    return [_jsearch_vers_offre(j) for j in data][: config["max_offres"]]
 
 def main():
     load_dotenv(override=True)

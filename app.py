@@ -92,15 +92,15 @@ def chercher_adzuna_pays(mots_cles, pays, max_offres, jours_max):
 
 
 @st.cache_data(show_spinner=False)
-def chercher_jsearch(mots_cles, pays, max_offres):
-    """JSearch (RapidAPI) sur un pays Google for Jobs (hk, jp, vn, th…)."""
+def chercher_jsearch(query, max_offres):
+    """JSearch (RapidAPI). query = « HR business analyst in <lieu> » (lieu inclus)."""
     key = os.getenv("RAPIDAPI_KEY")
     if not key:
         raise RuntimeError(
             "JSearch : RAPIDAPI_KEY manquant dans .env "
             "(clé gratuite : abonnement JSearch sur rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch)"
         )
-    config = dict(ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres, pays_jsearch=pays)
+    config = dict(ro.CONFIG, mots_cles=query, max_offres=max_offres)
     return ro.rechercher_jsearch(config, key)
 
 
@@ -276,17 +276,18 @@ if go:
             if "Adzuna" in sources:
                 plan.append((t, "🇸🇬 Adzuna Singapour",
                              lambda q: chercher_adzuna_pays(q, "sg", INTL_MAX, jours_max), "International"))
-        # JSearch : 1 requête par PAYS (indépendant des variantes → ménage le quota
-        # RapidAPI). Actif seulement si une clé est configurée.
+        # JSearch : 1 requête par LIEU (le lieu va dans la requête, pas en param
+        # country qui renvoie 0 pour HK/SG). Indépendant des variantes → ménage le
+        # quota RapidAPI. Actif seulement si une clé est configurée.
         if os.getenv("RAPIDAPI_KEY"):
-            JSEARCH_QUERY = "HR business analyst"
-            JSEARCH_PAYS = [("hk", "🇭🇰 Hong Kong"), ("ae", "🇦🇪 Dubaï"),
-                            ("jp", "🇯🇵 Japon"), ("tw", "🇹🇼 Taïwan"),
-                            ("vn", "🇻🇳 Vietnam"), ("th", "🇹🇭 Thaïlande"),
-                            ("my", "🇲🇾 Malaisie")]
-            for code, lib in JSEARCH_PAYS:
-                plan.append((JSEARCH_QUERY, f"JSearch {lib}",
-                             lambda q, c=code: chercher_jsearch(q, c, 10), "International"))
+            JSEARCH_LIEUX = [("Hong Kong", "🇭🇰 Hong Kong"), ("Dubai", "🇦🇪 Dubaï"),
+                             ("Tokyo", "🇯🇵 Japon"), ("Taiwan", "🇹🇼 Taïwan"),
+                             ("Ho Chi Minh City", "🇻🇳 Vietnam"), ("Bangkok", "🇹🇭 Thaïlande"),
+                             ("Kuala Lumpur", "🇲🇾 Malaisie")]
+            for lieu_q, lib in JSEARCH_LIEUX:
+                requete = f"HR business analyst in {lieu_q}"
+                plan.append((requete, f"JSearch {lib}",
+                             lambda q: chercher_jsearch(q, 10), "International"))
 
     brutes, erreurs, total = [], [], len(plan)
     with st.status(f"Recherche : {total} requêtes "

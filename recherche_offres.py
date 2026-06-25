@@ -716,21 +716,24 @@ def rechercher_mycareersfuture(config):
     return offres[: config["max_offres"]]
 
 # === 9. SOURCE JSEARCH (RapidAPI / OpenWeb Ninja) ===========================
-# Agrege Google for Jobs (LinkedIn, Indeed, Glassdoor...). Couvre l'Asie via un
-# code pays : hk, jp, tw, vn, th, my, id, ph, ae, sg, in (pas cn ni kr). Cle
-# RapidAPI requise (RAPIDAPI_KEY). 1 requete = ~10 offres (num_pages=1).
-JSEARCH_URL = "https://jsearch.p.rapidapi.com/search"
+# Agrege Google for Jobs (LinkedIn, Indeed, Glassdoor...). Endpoint /search-v2,
+# reponse data.jobs[]. Le LIEU se met dans la requete (« ... in Hong Kong ») :
+# le parametre country seul renvoie 0 pour HK/SG. La Chine continentale n'est
+# pas indexee par Google for Jobs. Cle RapidAPI requise (RAPIDAPI_KEY).
+JSEARCH_URL = "https://jsearch.p.rapidapi.com/search-v2"
 
 def _jsearch_salaire(j):
+    s = j.get("job_salary_string")
+    if s:
+        return s
     bas, haut = j.get("job_min_salary"), j.get("job_max_salary")
-    cur = j.get("job_salary_currency") or ""
     per = (j.get("job_salary_period") or "").lower()
     if bas and haut:
-        return f"{cur} {int(bas)}–{int(haut)}/{per}".strip()
+        return f"{int(bas)}–{int(haut)}/{per}".rstrip("/")
     return ""
 
 def _jsearch_vers_offre(j):
-    """Convertit un resultat JSearch au format interne."""
+    """Convertit un resultat JSearch (/search-v2) au format interne."""
     ville, pays = j.get("job_city") or "", j.get("job_country") or ""
     lieu = ", ".join(x for x in (ville, pays) if x)
     return {
@@ -747,7 +750,7 @@ def _jsearch_vers_offre(j):
     }
 
 def rechercher_jsearch(config, api_key):
-    """Recherche JSearch (RapidAPI). pays_jsearch = code pays Google for Jobs."""
+    """Recherche JSearch (RapidAPI /search-v2). Le lieu est inclus dans mots_cles."""
     headers = {"X-RapidAPI-Key": api_key, "X-RapidAPI-Host": "jsearch.p.rapidapi.com"}
     params = {
         "query": config["mots_cles"],
@@ -755,13 +758,11 @@ def rechercher_jsearch(config, api_key):
         "num_pages": "1",
         "date_posted": config.get("date_posted", "month"),
     }
-    if config.get("pays_jsearch"):
-        params["country"] = config["pays_jsearch"]
-    r = _get_avec_retries(JSEARCH_URL, params, timeout=25, headers=headers)
+    r = _get_avec_retries(JSEARCH_URL, params, timeout=40, headers=headers)
     if r.status_code != 200:
         raise RuntimeError(f"JSearch {r.status_code}")
-    data = r.json().get("data") or []
-    return [_jsearch_vers_offre(j) for j in data][: config["max_offres"]]
+    jobs = (r.json().get("data") or {}).get("jobs") or []
+    return [_jsearch_vers_offre(j) for j in jobs][: config["max_offres"]]
 
 def main():
     load_dotenv(override=True)

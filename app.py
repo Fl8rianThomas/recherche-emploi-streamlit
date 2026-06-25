@@ -310,7 +310,11 @@ if not gardees:
 # - France / International : on écarte les offres issues des requêtes ciblées
 #   Asie (_zone="Asie") pour ne pas inonder ces onglets d'annonces étrangères
 #   en anglais ; elles n'apparaissent que dans l'onglet Asie si elles passent.
-asie = [o for o in gardees if ro.cible_asie(o)]
+# Pool Asie : filtrage SANS les exclusions ESN (une ESN française recrutant en
+# Asie reste une piste). On garde les autres filtres (titre, ancienneté, doublons).
+gardees_asie, _, _ = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
+                                ignorer_esn=True)
+asie = [o for o in gardees_asie if ro.cible_asie(o)]
 internationales = [o for o in gardees
                    if o.get("_zone") != "Asie" and ro.est_international(o)]
 francaises = [o for o in gardees
@@ -509,8 +513,9 @@ with onglet_fr:
 with onglet_asie:
     st.caption("Entreprises FR recrutant à l'étranger : annonces **en français** "
                "évoquant l'Asie ou un hub (Singapour, Hong Kong, Dubaï, Tokyo, "
-               "Shanghai, Bangkok…). Même tri et même profil que l'onglet France. "
-               "Active/désactive cette recherche dans les critères en haut.")
+               "Shanghai, Bangkok…). **Filtres ESN désactivés ici** (une ESN FR à "
+               "l'étranger reste une piste). Même tri et même profil que l'onglet "
+               "France. Active/désactive cette recherche dans les critères en haut.")
     vue_liste_detail(asie_items, "asie", "offres_asie.csv")
 
 with onglet_autres:

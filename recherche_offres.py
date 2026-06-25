@@ -468,7 +468,8 @@ def score_optimum(o, profil):
             score += poids
     return score, trouves
 
-def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None):
+def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
+            ignorer_esn=False):
     """Filtrage ESN + titre + ancienneté + dedoublonnage sur une liste d'offres.
 
     jours_max     : exclut les offres parues il y a plus de N jours (None = aucune
@@ -476,6 +477,10 @@ def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None):
     inclure_titres: si non vide, ne garde que les offres dont le titre contient
                     au moins un de ces mots (filtre de pertinence).
     exclure_titres: liste de mots qui, presents dans le titre, excluent l'offre.
+    ignorer_esn   : si True, on saute la classification ESN/cabinet/anonyme
+                    (classer) ; les autres filtres (titre, ancienneté, doublons)
+                    s'appliquent toujours. Utile pour l'onglet Asie, ou une ESN
+                    française recrutant a l'etranger reste une piste pertinente.
 
     Retourne (gardees, exclues, stats) ou :
       - gardees : offres brutes retenues
@@ -487,7 +492,7 @@ def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None):
     inclus = [normaliser(t) for t in (inclure_titres or []) if t.strip()]
     gardees, exclues, vues, compte, doublons = [], [], set(), {}, 0
     for o in brutes:
-        garder, raison = classer(o)
+        garder, raison = (True, "") if ignorer_esn else classer(o)
         titre = normaliser(o.get("intitule", ""))
         if garder and inclus and not any(t in titre for t in inclus):
             garder, raison = False, "hors périmètre (titre)"

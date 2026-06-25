@@ -178,6 +178,10 @@ def mentionne(o, regex):
     return bool(regex.search(normaliser(
         o.get("intitule", "") + " " + (o.get("description") or ""))))
 
+def mentionne_titre(o, regex):
+    """True si l'INTITULE seul matche la regex (signal plus fort que la description)."""
+    return bool(regex.search(normaliser(o.get("intitule", ""))))
+
 # Detecteur de VIE (Volontariat International en Entreprise) : on cible le
 # PROGRAMME, pas le mot « vie » omnipresent (assurance vie, qualite de vie...).
 # Signaux fiables dans le TITRE : « volontariat international », ou l'acronyme en

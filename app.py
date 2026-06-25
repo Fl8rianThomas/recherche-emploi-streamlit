@@ -320,13 +320,14 @@ if not gardees:
 gardees_intl, _, _ = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
                                 ignorer_esn=True)
 regex_intl = ro.construire_regex(mots_international) if mots_international else None
-# (1) sources étrangères dédiées (Singapour…) ; (2) offres FR mentionnant un mot
-# international — mais PAS les offres géographiquement hors France (sinon le bruit
-# US de Jooble « International/Global Affairs Analyst » remonte ici). Ces dernières
-# restent dans l'onglet « Hors France ».
+# Onglet = uniquement de VRAIS postes à l'étranger : (1) sources étrangères
+# dédiées (Singapour…) ; (2) offres FR dont le TITRE est explicitement
+# international (« Responsable zone Asie »…) — le match sur la seule description
+# ramenait des jobs franco-français (AIR FRANCE, Soufflet…). VIE exclus.
 ba_intl = [o for o in gardees_intl
            if (o.get("_zone") == "International"
-               or (regex_intl and ro.mentionne(o, regex_intl) and not ro.est_international(o)))
+               or (regex_intl and ro.mentionne_titre(o, regex_intl)
+                   and not ro.est_international(o)))
            and not ro.est_vie(o)]
 
 # Separation geographique France / hors France (lieu) pour l'onglet combiné. On
@@ -528,11 +529,10 @@ with onglet_fr:
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_intl:
-    st.caption("Postes **Business Analyst à l'international**, de deux origines : "
-               "**(1)** sources étrangères — 🇸🇬 MyCareersFuture (Singapour) + Adzuna "
-               "Singapour ; **(2)** offres FR dont le titre/description mentionne "
-               "un mot **international** (liste éditable dans 🧹 Filtres). Filtre ESN "
-               "désactivé ; tri par score profil ⭐ (RH/BA en tête).")
+    st.caption("Uniquement de **vrais postes à l'étranger** : 🇸🇬 MyCareersFuture "
+               "(Singapour) + Adzuna Singapour, **plus** les offres FR dont le "
+               "**titre** est explicitement international (« Responsable zone Asie »…). "
+               "VIE et bruit franco-français exclus. Tri par score profil ⭐.")
     vue_liste_detail(ba_intl_items, "intl", "offres_international.csv")
 
 with onglet_autres:

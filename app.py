@@ -320,9 +320,13 @@ if not gardees:
 gardees_intl, _, _ = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
                                 ignorer_esn=True)
 regex_intl = ro.construire_regex(mots_international) if mots_international else None
+# (1) sources étrangères dédiées (Singapour…) ; (2) offres FR mentionnant un mot
+# international — mais PAS les offres géographiquement hors France (sinon le bruit
+# US de Jooble « International/Global Affairs Analyst » remonte ici). Ces dernières
+# restent dans l'onglet « Hors France ».
 ba_intl = [o for o in gardees_intl
            if o.get("_zone") == "International"
-           or (regex_intl and ro.mentionne(o, regex_intl))]
+           or (regex_intl and ro.mentionne(o, regex_intl) and not ro.est_international(o))]
 
 # Separation geographique France / hors France (lieu) pour l'onglet combiné. On
 # écarte les offres des sources internationales (sinon « Singapour » tomberait

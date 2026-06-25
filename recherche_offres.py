@@ -61,6 +61,17 @@ EXCLUSIONS_TITRE_PAR_DEFAUT = [
     "affaires reglementaires",
 ]
 
+# Mots-cles envoyes aux sources françaises pour l'onglet Asie (entreprises FR
+# recrutant pour l'etranger). Editable dans l'interface.
+TERMES_ASIE_PAR_DEFAUT = [
+    "Asie",
+    "Singapour",
+    "Hong Kong",
+    "Shanghai",
+    "Tokyo",
+    "Dubaï",
+]
+
 # Profil "Optimum" : competences / domaines servant a classer les offres par
 # adequation. Format "terme" (poids 1) ou "terme:poids". Les DOMAINES d'experience
 # (RH, mutuelle, assurance, banque...) sont volontairement pondered plus fort.

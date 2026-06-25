@@ -134,6 +134,19 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
             det.append(f"Adzuna/Jooble → « {lieu_nom} »")
         st.caption(" · ".join(det) if det else "lieu non reconnu")
 
+    if recherche_asie:
+        asie_termes_txt = st.text_area(
+            "🌏 Mots-clés Asie (un par ligne)",
+            value="\n".join(ro.TERMES_ASIE_PAR_DEFAUT), height=110,
+            help="Envoyés à France Travail + Adzuna FR pour alimenter l'onglet Asie. "
+                 "Chaque ligne lance une recherche distincte (ex: Bangkok, Vietnam, "
+                 "Chine…). Sur cet onglet : tes exclusions de titre s'appliquent, "
+                 "mais l'inclusion stricte et le filtre ESN sont désactivés.",
+        )
+        asie_termes = [x.strip() for x in asie_termes_txt.splitlines() if x.strip()]
+    else:
+        asie_termes = []
+
 # 2) Filtres (période, volume, pertinence, exclusions)
 with st.expander("🧹 Filtres — période, pertinence, exclusions"):
     fp1, fp2, fp3 = st.columns(3)
@@ -217,13 +230,12 @@ if go:
         fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
 
     # Recherche Asie : on interroge les MÊMES sources françaises mais avec des
-    # mots-clés « Asie / hub » (les boards étrangers ne renvoient que de l'anglais,
-    # rejeté ensuite). Ces requêtes sont indépendantes des variantes métier et
-    # bornées (ASIE_MAX) ; le tri par score profil fait remonter les postes RH/BA.
-    ASIE_TERMES = ["Asie", "Singapour", "Hong Kong", "Shanghai", "Tokyo", "Dubaï"]
+    # mots-clés « Asie / hub » éditables (les boards étrangers ne renvoient que de
+    # l'anglais, rejeté ensuite). Ces requêtes sont indépendantes des variantes
+    # métier et bornées (ASIE_MAX) ; le tri par score profil remonte les RH/BA.
     ASIE_MAX = 30
     asie_fetchers = []
-    if recherche_asie:
+    if recherche_asie and asie_termes:
         if "France Travail" in sources:
             asie_fetchers.append(("🌏 France Travail", lambda t: chercher_france_travail(
                 t, "", type_contrat, ASIE_MAX, jours_max)))
@@ -232,7 +244,7 @@ if go:
                 t, "", type_contrat, ASIE_MAX, jours_max)))
 
     plan = ([(t, src, fn, None) for t in variantes for src, fn in fetchers]
-            + [(t, src, fn, "Asie") for t in ASIE_TERMES for src, fn in asie_fetchers])
+            + [(t, src, fn, "Asie") for t in asie_termes for src, fn in asie_fetchers])
     brutes, erreurs, total = [], [], len(plan)
     with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
                    f"+ {len(asie_fetchers)} sources Asie ({total} requêtes)…",
@@ -293,12 +305,12 @@ if not gardees:
 # - France / International : on écarte les offres issues des requêtes ciblées
 #   Asie (_zone="Asie") pour ne pas inonder ces onglets d'annonces étrangères
 #   en anglais ; elles n'apparaissent que dans l'onglet Asie si elles passent.
-# Pool Asie : filet large. Les annonces FR pour l'Asie sont surtout des postes
-# commerciaux/management/export — le filtre « titre pertinent » (analyst/business…)
-# les écarterait presque toutes. On l'enlève donc ici, ainsi que les exclusions
-# ESN ; ne restent que l'ancienneté et le dédoublonnage. Le tri par score profil
-# (⭐) fait remonter les postes RH/BA en tête.
-gardees_asie, _, _ = ro.filtrer(brutes, jours_max, exclure_titres=None,
+# Pool Asie : on applique tes EXCLUSIONS de titre + ancienneté + doublons, mais
+# PAS l'inclusion stricte (les intitulés Asie — « Directeur zone Asie », « VIE
+# export »… — ne contiennent presque jamais analyst/business/fonctionnel, ça
+# viderait l'onglet) NI les exclusions ESN. Le tri par score profil (⭐) remonte
+# les postes RH/BA en tête.
+gardees_asie, _, _ = ro.filtrer(brutes, jours_max, exclure_titres,
                                 inclure_titres=None, ignorer_esn=True)
 asie = [o for o in gardees_asie if ro.cible_asie(o)]
 internationales = [o for o in gardees
@@ -498,11 +510,10 @@ with onglet_fr:
 
 with onglet_asie:
     st.caption("Entreprises FR recrutant pour l'Asie : annonces **en français** "
-               "évoquant l'Asie ou un hub (Singapour, Hong Kong, Shanghai, Tokyo, "
-               "Dubaï…), souvent basées en France. **Filet large** : filtres ESN "
-               "et « titre pertinent » désactivés ici (les postes Asie sont surtout "
-               "commerciaux/export) ; tri par score profil ⭐ pour remonter le RH/BA. "
-               "Active/désactive cette recherche dans les critères en haut.")
+               "évoquant l'Asie ou un hub (mots-clés éditables en haut), souvent "
+               "basées en France. Filtres : **exclusions de titre + ancienneté** "
+               "appliquées, **inclusion stricte et filtre ESN désactivés** (sinon "
+               "l'onglet se vide). Tri par score profil ⭐ pour remonter le RH/BA.")
     vue_liste_detail(asie_items, "asie", "offres_asie.csv")
 
 with onglet_autres:

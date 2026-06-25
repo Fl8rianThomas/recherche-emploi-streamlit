@@ -70,7 +70,7 @@ PROFIL_OPTIMUM = [
     "ressources humaines:5", "rh:5", "sirh:5", "human resources:5",
     "hris:5", "hcm:5", "gpec:5", "administration du personnel:5",
     "gestion du personnel:5", "talentsoft:5",
-    "recrutement:5", "remuneration:5",
+    "recrutement:5", "gta:5",
     # Autres domaines / secteurs d'experience
     "mutuelle:3", "assurance:3", "protection sociale:3", "prevoyance:3",
     "banque:3", "force de vente:2", "commercial:2",
@@ -87,7 +87,7 @@ PROFIL_OPTIMUM = [
 COMPETENCES_RH = {
     "ressources humaines", "rh", "sirh", "human resources", "hris", "hcm",
     "gpec", "administration du personnel", "gestion du personnel",
-    "talentsoft", "recrutement", "remuneration",
+    "talentsoft", "recrutement", "gta",
 }
 
 def competences_rh(competences):

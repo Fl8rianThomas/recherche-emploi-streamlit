@@ -178,6 +178,24 @@ def mentionne(o, regex):
     return bool(regex.search(normaliser(
         o.get("intitule", "") + " " + (o.get("description") or ""))))
 
+# Detecteur de VIE (Volontariat International en Entreprise) : on cible le
+# PROGRAMME, pas le mot « vie » omnipresent (assurance vie, qualite de vie...).
+# Signaux fiables dans le TITRE : « volontariat international », ou l'acronyme en
+# MAJUSCULES (VIE / V.I.E). On epargne les postes du secteur assurance vie.
+RE_VIE_ACRONYME = re.compile(r"\bV\.?I\.?E\.?\b")          # casse respectee (majuscules)
+RE_VIE_PHRASE = re.compile(r"volontariat international", re.I)
+RE_ASSURANCE_VIE = re.compile(r"assurance|pr[ée]voyance|mutuelle|iard|[ée]pargne|"
+                              r"d[ée]c[èe]s|sant[ée]|retraite", re.I)
+
+def est_vie(o):
+    """True si l'offre est un VIE/VIA (programme), d'apres son intitule."""
+    titre = o.get("intitule", "")
+    if RE_VIE_PHRASE.search(titre):
+        return True
+    if RE_VIE_ACRONYME.search(titre) and not RE_ASSURANCE_VIE.search(titre):
+        return True
+    return False
+
 def nom_entreprise(o):
     return o.get("entreprise", {}).get("nom", "").strip()
 

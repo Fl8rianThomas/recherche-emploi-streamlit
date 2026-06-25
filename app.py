@@ -325,8 +325,9 @@ regex_intl = ro.construire_regex(mots_international) if mots_international else 
 # US de Jooble « International/Global Affairs Analyst » remonte ici). Ces dernières
 # restent dans l'onglet « Hors France ».
 ba_intl = [o for o in gardees_intl
-           if o.get("_zone") == "International"
-           or (regex_intl and ro.mentionne(o, regex_intl) and not ro.est_international(o))]
+           if (o.get("_zone") == "International"
+               or (regex_intl and ro.mentionne(o, regex_intl) and not ro.est_international(o)))
+           and not ro.est_vie(o)]
 
 # Separation geographique France / hors France (lieu) pour l'onglet combiné. On
 # écarte les offres des sources internationales (sinon « Singapour » tomberait

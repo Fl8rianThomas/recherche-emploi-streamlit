@@ -27,7 +27,9 @@
       "Bash(git remote *)",
       "Bash(git push *)",
       "Bash(python -c \"import ast; ast.parse\\(open\\('recherche_offres.py',encoding='utf-8'\\).read\\(\\)\\); print\\('Syntaxe OK'\\)\")",
-      "Bash(PYTHONPATH=. python -c \"import recherche_offres as ro; assert not any\\('paie' in x or 'workday' in x or 'successfactors' in x for x in ro.PROFIL_OPTIMUM\\), 'reste!'; print\\('Profil OK, plus de paie/workday/successfactors'\\); print\\('RH:', sorted\\(ro.COMPETENCES_RH\\)\\)\")"
+      "Bash(PYTHONPATH=. python -c \"import recherche_offres as ro; assert not any\\('paie' in x or 'workday' in x or 'successfactors' in x for x in ro.PROFIL_OPTIMUM\\), 'reste!'; print\\('Profil OK, plus de paie/workday/successfactors'\\); print\\('RH:', sorted\\(ro.COMPETENCES_RH\\)\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py',encoding='utf-8'\\).read\\(\\)\\); ast.parse\\(open\\('recherche_offres.py',encoding='utf-8'\\).read\\(\\)\\); print\\('syntaxe OK'\\)\")",
+      "Bash(python -c 'import recherche_offres as ro; print\\('\\\\''import OK'\\\\''\\); *)"
     ]
   }
 }

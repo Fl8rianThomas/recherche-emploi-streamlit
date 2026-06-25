@@ -129,6 +129,27 @@ SIGNAUX_ESN = [
     "en prestation", "cabinet de conseil", "societe de conseil en informatique",
 ]
 
+# Hubs / pays asiatiques (+ Moyen-Orient expat) qui declenchent l'onglet Asie.
+# Une offre y entre si son texte EVOQUE l'un de ces lieux ET qu'elle est en
+# français (signal d'une entreprise FR recrutant a l'etranger). Editable.
+HUBS_ASIE = {
+    "asie", "asia", "asie-pacifique", "asia-pacific", "apac",
+    "singapour", "singapore", "hong kong", "dubai", "tokyo", "shanghai",
+    "bangkok", "japon", "japan", "chine", "china", "thailande", "thailand",
+    "vietnam", "hanoi", "ho chi minh", "malaisie", "malaysia", "kuala lumpur",
+    "indonesie", "indonesia", "jakarta", "inde", "india", "bangalore",
+    "mumbai", "seoul", "coree", "taiwan", "emirats", "emirates",
+}
+
+# Mots-outils français frequents : servent a deviner qu'une annonce est en
+# français (et donc, sur un poste asiatique, cible un profil francophone).
+MARQUEURS_FRANCAIS = {
+    "le", "la", "les", "des", "une", "un", "et", "ou", "pour", "avec",
+    "vous", "nous", "dans", "du", "au", "aux", "sur", "qui", "que", "est",
+    "sont", "votre", "notre", "nos", "vos", "ses", "cette", "par", "ne",
+    "pas", "plus", "sein", "afin", "ainsi", "chez", "sera", "etre",
+}
+
 # === 3. FILTRAGE ============================================================
 APOSTROPHES = "’‘ʼ`´′"
 
@@ -161,6 +182,28 @@ def construire_regex(termes):
 REGEX_ESN = construire_regex(ESN_CONNUES)
 REGEX_AGENCES = construire_regex(AGENCES_RECRUTEMENT)
 REGEX_SIGNAUX = construire_regex(SIGNAUX_ESN)
+REGEX_ASIE = construire_regex(HUBS_ASIE)
+
+def mentionne_asie(o):
+    """True si l'intitule / la description / le lieu evoque l'Asie ou un hub."""
+    txt = (o.get("intitule", "") + " " + (o.get("description") or "") + " "
+           + (o.get("lieuTravail") or {}).get("libelle", ""))
+    return bool(REGEX_ASIE.search(normaliser(txt)))
+
+def est_francais(texte, seuil=4):
+    """Devine si un texte est redige en français (mots-outils FR distincts)."""
+    mots = set(re.findall(r"[a-z]+", normaliser(texte)))
+    return len(MARQUEURS_FRANCAIS & mots) >= seuil
+
+def cible_asie(o):
+    """Offre « France -> Asie » : annonce en français ciblant l'Asie.
+
+    Heuristique pour reperer une entreprise FR recrutant un profil francophone
+    a l'etranger : le texte evoque un hub asiatique ET il est redige en français.
+    """
+    if not mentionne_asie(o):
+        return False
+    return est_francais(o.get("intitule", "") + " " + (o.get("description") or ""))
 
 def nom_entreprise(o):
     return o.get("entreprise", {}).get("nom", "").strip()

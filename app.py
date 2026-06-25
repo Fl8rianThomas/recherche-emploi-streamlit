@@ -68,6 +68,29 @@ def chercher_jooble(mots_cles, lieu, max_offres):
     return ro.rechercher_jooble(config, api_key)
 
 
+@st.cache_data(show_spinner=False)
+def chercher_mycareersfuture(mots_cles, max_offres):
+    """Singapour — portail gouvernemental, API publique sans clé."""
+    config = dict(ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres)
+    return ro.rechercher_mycareersfuture(config)
+
+
+@st.cache_data(show_spinner=False)
+def chercher_adzuna_pays(mots_cles, pays, max_offres, jours_max):
+    """Adzuna sur un pays donné (ex: 'sg' Singapour, 'in' Inde)."""
+    app_id, app_key = os.getenv("ADZUNA_APP_ID"), os.getenv("ADZUNA_APP_KEY")
+    if not app_id or not app_key:
+        raise RuntimeError("Adzuna : ADZUNA_APP_ID / ADZUNA_APP_KEY manquants dans .env")
+    config = dict(
+        ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres,
+        pays_adzuna=pays, jours_max=jours_max,
+    )
+    offres = ro.rechercher_adzuna(config, app_id, app_key)
+    for o in offres:
+        o["_source"] = f"Adzuna {pays.upper()}"
+    return offres
+
+
 def champ(o, *chemin, defaut=""):
     cur = o
     for cle in chemin:
@@ -116,6 +139,13 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
             "Type de contrat", options=contrats,
             index=contrats.index(ro.CONFIG["type_contrat"] or ""),
             format_func=lambda x: x or "Tous",
+        )
+        recherche_intl = st.checkbox(
+            "🌏 Inclure l'international (Asie)", value=True,
+            help="Interroge des sources étrangères gratuites — MyCareersFuture "
+                 "(Singapour) et Adzuna Singapour/Inde — avec tes variantes métier, "
+                 "et alimente l'onglet « 🌍 BA International ». Quelques requêtes "
+                 "supplémentaires ; décoche pour t'en passer.",
         )
     variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
     departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
@@ -209,17 +239,27 @@ if go:
         st.warning("Indique au moins un métier à rechercher.")
         st.stop()
 
-    # Sources France : (label, fn(terme)). La recherche = variantes métier.
-    # L'onglet International ne lance AUCUNE requête : il filtre ces mêmes offres.
+    # Sources : (label, fn(terme), zone). zone="International" = sources étrangères
+    # (Singapour / Inde) dont les offres alimentent l'onglet « 🌍 BA International ».
     fetchers = []
     if "France Travail" in sources:
         fetchers.append(("France Travail", lambda t: chercher_france_travail(
-            t, departement or "", type_contrat, max_offres, jours_max)))
+            t, departement or "", type_contrat, max_offres, jours_max), None))
     if "Adzuna" in sources:
         fetchers.append(("Adzuna", lambda t: chercher_adzuna(
-            t, lieu_nom or "", type_contrat, max_offres, jours_max)))
+            t, lieu_nom or "", type_contrat, max_offres, jours_max), None))
     if "Jooble" in sources:
-        fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
+        fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres), None))
+
+    if recherche_intl:
+        INTL_MAX = 30
+        fetchers.append(("🇸🇬 MyCareersFuture",
+                         lambda t: chercher_mycareersfuture(t, INTL_MAX), "International"))
+        if "Adzuna" in sources:
+            fetchers.append(("🇸🇬 Adzuna Singapour",
+                             lambda t: chercher_adzuna_pays(t, "sg", INTL_MAX, jours_max), "International"))
+            fetchers.append(("🇮🇳 Adzuna Inde",
+                             lambda t: chercher_adzuna_pays(t, "in", INTL_MAX, jours_max), "International"))
 
     brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
     with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
@@ -228,11 +268,14 @@ if go:
         journal = st.empty()
         lignes, fait = [], 0
         for terme in variantes:
-            for nom_src, fn in fetchers:
+            for nom_src, fn, zone in fetchers:
                 fait += 1
                 barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
                 try:
                     res = _tag(fn(terme), terme)
+                    if zone:
+                        for o in res:
+                            o["_zone"] = zone
                     brutes += res
                     lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
                                   f"_(cumul brut : {len(brutes)})_")
@@ -272,19 +315,24 @@ if not gardees:
     st.warning("Aucune offre retenue avec ces critères.")
     st.stop()
 
-# Onglet « 🌍 BA International » : parmi les offres BA, celles dont le titre OU la
-# description mentionne un mot international (liste éditable). Mêmes filtres titre
-# que l'onglet France, MAIS sans les exclusions ESN (une ESN recrutant à
-# l'international reste une piste). Aucune requête API : on refiltre les brutes.
+# Onglet « 🌍 BA International » : (1) les offres des sources étrangères
+# (MyCareersFuture, Adzuna SG/IN — _zone="International") ET (2) parmi les offres
+# BA françaises, celles dont le titre/description mentionne un mot international
+# (liste éditable). Mêmes filtres titre que l'onglet France, sans exclusions ESN.
 gardees_intl, _, _ = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
                                 ignorer_esn=True)
 regex_intl = ro.construire_regex(mots_international) if mots_international else None
-ba_intl = [o for o in gardees_intl if regex_intl and ro.mentionne(o, regex_intl)]
+ba_intl = [o for o in gardees_intl
+           if o.get("_zone") == "International"
+           or (regex_intl and ro.mentionne(o, regex_intl))]
 
-# Separation geographique France / International (lieu hors France) pour l'onglet
-# combiné « International + Exclues ».
-internationales = [o for o in gardees if ro.est_international(o)]
-francaises = [o for o in gardees if not ro.est_international(o)]
+# Separation geographique France / hors France (lieu) pour l'onglet combiné. On
+# écarte les offres des sources internationales (sinon « Singapour » tomberait
+# dans France faute d'être reconnu) : elles vivent dans l'onglet BA International.
+internationales = [o for o in gardees
+                   if o.get("_zone") != "International" and ro.est_international(o)]
+francaises = [o for o in gardees
+              if o.get("_zone") != "International" and not ro.est_international(o)]
 
 c1, c2, c3, c4, c5, c6 = st.columns(6)
 c1.metric("Récupérées", stats["brutes"])
@@ -477,11 +525,11 @@ with onglet_fr:
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_intl:
-    st.caption("Tes offres **Business Analyst** (mêmes filtres titre que l'onglet "
-               "France) dont l'intitulé **ou** la description mentionne un mot "
-               "**international** (liste éditable dans 🧹 Filtres : international, "
-               "monde, Asie, Singapour, export…). **Filtre ESN désactivé** ici. "
-               "Tri par score profil ⭐ (RH/BA en tête).")
+    st.caption("Postes **Business Analyst à l'international**, de deux origines : "
+               "**(1)** sources étrangères — 🇸🇬 MyCareersFuture (Singapour) + Adzuna "
+               "Singapour/Inde ; **(2)** offres FR dont le titre/description mentionne "
+               "un mot **international** (liste éditable dans 🧹 Filtres). Filtre ESN "
+               "désactivé ; tri par score profil ⭐ (RH/BA en tête).")
     vue_liste_detail(ba_intl_items, "intl", "offres_international.csv")
 
 with onglet_autres:

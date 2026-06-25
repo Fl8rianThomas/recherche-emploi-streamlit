@@ -638,6 +638,61 @@ def rechercher_jooble(config, api_key):
         time.sleep(0.3)
     return offres[: config["max_offres"]]
 
+# === 8. SOURCE MYCAREERSFUTURE (Singapour, portail gouvernemental) ==========
+# API publique non documentee mais ouverte (sans cle) du portail emploi du
+# gouvernement singapourien. Ideale pour le hub n°1 (Singapour) : on y trouve
+# explicitement des postes BA / HRIS / SIRH.
+MCF_URL = "https://api.mycareersfuture.gov.sg/v2/search"
+
+def _mcf_salaire(j):
+    s = j.get("salary") or {}
+    bas, haut = s.get("minimum"), s.get("maximum")
+    per = ((s.get("type") or {}).get("salaryType") or "").lower()
+    unite = "/mois" if per == "monthly" else (f"/{per}" if per else "")
+    if bas and haut:
+        return f"S${bas:,}–{haut:,}{unite}".replace(",", " ")
+    return ""
+
+def _mcf_vers_offre(j):
+    """Convertit un resultat MyCareersFuture au format interne."""
+    meta = j.get("metadata") or {}
+    return {
+        "intitule": j.get("title", ""),
+        "entreprise": {"nom": (j.get("postedCompany") or {}).get("name", "")},
+        "lieuTravail": {"libelle": "Singapour"},
+        "typeContratLibelle": ", ".join(
+            (t or {}).get("employmentType", "") for t in (j.get("employmentTypes") or [])
+        ),
+        "typeContrat": "",
+        "dateCreation": meta.get("newPostingDate", "") or "",
+        "description": j.get("description", "") or "",
+        "origineOffre": {"urlOrigine": meta.get("jobDetailsUrl", "")},
+        "salaire": {"libelle": _mcf_salaire(j)},
+        "_source": "MyCareersFuture",
+    }
+
+def rechercher_mycareersfuture(config):
+    """Recherche MyCareersFuture (Singapour, POST JSON, sans cle). Format interne."""
+    offres, page, par_page = [], 0, 20
+    while len(offres) < config["max_offres"]:
+        url = f"{MCF_URL}?limit={par_page}&page={page}"
+        try:
+            r = requests.post(url, json={"search": config["mots_cles"]},
+                              headers={"Content-Type": "application/json"}, timeout=25)
+        except requests.exceptions.RequestException as e:
+            raise RuntimeError(f"MyCareersFuture injoignable : {e}")
+        if r.status_code != 200:
+            raise RuntimeError(f"MyCareersFuture {r.status_code}")
+        lot = r.json().get("results", [])
+        if not lot:
+            break
+        offres.extend(_mcf_vers_offre(j) for j in lot)
+        if len(lot) < par_page:
+            break
+        page += 1
+        time.sleep(0.3)
+    return offres[: config["max_offres"]]
+
 def main():
     load_dotenv(override=True)
     cid, secret = os.getenv("FT_CLIENT_ID"), os.getenv("FT_CLIENT_SECRET")

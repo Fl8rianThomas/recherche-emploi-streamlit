@@ -143,7 +143,7 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
         recherche_intl = st.checkbox(
             "🌏 Inclure l'international (Asie)", value=True,
             help="Interroge des sources étrangères gratuites — MyCareersFuture "
-                 "(Singapour) et Adzuna Singapour/Inde — avec tes variantes métier, "
+                 "(Singapour) et Adzuna Singapour — avec tes variantes métier, "
                  "et alimente l'onglet « 🌍 BA International ». Quelques requêtes "
                  "supplémentaires ; décoche pour t'en passer.",
         )
@@ -258,8 +258,6 @@ if go:
         if "Adzuna" in sources:
             fetchers.append(("🇸🇬 Adzuna Singapour",
                              lambda t: chercher_adzuna_pays(t, "sg", INTL_MAX, jours_max), "International"))
-            fetchers.append(("🇮🇳 Adzuna Inde",
-                             lambda t: chercher_adzuna_pays(t, "in", INTL_MAX, jours_max), "International"))
 
     brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
     with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
@@ -527,7 +525,7 @@ with onglet_fr:
 with onglet_intl:
     st.caption("Postes **Business Analyst à l'international**, de deux origines : "
                "**(1)** sources étrangères — 🇸🇬 MyCareersFuture (Singapour) + Adzuna "
-               "Singapour/Inde ; **(2)** offres FR dont le titre/description mentionne "
+               "Singapour ; **(2)** offres FR dont le titre/description mentionne "
                "un mot **international** (liste éditable dans 🧹 Filtres). Filtre ESN "
                "désactivé ; tri par score profil ⭐ (RH/BA en tête).")
     vue_liste_detail(ba_intl_items, "intl", "offres_international.csv")

@@ -54,24 +54,6 @@ def chercher_adzuna(mots_cles, lieu, type_contrat, max_offres, jours_max):
 
 
 @st.cache_data(show_spinner=False)
-def chercher_adzuna_pays(mots_cles, pays, type_contrat, max_offres, jours_max):
-    """Adzuna sur un pays donné (ex: 'sg' Singapour, 'in' Inde) — pour l'Asie."""
-    app_id, app_key = os.getenv("ADZUNA_APP_ID"), os.getenv("ADZUNA_APP_KEY")
-    if not app_id or not app_key:
-        raise RuntimeError(
-            "Adzuna : ADZUNA_APP_ID / ADZUNA_APP_KEY manquants dans .env"
-        )
-    config = dict(
-        ro.CONFIG, mots_cles=mots_cles, type_contrat=type_contrat or None,
-        max_offres=max_offres, pays_adzuna=pays, jours_max=jours_max,
-    )
-    offres = ro.rechercher_adzuna(config, app_id, app_key)
-    for o in offres:
-        o["_source"] = f"Adzuna {pays.upper()}"
-    return offres
-
-
-@st.cache_data(show_spinner=False)
 def chercher_jooble(mots_cles, lieu, max_offres):
     api_key = os.getenv("JOOBLE_API_KEY")
     if not api_key:
@@ -137,9 +119,9 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
         )
         recherche_asie = st.checkbox(
             "🌏 Inclure l'Asie (entreprises FR à l'étranger)", value=True,
-            help="Ajoute des requêtes ciblées (Jooble : Singapour, Hong Kong, "
-                 "Dubaï, Tokyo, Shanghai, Bangkok + Adzuna Singapour/Inde) et "
-                 "alimente un onglet dédié aux annonces EN FRANÇAIS visant l'Asie. "
+            help="Interroge France Travail et Adzuna FR avec des mots-clés Asie "
+                 "(Asie, Singapour, Hong Kong, Shanghai, Tokyo, Dubaï) et alimente "
+                 "un onglet dédié aux annonces EN FRANÇAIS visant l'Asie. "
                  "Consomme des appels API supplémentaires — décoche pour t'en passer.",
         )
     variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
@@ -223,55 +205,56 @@ if go:
         st.warning("Indique au moins un métier à rechercher.")
         st.stop()
 
-    # Chaque fetcher : (label, fn(terme) -> offres, zone). zone="Asie" marque les
-    # requêtes ciblées étranger (bornées par ASIE_MAX pour ménager le quota API).
-    HUBS_JOOBLE = ["Singapore", "Hong Kong", "Dubai", "Tokyo", "Shanghai", "Bangkok"]
-    ADZUNA_PAYS_ASIE = [("sg", "Singapour"), ("in", "Inde")]
-    ASIE_MAX = 20
-
+    # Sources France : (label, fn(terme)). La recherche normale = variantes métier.
     fetchers = []
     if "France Travail" in sources:
         fetchers.append(("France Travail", lambda t: chercher_france_travail(
-            t, departement or "", type_contrat, max_offres, jours_max), None))
+            t, departement or "", type_contrat, max_offres, jours_max)))
     if "Adzuna" in sources:
         fetchers.append(("Adzuna", lambda t: chercher_adzuna(
-            t, lieu_nom or "", type_contrat, max_offres, jours_max), None))
+            t, lieu_nom or "", type_contrat, max_offres, jours_max)))
     if "Jooble" in sources:
-        fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres), None))
+        fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
 
+    # Recherche Asie : on interroge les MÊMES sources françaises mais avec des
+    # mots-clés « Asie / hub » (les boards étrangers ne renvoient que de l'anglais,
+    # rejeté ensuite). Ces requêtes sont indépendantes des variantes métier et
+    # bornées (ASIE_MAX) ; le tri par score profil fait remonter les postes RH/BA.
+    ASIE_TERMES = ["Asie", "Singapour", "Hong Kong", "Shanghai", "Tokyo", "Dubaï"]
+    ASIE_MAX = 30
+    asie_fetchers = []
     if recherche_asie:
-        if "Jooble" in sources:
-            for hub in HUBS_JOOBLE:
-                fetchers.append((f"🌏 Jooble · {hub}",
-                                 lambda t, h=hub: chercher_jooble(t, h, ASIE_MAX), "Asie"))
+        if "France Travail" in sources:
+            asie_fetchers.append(("🌏 France Travail", lambda t: chercher_france_travail(
+                t, "", type_contrat, ASIE_MAX, jours_max)))
         if "Adzuna" in sources:
-            for code, lib in ADZUNA_PAYS_ASIE:
-                fetchers.append((f"🌏 Adzuna · {lib}",
-                                 lambda t, c=code: chercher_adzuna_pays(
-                                     t, c, type_contrat, ASIE_MAX, jours_max), "Asie"))
+            asie_fetchers.append(("🌏 Adzuna FR", lambda t: chercher_adzuna(
+                t, "", type_contrat, ASIE_MAX, jours_max)))
 
-    brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
+    plan = ([(t, src, fn, None) for t in variantes for src, fn in fetchers]
+            + [(t, src, fn, "Asie") for t in ASIE_TERMES for src, fn in asie_fetchers])
+    brutes, erreurs, total = [], [], len(plan)
     with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
-                   f"({total} requêtes)…", expanded=True) as statut:
+                   f"+ {len(asie_fetchers)} sources Asie ({total} requêtes)…",
+                   expanded=True) as statut:
         barre = st.progress(0.0)
         journal = st.empty()
         lignes, fait = [], 0
-        for terme in variantes:
-            for nom_src, fn, zone in fetchers:
-                fait += 1
-                barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
-                try:
-                    res = _tag(fn(terme), terme)
-                    if zone:
-                        for o in res:
-                            o["_zone"] = zone
-                    brutes += res
-                    lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
-                                  f"_(cumul brut : {len(brutes)})_")
-                except Exception as e:  # noqa: BLE001
-                    erreurs.append(f"{nom_src} « {terme} » : {e}")
-                    lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
-                journal.markdown("\n".join(f"- {x}" for x in lignes))
+        for terme, nom_src, fn, zone in plan:
+            fait += 1
+            barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
+            try:
+                res = _tag(fn(terme), terme)
+                if zone:
+                    for o in res:
+                        o["_zone"] = zone
+                brutes += res
+                lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
+                              f"_(cumul brut : {len(brutes)})_")
+            except Exception as e:  # noqa: BLE001
+                erreurs.append(f"{nom_src} « {terme} » : {e}")
+                lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
+            journal.markdown("\n".join(f"- {x}" for x in lignes))
         barre.empty()
         statut.update(
             label=f"Recherche terminée — {len(brutes)} offres brutes récupérées",
@@ -310,10 +293,13 @@ if not gardees:
 # - France / International : on écarte les offres issues des requêtes ciblées
 #   Asie (_zone="Asie") pour ne pas inonder ces onglets d'annonces étrangères
 #   en anglais ; elles n'apparaissent que dans l'onglet Asie si elles passent.
-# Pool Asie : filtrage SANS les exclusions ESN (une ESN française recrutant en
-# Asie reste une piste). On garde les autres filtres (titre, ancienneté, doublons).
-gardees_asie, _, _ = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
-                                ignorer_esn=True)
+# Pool Asie : filet large. Les annonces FR pour l'Asie sont surtout des postes
+# commerciaux/management/export — le filtre « titre pertinent » (analyst/business…)
+# les écarterait presque toutes. On l'enlève donc ici, ainsi que les exclusions
+# ESN ; ne restent que l'ancienneté et le dédoublonnage. Le tri par score profil
+# (⭐) fait remonter les postes RH/BA en tête.
+gardees_asie, _, _ = ro.filtrer(brutes, jours_max, exclure_titres=None,
+                                inclure_titres=None, ignorer_esn=True)
 asie = [o for o in gardees_asie if ro.cible_asie(o)]
 internationales = [o for o in gardees
                    if o.get("_zone") != "Asie" and ro.est_international(o)]
@@ -511,11 +497,12 @@ with onglet_fr:
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_asie:
-    st.caption("Entreprises FR recrutant à l'étranger : annonces **en français** "
-               "évoquant l'Asie ou un hub (Singapour, Hong Kong, Dubaï, Tokyo, "
-               "Shanghai, Bangkok…). **Filtres ESN désactivés ici** (une ESN FR à "
-               "l'étranger reste une piste). Même tri et même profil que l'onglet "
-               "France. Active/désactive cette recherche dans les critères en haut.")
+    st.caption("Entreprises FR recrutant pour l'Asie : annonces **en français** "
+               "évoquant l'Asie ou un hub (Singapour, Hong Kong, Shanghai, Tokyo, "
+               "Dubaï…), souvent basées en France. **Filet large** : filtres ESN "
+               "et « titre pertinent » désactivés ici (les postes Asie sont surtout "
+               "commerciaux/export) ; tri par score profil ⭐ pour remonter le RH/BA. "
+               "Active/désactive cette recherche dans les critères en haut.")
     vue_liste_detail(asie_items, "asie", "offres_asie.csv")
 
 with onglet_autres:

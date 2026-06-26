@@ -40,16 +40,24 @@ SYNONYMES_PAR_DEFAUT = [
     "analyste métier",
     "analyste fonctionnel",
     "AMOA",
+    "product owner",
+    "product manager",
+    "chef de produit",
 ]
 
 # Le TITRE doit contenir au moins un de ces mots (sinon l'offre est ecartee).
 # Vise le coeur du metier : evite le bruit capte via la description seule
 # (developpeurs, techniciens...). Editable / desactivable dans l'interface.
+# NB : "owner"/"produit" ciblent Product Owner & Chef de produit sans attraper
+# "production" (qui ne contient ni "owner" ni "produit").
 INCLUSIONS_TITRE_PAR_DEFAUT = [
     "analyst",      # couvre analyst + analyste
     "business",
     "amoa",
     "fonctionnel",
+    "owner",            # product owner, proxy product owner
+    "product manager",
+    "produit",          # chef de produit
 ]
 
 # Mots dont la presence dans le TITRE exclut l'offre (metiers voisins / hors sujet).

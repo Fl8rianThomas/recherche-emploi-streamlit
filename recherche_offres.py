@@ -200,6 +200,27 @@ def est_vie(o):
         return True
     return False
 
+# Detecteur « le poste demande le français » : on cible une exigence de LANGUE
+# (et non « entreprise française »), via des tournures de competence linguistique.
+# Texte normalise (accents retires) -> on ecrit « francais ».
+_FR_REQUIS = [
+    r"francophone",
+    r"french[- ]speaking", r"speaks?\s+french", r"speaking\s+french",
+    r"fluen\w*\s+(in\s+)?french", r"french\s+fluen",
+    r"french\s+and\s+english", r"english\s+and\s+french",
+    r"bilingual[^.]{0,25}french", r"french[^.]{0,25}bilingual",
+    r"maitrise\w*\s+(du\s+|de\s+)?francais", r"francais\s+courant", r"courant\w*\s+francais",
+    r"francais\s*(/|et|and|&|,)\s*anglais", r"anglais\s*(/|et|and|&|,)\s*francais",
+    r"french[^.]{0,20}(required|mandatory|preferred|advantage|asset|essential|plus|must)",
+    r"(required|mandatory|preferred|advantage|asset|essential|fluent)[^.]{0,20}french",
+]
+RE_FRANCAIS_REQUIS = re.compile("|".join(_FR_REQUIS), re.I)
+
+def exige_francais(o):
+    """True si l'offre demande la maitrise du français (competence linguistique)."""
+    txt = normaliser(o.get("intitule", "") + " " + (o.get("description") or ""))
+    return bool(RE_FRANCAIS_REQUIS.search(txt))
+
 def nom_entreprise(o):
     return o.get("entreprise", {}).get("nom", "").strip()
 

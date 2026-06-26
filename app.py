@@ -156,10 +156,17 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
         recherche_intl = st.checkbox(
             "🌏 Inclure l'international (Asie)", value=True,
             help="Interroge des sources étrangères — MyCareersFuture (Singapour) "
-                 "et Adzuna Singapour (gratuit), + JSearch (Hong Kong, Dubaï, Japon, "
-                 "Taïwan, Vietnam, Thaïlande, Malaisie) si une clé RAPIDAPI_KEY est "
-                 "présente dans .env. Alimente l'onglet « 🌍 BA International ». "
+                 "et Adzuna Singapour (gratuit), + JSearch (Singapour, Hong Kong, "
+                 "Dubaï, Japon, Vietnam, Thaïlande, Malaisie) si une clé RAPIDAPI_KEY "
+                 "est présente dans .env. Alimente l'onglet « 🌍 BA International ». "
                  "Décoche pour t'en passer.",
+        )
+        filtre_fr = st.checkbox(
+            "🇫🇷 Uniquement postes demandant le français", value=False,
+            help="Sur l'onglet International : ne garde que les offres exigeant le "
+                 "français (FR + EN). Ces postes sont rares sur les job boards — "
+                 "laisse décoché pour tout voir : les offres « français demandé » "
+                 "sont déjà signalées par 🇫🇷 et remontées en tête.",
         )
     variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
     departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
@@ -280,8 +287,8 @@ if go:
         # country qui renvoie 0 pour HK/SG). Indépendant des variantes → ménage le
         # quota RapidAPI. Actif seulement si une clé est configurée.
         if os.getenv("RAPIDAPI_KEY"):
-            JSEARCH_LIEUX = [("Hong Kong", "🇭🇰 Hong Kong"), ("Dubai", "🇦🇪 Dubaï"),
-                             ("Tokyo", "🇯🇵 Japon"), ("Taiwan", "🇹🇼 Taïwan"),
+            JSEARCH_LIEUX = [("Singapore", "🇸🇬 Singapour"), ("Hong Kong", "🇭🇰 Hong Kong"),
+                             ("Dubai", "🇦🇪 Dubaï"), ("Tokyo", "🇯🇵 Japon"),
                              ("Ho Chi Minh City", "🇻🇳 Vietnam"), ("Bangkok", "🇹🇭 Thaïlande"),
                              ("Kuala Lumpur", "🇲🇾 Malaisie")]
             for lieu_q, lib in JSEARCH_LIEUX:
@@ -442,6 +449,8 @@ def afficher_detail(it):
         rh_mots = ro.competences_rh(it.get("comp") or [])
         chips = " ".join(f"`{m}`" for m in rh_mots)
         st.markdown(f"👥 **Domaine RH détecté** : {chips}")
+    if it.get("fr_requis"):
+        st.markdown("🇫🇷 **Français demandé** — poste pour profil francophone (FR + EN).")
     if it.get("comp"):
         chips = " ".join(f"`{m}`" for m in it["comp"])
         st.markdown(f"⭐ **Score {it['score']}** ({len(it['comp'])} compétences) : {chips}")
@@ -504,11 +513,16 @@ def vue_liste_detail(items, cle, csv_nom):
                 titre = o.get("intitule", "Sans titre")
                 ent = ro.nom_entreprise(o) or "Entreprise non précisée"
                 d = (o.get("dateCreation", "") or "")[:10]
+                lieu = champ(o, "lieuTravail", "libelle")
                 bdg = ("🆕 " if it.get("recent") else "")
                 if it.get("rh"):
                     bdg += "👥 "
+                if it.get("fr_requis"):
+                    bdg += "🇫🇷 "
                 if it.get("score"):
                     bdg += f"⭐{it['score']} "
+                if lieu:
+                    bdg += f"📍{lieu} "
                 if d:
                     bdg += f"📅{d} "
                 label = f"{bdg}· {titre} — {ent}"
@@ -533,18 +547,24 @@ france_items.sort(key=lambda it: (it["recent"], it["score"],
 
 
 def _items(offres):
-    """Décore des offres brutes pour vue_liste_detail (score, RH, récence)."""
+    """Décore des offres brutes pour vue_liste_detail (score, RH, récence, FR)."""
     items = []
     for o in offres:
         sc, comp = ro.score_optimum(o, profil_optimum)
         items.append({"o": o, "score": sc, "comp": comp,
-                      "recent": _est_recente(o), "rh": ro.comprend_rh(comp)})
+                      "recent": _est_recente(o), "rh": ro.comprend_rh(comp),
+                      "fr_requis": ro.exige_francais(o)})
     items.sort(key=lambda it: (it["recent"], it["score"],
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
     return items
 
 
 ba_intl_items = _items(ba_intl)
+if filtre_fr:
+    ba_intl_items = [it for it in ba_intl_items if it.get("fr_requis")]
+# Postes « français demandé » remontés tout en haut de l'onglet International.
+ba_intl_items.sort(key=lambda it: (it.get("fr_requis", False), it["recent"], it["score"],
+                                   (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
 
 onglet_fr, onglet_intl, onglet_autres, onglet_dash = st.tabs([
     f"🎯 France ({len(france_items)})",
@@ -560,11 +580,11 @@ with onglet_fr:
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_intl:
-    st.caption("Uniquement de **vrais postes à l'étranger** : 🇸🇬 Singapour "
-               "(MyCareersFuture + Adzuna) et — si clé RapidAPI — 🇭🇰 Hong Kong, "
-               "🇦🇪 Dubaï, 🇯🇵 Japon, 🇹🇼 Taïwan, 🇻🇳 Vietnam, 🇹🇭 Thaïlande, 🇲🇾 Malaisie "
-               "via **JSearch** ; **plus** les offres FR au titre explicitement "
-               "international. VIE et bruit franco-français exclus. Tri par score ⭐.")
+    st.caption("Uniquement de **vrais postes à l'étranger** : 🇸🇬 Singapour, et — si "
+               "clé RapidAPI — 🇭🇰 Hong Kong, 🇦🇪 Dubaï, 🇯🇵 Japon, 🇻🇳 Vietnam, "
+               "🇹🇭 Thaïlande, 🇲🇾 Malaisie via **JSearch**. Chaque ligne affiche 📍 le "
+               "lieu ; 🇫🇷 = le poste **demande le français** (remonté en tête). VIE et "
+               "bruit franco-français exclus. Tri : 🇫🇷 puis score profil ⭐.")
     vue_liste_detail(ba_intl_items, "intl", "offres_international.csv")
 
 with onglet_autres:

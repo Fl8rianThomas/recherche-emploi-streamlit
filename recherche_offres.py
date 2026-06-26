@@ -418,6 +418,31 @@ MARQUEURS_ETRANGERS = {
     "puerto rico","united arab emirates","qatar","japan",
 }
 
+# Villes / cantons suisses (normalises) pour l'onglet Suisse. On detecte aussi
+# une ville suisse dans l'intitule (ex: « Analyste - Geneve »), en excluant le
+# faux « Geneva, IL » (Illinois, USA).
+SUISSE_NOMS = {
+    "suisse", "switzerland", "swiss", "schweiz", "svizzera",
+    "geneve", "geneva", "genf", "lausanne", "zurich", "zuerich", "bale", "basel",
+    "berne", "bern", "lugano", "fribourg", "freiburg", "neuchatel", "sion",
+    "sierre", "lucerne", "luzern", "winterthur", "st gallen", "saint-gall",
+    "vaud", "valais", "nyon", "montreux", "vevey", "morges", "carouge",
+    "yverdon", "bienne", "biel", "martigny", "renens", "meyrin", "gland",
+    "la chaux-de-fonds", "plan-les-ouates", "rolle", "crissier",
+}
+
+def est_suisse(o):
+    """True si l'offre est localisee en Suisse (lieu ou ville suisse dans le titre)."""
+    lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
+    m = re.search(r",\s*([A-Z]{2})\b", lieu)
+    if m and m.group(1) in ETATS_US:        # « Geneva, IL » -> USA, pas la Suisse
+        return False
+    blob = lieu + " / " + o.get("intitule", "")
+    for p in re.split(r"[,/\-]", blob):
+        if normaliser(p).strip() in SUISSE_NOMS:
+            return True
+    return False
+
 def est_international(o):
     """True si l'offre est hors France (etat US, pays etranger...)."""
     lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""

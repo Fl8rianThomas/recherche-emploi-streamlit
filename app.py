@@ -377,6 +377,14 @@ def _est_recente(o):
 AUJOURDHUI = date.today().isoformat()
 HIER = (date.today() - timedelta(days=1)).isoformat()
 
+# Détection « profil Business Analyst » d'après le titre (même logique que la légende).
+BA_TERMES = ("analyst", "business", "amoa", "fonctionnel")
+
+
+def _est_ba(o):
+    titre = ro.normaliser(o.get("intitule", ""))
+    return any(t in titre for t in BA_TERMES)
+
 
 def _bucket_jour(it):
     """Libellé du groupe temporel d'une offre (Aujourd'hui / Hier / date)."""
@@ -410,6 +418,8 @@ def afficher_detail(it):
     st.markdown(meta)
     if it.get("favori"):
         st.markdown("🎯 **Département favori**")
+    if it.get("ba"):
+        st.markdown("🔵 :blue[**Profil Business Analyst / AMOA**]")
     if it.get("po"):
         st.markdown("🟣 :violet[**Profil Product Owner / Product Manager**]")
     if it.get("rh"):
@@ -513,8 +523,6 @@ def vue_liste_detail(items, cle, csv_nom, grouper_par_jour=False):
                 bdg = ("🆕 " if it.get("recent") else "")
                 if it.get("favori"):
                     bdg += "🎯 "
-                if it.get("po"):
-                    bdg += "🟣 "
                 if it.get("rh"):
                     bdg += "👥 "
                 if it.get("score"):
@@ -552,7 +560,8 @@ def _decorer(offres):
         sc, comp = ro.score_optimum(o, profil_optimum)
         items.append({"o": o, "score": sc, "comp": comp,
                       "recent": _est_recente(o), "rh": ro.comprend_rh(comp),
-                      "po": ro.est_product_owner(o), "couleur": _couleur_offre(o),
+                      "po": ro.est_product_owner(o), "ba": _est_ba(o),
+                      "couleur": _couleur_offre(o),
                       "favori": ro.est_departement_favori(o, depts_favoris)})
     items.sort(key=lambda it: (it["recent"], it["score"],
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
@@ -566,9 +575,7 @@ def _legende(items):
     nrh = sum(1 for it in items if it.get("rh"))
     npo = sum(1 for it in items if it.get("po"))
     nfav = sum(1 for it in items if it.get("favori"))
-    BA_TERMES = ("analyst", "business", "amoa", "fonctionnel")
-    nba = sum(1 for it in items
-              if any(t in ro.normaliser(it["o"].get("intitule", "")) for t in BA_TERMES))
+    nba = sum(1 for it in items if it.get("ba"))
     hex_ba = COULEURS_LIGNE.get(couleurs_mot.get("analyst") or couleurs_mot.get("business"), "#3b7dd8")
     hex_po = COULEURS_LIGNE.get(couleurs_mot.get("owner") or couleurs_mot.get("product manager"), "#dd7a1c")
 

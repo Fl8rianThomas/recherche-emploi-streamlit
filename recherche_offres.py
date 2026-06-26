@@ -418,6 +418,34 @@ MARQUEURS_ETRANGERS = {
     "puerto rico","united arab emirates","qatar","japan",
 }
 
+# Noms complets des etats US (+ marqueurs pays US) pour EXCLURE les offres US.
+ETATS_US_NOMS = {
+    "alabama", "alaska", "arizona", "arkansas", "california", "colorado",
+    "connecticut", "delaware", "florida", "hawaii", "idaho", "illinois",
+    "indiana", "iowa", "kansas", "kentucky", "louisiana", "maryland",
+    "massachusetts", "michigan", "minnesota", "mississippi", "missouri",
+    "montana", "nebraska", "nevada", "new hampshire", "new jersey",
+    "new mexico", "new york", "north carolina", "north dakota", "ohio",
+    "oklahoma", "oregon", "pennsylvania", "rhode island", "south carolina",
+    "south dakota", "tennessee", "texas", "utah", "vermont", "virginia",
+    "washington", "washington dc", "west virginia", "wisconsin", "wyoming",
+}
+US_MARQUEURS = ETATS_US_NOMS | {"united states", "usa", "u s a", "etats-unis"}
+
+def est_usa(o):
+    """True si l'offre est localisee aux Etats-Unis (code etat ou nom d'etat/pays)."""
+    lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
+    m = re.search(r",\s*([A-Z]{2})\b", lieu)
+    if m and m.group(1) in ETATS_US:
+        return True
+    for p in re.split(r"[,/]", lieu):
+        n = normaliser(p).strip()
+        if n.endswith(" state"):
+            n = n[:-6].strip()
+        if n in US_MARQUEURS:
+            return True
+    return False
+
 def est_international(o):
     """True si l'offre est hors France (etat US, pays etranger...)."""
     lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""

@@ -263,10 +263,10 @@ if not gardees:
 
 # Onglet « 🌍 À l'étranger » : offres dont le POSTE est hors de France, prises
 # dans les MÊMES sources françaises et SANS AUCUN filtre (ni ESN, ni titre, ni
-# ancienneté). On part des brutes, on dédoublonne simplement.
+# ancienneté). On EXCLUT les États-Unis (bruit Jooble) ; on dédoublonne.
 etranger, _vus = [], set()
 for o in brutes:
-    if ro.poste_a_etranger(o):
+    if ro.poste_a_etranger(o) and not ro.est_usa(o):
         s = ro.signature(o)
         if s not in _vus:
             _vus.add(s)
@@ -480,8 +480,8 @@ with onglet_intl:
     st.caption("Offres dont le **poste est à l'étranger**, repérées dans les sources "
                "**françaises** (France Travail, Adzuna, Jooble) — lieu hors France, "
                "pays/ville étranger dans l'intitulé, ou mention « à l'étranger / "
-               "expatriation ». **Aucun filtre** (ni ESN, ni titre, ni ancienneté). "
-               "📍 = lieu ; tri par récence puis score profil ⭐.")
+               "expatriation ». **États-Unis exclus.** Aucun autre filtre (ni ESN, ni "
+               "titre, ni ancienneté). 📍 = lieu ; tri par récence puis score ⭐.")
     vue_liste_detail(etranger_items, "etr", "offres_etranger.csv")
 
 with onglet_excl:

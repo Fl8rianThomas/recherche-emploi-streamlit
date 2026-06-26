@@ -149,7 +149,7 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
              "en tête. N'exclut rien.",
     ))
     jours_max = int(fp2.number_input(
-        "Ancienneté max (jours)", min_value=0, max_value=365, value=7, step=1,
+        "Ancienneté max (jours)", min_value=0, max_value=365, value=14, step=1,
         help="Exclut les offres parues il y a plus de N jours (0 = sans limite). "
              "Envoyé aux API → relance « Rechercher » pour élargir.",
     ))

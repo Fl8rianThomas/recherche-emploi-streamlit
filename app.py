@@ -211,8 +211,8 @@ if go:
         st.warning("Indique au moins un métier à rechercher.")
         st.stop()
 
-    # Sources : (label, fn(terme)). Adzuna Suisse alimente l'onglet 🇨🇭 (les
-    # offres suisses sont ensuite reconnues par est_suisse, mêmes filtres).
+    # Sources : (label, fn(terme)). jobup.ch (suisse francophone) alimente
+    # l'onglet 🇨🇭 ; ses offres passent les mêmes filtres que la France.
     fetchers = []
     if "France Travail" in sources:
         fetchers.append(("France Travail", lambda t: chercher_france_travail(

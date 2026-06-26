@@ -247,6 +247,27 @@ def exige_francais(o):
     txt = normaliser(o.get("intitule", "") + " " + (o.get("description") or ""))
     return bool(RE_FRANCAIS_REQUIS.search(txt))
 
+# Langues citees dans une offre (texte normalise, sans accents). Sert a LISTER
+# les langues attendues, en particulier reperer le français + synonymes.
+LANGUES = {
+    "français": [r"francais", r"french", r"francophone"],
+    "anglais": [r"anglais", r"english"],
+    "mandarin": [r"mandarin", r"chinese", r"chinois", r"cantonese", r"cantonais", r"putonghua"],
+    "japonais": [r"japonais", r"japanese", r"nihongo"],
+    "coréen": [r"coreen", r"korean"],
+    "allemand": [r"allemand", r"german", r"deutsch"],
+    "espagnol": [r"espagnol", r"spanish"],
+}
+RE_LANGUES = {lang: re.compile(r"\b(" + "|".join(pats) + r")\b")
+              for lang, pats in LANGUES.items()}
+
+def langues_requises(o):
+    """Liste des langues citees dans l'offre (français en tete s'il est present)."""
+    txt = normaliser(o.get("intitule", "") + " " + (o.get("description") or ""))
+    trouvees = [lang for lang, rx in RE_LANGUES.items() if rx.search(txt)]
+    trouvees.sort(key=lambda l: (l != "français", l))   # français d'abord
+    return trouvees
+
 def nom_entreprise(o):
     return o.get("entreprise", {}).get("nom", "").strip()
 

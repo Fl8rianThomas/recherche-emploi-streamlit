@@ -451,6 +451,9 @@ def afficher_detail(it):
         st.markdown(f"👥 **Domaine RH détecté** : {chips}")
     if it.get("fr_requis"):
         st.markdown("🇫🇷 **Français demandé** — poste pour profil francophone (FR + EN).")
+    if it.get("langues"):
+        chips = " ".join(f"`{l}`" for l in it["langues"])
+        st.markdown(f"🗣️ **Langues citées** : {chips}")
     if it.get("comp"):
         chips = " ".join(f"`{m}`" for m in it["comp"])
         st.markdown(f"⭐ **Score {it['score']}** ({len(it['comp'])} compétences) : {chips}")
@@ -475,6 +478,7 @@ def _csv_items(items):
         row["source"] = o.get("_source", "")
         row["salaire"] = champ(o, "salaire", "libelle")
         row["fr_requis"] = "oui" if it.get("fr_requis") else ""
+        row["langues"] = ", ".join(it.get("langues") or [])
         row["rh"] = ", ".join(ro.mots_rh_offre(o))
         if has_score:
             row["score"] = it["score"]
@@ -482,7 +486,7 @@ def _csv_items(items):
         row["description"] = (o.get("description") or "").replace("\n", " ").strip()[:1500]
         rows.append(row)
     cols = (["intitule", "entreprise", "lieu", "source", "salaire", "contrat", "date",
-             "fr_requis", "rh"]
+             "fr_requis", "langues", "rh"]
             + (["score", "competences"] if has_score else [])
             + ["url", "description"])
     return csv_bytes(rows, cols)
@@ -564,7 +568,8 @@ def _items(offres):
         # 👥 : RH détecté directement dans l'offre (indépendant du profil Optimum)
         items.append({"o": o, "score": sc, "comp": comp,
                       "recent": _est_recente(o), "rh": ro.offre_rh(o),
-                      "fr_requis": ro.exige_francais(o)})
+                      "fr_requis": ro.exige_francais(o),
+                      "langues": ro.langues_requises(o)})
     items.sort(key=lambda it: (it["recent"], it["score"],
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
     return items

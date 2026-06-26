@@ -513,6 +513,8 @@ def vue_liste_detail(items, cle, csv_nom, grouper_par_jour=False):
                 bdg = ("🆕 " if it.get("recent") else "")
                 if it.get("favori"):
                     bdg += "🎯 "
+                if it.get("po"):
+                    bdg += "🟣 "
                 if it.get("rh"):
                     bdg += "👥 "
                 if it.get("score"):

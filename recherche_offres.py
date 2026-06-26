@@ -220,8 +220,28 @@ def classer(o):
 def signature(o):
     titre = normaliser(o.get("intitule", ""))
     titre = re.sub(r"[\(\[]?\s*[hfmnd](\s*/\s*[hfmnd])+\s*[\)\]]?", " ", titre)
+    titre = re.sub(r"[^a-z0-9]+", " ", titre)   # ponctuation/% -> dedup + robuste
     titre = re.sub(r"\s+", " ", titre).strip()
     return titre + "||" + normaliser(nom_entreprise(o))
+
+# Detecteur d'offre redigee en ALLEMAND (pour ne garder, en Suisse, que les
+# offres francophones + anglophones). Mots-outils + forme inclusive « .../in ».
+MARQUEURS_ALLEMAND = {
+    "und", "der", "die", "das", "fur", "mit", "sie", "wir", "ein", "eine", "im",
+    "zu", "von", "auf", "ist", "werden", "wird", "bei", "aus", "dem", "den",
+    "oder", "auch", "als", "sich", "nicht", "wie", "unsere", "unser", "sind",
+    "haben", "dieser", "diese", "du", "aufgaben", "kenntnisse", "erfahrung",
+    "bereich", "sowie", "stelle", "mitarbeiter", "uns", "einer", "einen",
+}
+
+def est_allemand(o):
+    """True si l'offre est redigee en allemand (titre ou description)."""
+    titre = o.get("intitule", "")
+    if re.search(r"/-?in\b", titre, re.I) or "analystin" in normaliser(titre):
+        return True
+    mots = set(re.findall(r"[a-z]+", normaliser(
+        titre + " " + (o.get("description") or ""))))
+    return len(MARQUEURS_ALLEMAND & mots) >= 3
 
 # === 4. API FRANCE TRAVAIL ==================================================
 TOKEN_URL = "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire"

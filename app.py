@@ -276,10 +276,12 @@ if not gardees:
     st.warning("Aucune offre retenue avec ces critères.")
     st.stop()
 
-# Offres France (lieu en France) et Suisse (source jobup.ch — toute suisse — ou
-# ville suisse reconnue ailleurs). Mêmes filtres (gardees applique déjà ESN +
-# titre + ancienneté + dedup).
-suisse = [o for o in gardees if o.get("_source") == "jobup.ch" or ro.est_suisse(o)]
+# Offres Suisse (source jobup.ch — toute suisse — ou ville suisse reconnue
+# ailleurs), en EXCLUANT les offres rédigées en allemand : on ne garde que la
+# Suisse francophone + les annonces en anglais. Mêmes filtres que France.
+suisse = [o for o in gardees
+          if (o.get("_source") == "jobup.ch" or ro.est_suisse(o))
+          and not ro.est_allemand(o)]
 francaises = [o for o in gardees
               if o.get("_source") != "jobup.ch" and not ro.est_international(o)]
 
@@ -474,10 +476,10 @@ with onglet_fr:
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_ch:
-    st.caption("Offres en **Suisse** via **jobup.ch** (job board suisse francophone) "
-               "+ offres suisses des sources France. **Mêmes filtres et même scoring "
-               "Optimum que l'onglet France.** 📍 = lieu ; tri 🆕 récentes puis score ⭐. "
-               "Active/désactive la recherche Suisse dans les critères en haut.")
+    st.caption("Offres en **Suisse** via **jobup.ch** + offres suisses des sources "
+               "France. **Offres en allemand exclues** (Suisse romande + annonces en "
+               "anglais). Mêmes filtres et même scoring Optimum que l'onglet France. "
+               "📍 = lieu ; tri 🆕 récentes puis score ⭐.")
     vue_liste_detail(suisse_items, "ch", "offres_suisse.csv")
 
 with onglet_excl:

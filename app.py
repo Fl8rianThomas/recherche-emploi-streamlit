@@ -282,8 +282,11 @@ if not gardees:
 suisse = [o for o in gardees
           if (o.get("_source") == "jobup.ch" or ro.est_suisse(o))
           and not ro.est_allemand(o)]
+# France : on exclut aussi les offres suisses (ex: « Analyste métier - Genève »
+# postée sur France Travail) — elles vivent dans l'onglet 🇨🇭.
 francaises = [o for o in gardees
-              if o.get("_source") != "jobup.ch" and not ro.est_international(o)]
+              if o.get("_source") != "jobup.ch"
+              and not ro.est_international(o) and not ro.est_suisse(o)]
 
 c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("Récupérées", stats["brutes"])

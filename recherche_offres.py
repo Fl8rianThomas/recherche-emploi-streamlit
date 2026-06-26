@@ -155,6 +155,14 @@ SIGNAUX_ESN = [
     "en prestation", "cabinet de conseil", "societe de conseil en informatique",
 ]
 
+# Employeurs "relais" (forums, agregateurs) qui postent pour le compte d'autres
+# entreprises : on les traite comme anonymes pour detecter une ESN citee dans la
+# description (ex: « engagements Capgemini » via Forums Talents Handicap).
+AGREGATEURS = {
+    "forums talents handicap", "talents handicap", "hellowork", "hello work",
+    "meteojob", "jobijoba",
+}
+
 # === 3. FILTRAGE ============================================================
 APOSTROPHES = "’‘ʼ`´′"
 
@@ -188,6 +196,7 @@ REGEX_ESN = construire_regex(ESN_CONNUES)
 REGEX_AGENCES = construire_regex(AGENCES_RECRUTEMENT)
 REGEX_SIGNAUX = construire_regex(SIGNAUX_ESN)
 _REGEX_RH = construire_regex(MOTS_RH)
+REGEX_AGREGATEURS = construire_regex(AGREGATEURS)
 
 def nom_entreprise(o):
     return o.get("entreprise", {}).get("nom", "").strip()
@@ -203,12 +212,15 @@ def classer(o):
         if EXCLURE_AGENCES:
             return False, "cabinet de recrutement"
         return True, ""
-    if not ent:
-        # Entreprise masquee : un nom d'ESN connue dans le texte trahit l'employeur
-        # (ex: offre anonyme dont la description dit "Sopra Steria, acteur majeur...").
+    # Employeur "relais" (forum/agregateur) : on regarde l'ESN dans le texte.
+    relais = bool(ent) and bool(REGEX_AGREGATEURS.search(ent))
+    if not ent or relais:
+        # Entreprise masquee/relais : un nom d'ESN connue dans le texte trahit
+        # l'employeur (ex: offre anonyme ou forum dont la description dit
+        # "engagements Capgemini...").
         if EXCLURE_PAR_TEXTE and REGEX_ESN.search(txt):
             return False, "ESN (texte)"
-        if EXCLURE_ANONYMES:
+        if not ent and EXCLURE_ANONYMES:
             return False, "entreprise anonyme"
     else:
         if REGEX_ESN.search(ent):
@@ -462,18 +474,19 @@ SUISSE_NOMS = {
     "yverdon", "bienne", "biel", "martigny", "renens", "meyrin", "gland",
     "la chaux-de-fonds", "plan-les-ouates", "rolle", "crissier",
 }
+REGEX_SUISSE = construire_regex(SUISSE_NOMS)
 
 def est_suisse(o):
-    """True si l'offre est localisee en Suisse (lieu ou ville suisse dans le titre)."""
+    """True si l'offre est localisee en Suisse (lieu ou ville suisse dans le titre).
+
+    Recherche par frontiere de mot (robuste au « Geneve h/f » colle), en excluant
+    le faux « Geneva, IL » (Illinois, USA).
+    """
     lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
     m = re.search(r",\s*([A-Z]{2})\b", lieu)
     if m and m.group(1) in ETATS_US:        # « Geneva, IL » -> USA, pas la Suisse
         return False
-    blob = lieu + " / " + o.get("intitule", "")
-    for p in re.split(r"[,/\-]", blob):
-        if normaliser(p).strip() in SUISSE_NOMS:
-            return True
-    return False
+    return bool(REGEX_SUISSE.search(normaliser(lieu + " " + o.get("intitule", ""))))
 
 def est_international(o):
     """True si l'offre est hors France (etat US, pays etranger...)."""

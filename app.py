@@ -99,14 +99,14 @@ st.caption("Recherche multi-variantes, filtrée des ESN, cabinets et doublons.")
 TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble", "🇨🇭 jobup.ch"]
 contrats = ["", "CDI", "CDD", "MIS"]
 
-# Couleurs de ligne (assez vives pour bien se distinguer sur fond sombre ; texte
-# force en sombre cote CSS). Coloriage par metier via « mot:couleur ».
+# Couleurs de ligne : tons medium-fonces saturés (texte blanc cote CSS) pour
+# bien se distinguer sur fond sombre. Coloriage par metier via « mot:couleur ».
 COULEURS_LIGNE = {
-    "violet": "#b388eb", "bleu": "#6fa8f5", "blue": "#6fa8f5",
-    "vert": "#5fd28a", "green": "#5fd28a", "orange": "#ff9d4d",
-    "rouge": "#ff7b7b", "red": "#ff7b7b", "jaune": "#ffd633", "yellow": "#ffd633",
-    "rose": "#ff7bc7", "pink": "#ff7bc7", "cyan": "#3fd0d0",
-    "gris": "#b8b8b8", "gray": "#b8b8b8",
+    "violet": "#8e5bd0", "bleu": "#3b7dd8", "blue": "#3b7dd8",
+    "vert": "#2fa564", "green": "#2fa564", "orange": "#dd7a1c",
+    "rouge": "#d24545", "red": "#d24545", "jaune": "#c29a1c", "yellow": "#c29a1c",
+    "rose": "#cc4a96", "pink": "#cc4a96", "cyan": "#1f9595",
+    "gris": "#6f6f6f", "gray": "#6f6f6f",
 }
 
 # 1) Recherche (métiers, lieu, sources, contrat) — repliée une fois lancée
@@ -444,11 +444,11 @@ def vue_liste_detail(items, cle, csv_nom):
     for i, it in enumerate(items):
         bg = COULEURS_LIGNE.get(it.get("couleur"))
         if bg:
-            sel_extra = "box-shadow:inset 5px 0 0 #111 !important;" if i == sel else ""
+            sel_extra = "box-shadow:inset 5px 0 0 #fff !important;" if i == sel else ""
             regles.append(
                 f".st-key-{cle}_{i} button {{ background-color:{bg} !important; "
-                f"border:1px solid rgba(0,0,0,.25) !important; {sel_extra} }}"
-                f".st-key-{cle}_{i} button p {{ color:#111 !important; }}")
+                f"border:1px solid rgba(255,255,255,.25) !important; {sel_extra} }}"
+                f".st-key-{cle}_{i} button p {{ color:#fff !important; }}")
     if regles:
         st.markdown("<style>" + "".join(regles) + "</style>", unsafe_allow_html=True)
     col_liste, col_detail = st.columns([2, 3], gap="medium")

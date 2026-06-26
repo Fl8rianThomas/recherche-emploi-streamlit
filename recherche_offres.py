@@ -446,6 +446,27 @@ def est_usa(o):
             return True
     return False
 
+# Marqueurs Canada (provinces, villes) pour EXCLURE les offres canadiennes.
+PROVINCES_CANADA = {"QC", "ON", "BC", "AB", "MB", "SK", "NS", "NB", "NL", "PE",
+                    "YT", "NT", "NU"}
+CANADA_NOMS = {
+    "canada", "quebec", "ontario", "british columbia", "alberta", "manitoba",
+    "saskatchewan", "nova scotia", "new brunswick", "terre-neuve",
+    "montreal", "toronto", "vancouver", "ottawa", "gatineau", "calgary",
+    "edmonton", "winnipeg", "halifax", "laval", "mississauga", "sherbrooke",
+}
+
+def est_canada(o):
+    """True si l'offre est localisee au Canada (province, ville ou « Canada »)."""
+    lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
+    m = re.search(r",\s*([A-Z]{2})\b", lieu)
+    if m and m.group(1) in PROVINCES_CANADA:
+        return True
+    for p in re.split(r"[,/]", lieu):
+        if normaliser(p).strip() in CANADA_NOMS:
+            return True
+    return False
+
 def est_international(o):
     """True si l'offre est hors France (etat US, pays etranger...)."""
     lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""

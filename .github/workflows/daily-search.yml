@@ -1,0 +1,34 @@
+name: Recherche quotidienne
+
+# Tous les jours à 16:00 UTC = 18h heure de Paris (été, CEST).
+# ⚠️ En hiver (CET, UTC+1) cela tombe à 17h Paris. Pour 18h toute l'année,
+# il faudrait deux crons (16:00 et 17:00 UTC) avec un garde-fou par mois.
+on:
+  schedule:
+    - cron: "0 16 * * *"
+  workflow_dispatch:        # bouton « Run workflow » pour tester à la demande
+
+jobs:
+  recherche:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Lancer la recherche et envoyer l'e-mail
+        env:
+          FT_CLIENT_ID: ${{ secrets.FT_CLIENT_ID }}
+          FT_CLIENT_SECRET: ${{ secrets.FT_CLIENT_SECRET }}
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+          JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python daily_search.py

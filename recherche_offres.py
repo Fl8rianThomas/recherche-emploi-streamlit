@@ -95,8 +95,9 @@ PROFIL_OPTIMUM = [
 ]
 
 # Departements favoris (Optimum) : une offre qui s'y trouve recoit l'icone 🎯.
-# 37 Indre-et-Loire (Tours), 41 Loir-et-Cher (Blois), 45 Loiret (Orleans), 75 Paris.
-DEPTS_FAVORIS_PAR_DEFAUT = ["37", "41", "45", "75"]
+# 37 Indre-et-Loire (Tours), 41 Loir-et-Cher (Blois), 45 Loiret (Orleans),
+# 74 Haute-Savoie (Annecy), 75 Paris.
+DEPTS_FAVORIS_PAR_DEFAUT = ["37", "41", "45", "74", "75"]
 
 # Competences relevant du domaine RH -> declenchent l'icone 👥 dans l'interface.
 COMPETENCES_RH = {

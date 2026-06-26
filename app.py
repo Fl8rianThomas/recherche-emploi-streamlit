@@ -590,6 +590,9 @@ def _legende(items):
 
 
 france_items = _decorer(francaises)
+# Onglet France : les offres taggées 👥 RH/SIRH remontent en tête (tri stable :
+# l'ordre existant — récentes, score, date — est conservé dans chaque groupe).
+france_items.sort(key=lambda it: bool(it.get("rh")), reverse=True)
 suisse_items = _decorer(suisse)
 
 # Onglet « Perfect » : sous-ensemble France le plus exigeant — score > 2 ⭐ ET
@@ -603,7 +606,7 @@ perfect_items = sorted(
 
 onglet_perfect, onglet_fr, onglet_ch, onglet_excl, onglet_dash = st.tabs([
     f"💎 Perfect ({len(perfect_items)})",
-    f"⭐ Optimum ({len(france_items)})",
+    f"🎯 France ({len(france_items)})",
     f"🇨🇭 Suisse ({len(suisse_items)})",
     f"🗑️ Exclues ({len(exclues)})",
     "📊 Tableau de bord",

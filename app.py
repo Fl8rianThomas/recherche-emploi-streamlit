@@ -161,13 +161,13 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
                  "est présente dans .env. Alimente l'onglet « 🌍 BA International ». "
                  "Décoche pour t'en passer.",
         )
-        filtre_fr = st.checkbox(
-            "🇫🇷 Uniquement postes demandant le français", value=False,
-            help="Sur l'onglet International : ne garde que les offres exigeant le "
-                 "français (FR + EN). Ces postes sont rares sur les job boards — "
-                 "laisse décoché pour tout voir : les offres « français demandé » "
-                 "sont déjà signalées par 🇫🇷 et remontées en tête.",
-        )
+        poids_fr = int(st.number_input(
+            "🇫🇷 Bonus de score « français demandé »", min_value=0, max_value=10,
+            value=4, step=1,
+            help="Critère (pas un filtre) : sur l'onglet International, une offre "
+                 "exigeant le français gagne ce bonus de score ⭐ et remonte — sans "
+                 "exclure les autres. Mets 0 pour neutraliser. Marqué 🇫🇷 dans la liste.",
+        ))
     variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
     departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
     if lieu_saisi.strip():
@@ -565,22 +565,21 @@ def _items(offres):
     items = []
     for o in offres:
         sc, comp = ro.score_optimum(o, profil_optimum)
+        # « français demandé » : critère de score (comme l'Optimum), pas un filtre.
+        fr = ro.exige_francais(o)
+        if fr and poids_fr:
+            sc += poids_fr
+            comp = comp + ["français"]
         # 👥 : RH détecté directement dans l'offre (indépendant du profil Optimum)
         items.append({"o": o, "score": sc, "comp": comp,
                       "recent": _est_recente(o), "rh": ro.offre_rh(o),
-                      "fr_requis": ro.exige_francais(o),
-                      "langues": ro.langues_requises(o)})
+                      "fr_requis": fr, "langues": ro.langues_requises(o)})
     items.sort(key=lambda it: (it["recent"], it["score"],
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
     return items
 
 
 ba_intl_items = _items(ba_intl)
-if filtre_fr:
-    ba_intl_items = [it for it in ba_intl_items if it.get("fr_requis")]
-# Postes « français demandé » remontés tout en haut de l'onglet International.
-ba_intl_items.sort(key=lambda it: (it.get("fr_requis", False), it["recent"], it["score"],
-                                   (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
 
 onglet_fr, onglet_intl, onglet_autres, onglet_dash = st.tabs([
     f"🎯 France ({len(france_items)})",
@@ -599,8 +598,9 @@ with onglet_intl:
     st.caption("Uniquement de **vrais postes à l'étranger** : 🇸🇬 Singapour, et — si "
                "clé RapidAPI — 🇭🇰 Hong Kong, 🇦🇪 Dubaï, 🇯🇵 Japon, 🇻🇳 Vietnam, "
                "🇹🇭 Thaïlande, 🇲🇾 Malaisie via **JSearch**. Chaque ligne affiche 📍 le "
-               "lieu ; 🇫🇷 = le poste **demande le français** (remonté en tête). VIE et "
-               "bruit franco-français exclus. Tri : 🇫🇷 puis score profil ⭐.")
+               "lieu ; 🇫🇷 = le poste **demande le français** (bonus de score ⭐, pas un "
+               "filtre — réglable en haut). VIE et bruit franco-français exclus. "
+               "Tri par score profil ⭐.")
     vue_liste_detail(ba_intl_items, "intl", "offres_international.csv")
 
 with onglet_autres:

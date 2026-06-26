@@ -93,6 +93,15 @@ def csv_bytes(lignes, champs):
 
 
 # === En-tete : critères (en haut de page) ==================================
+# Compacité : réduit le padding haut/bas et l'espace entre les blocs/expanders.
+st.markdown(
+    "<style>"
+    ".block-container{padding-top:2.2rem;padding-bottom:1.5rem;}"
+    "div[data-testid='stExpander']{margin-bottom:.35rem;}"
+    "div[data-testid='stVerticalBlock']{gap:.6rem;}"
+    "</style>",
+    unsafe_allow_html=True,
+)
 st.title("🔎 Recherche d'offres")
 st.caption("Recherche multi-variantes, filtrée des ESN, cabinets et doublons.")
 
@@ -115,7 +124,7 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
     with col_m:
         variantes_txt = st.text_area(
             "Métiers recherchés (une variante par ligne)",
-            value="\n".join(ro.SYNONYMES_PAR_DEFAUT), height=150,
+            value="\n".join(ro.SYNONYMES_PAR_DEFAUT), height=178,
             help="Chaque ligne lance une recherche distincte ; les résultats sont "
                  "fusionnés et dédoublonnés (ex: « analyste d'affaires »).",
         )
@@ -124,12 +133,13 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
             "Sources", TOUTES_SOURCES, default=TOUTES_SOURCES,
             help="Les sources cochées sont fusionnées et dédoublonnées.",
         )
-        lieu_saisi = st.text_input(
+        sc_lieu, sc_ct = st.columns(2)
+        lieu_saisi = sc_lieu.text_input(
             "Lieu", value="",
             help="Code département (75, 69…) ou ville/région (Paris, Lyon…). "
                  "Vide = toute la France.",
         )
-        type_contrat = st.selectbox(
+        type_contrat = sc_ct.selectbox(
             "Type de contrat", options=contrats,
             index=contrats.index(ro.CONFIG["type_contrat"] or ""),
             format_func=lambda x: x or "Tous",
@@ -161,17 +171,17 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
         "Max d'offres / variante / source", 10, 200, 50, 10,
         help="Plafond par recherche. Le total cumulé peut être bien plus élevé.",
     )
+    filtre_pertinence = st.checkbox(
+        "Titre pertinent obligatoire", value=True,
+        help="Ne garde que les offres dont le TITRE contient un des mots ci-dessous "
+             "(élimine le bruit capté via la description seule).",
+    )
     col_inc, col_exc = st.columns(2)
     with col_inc:
-        filtre_pertinence = st.checkbox(
-            "Titre pertinent obligatoire", value=True,
-            help="Ne garde que les offres dont le TITRE contient un de ces mots "
-                 "(élimine le bruit capté via la description seule).",
-        )
         if filtre_pertinence:
             inclusions_txt = st.text_area(
-                "Le titre doit contenir un de ces mots",
-                value="\n".join(ro.INCLUSIONS_TITRE_PAR_DEFAUT), height=150,
+                "✅ Le titre doit contenir un de ces mots",
+                value="\n".join(ro.INCLUSIONS_TITRE_PAR_DEFAUT), height=140,
                 help="Un mot par ligne. Optionnel : « mot:couleur » colore la ligne "
                      "entière des offres dont le titre contient ce mot (couleurs : "
                      "violet, bleu, vert, orange, rouge, jaune, rose, cyan, gris). "
@@ -191,10 +201,11 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
                     inclure_titres.append(ligne_inc)
         else:
             inclure_titres, couleurs_mot = None, {}
+            st.caption("Filtre titre désactivé : toutes les offres des sources sont gardées.")
     with col_exc:
         exclusions_txt = st.text_area(
-            "Exclure si le titre contient (un mot par ligne)",
-            value="\n".join(ro.EXCLUSIONS_TITRE_PAR_DEFAUT), height=152,
+            "🚫 Exclure si le titre contient un de ces mots",
+            value="\n".join(ro.EXCLUSIONS_TITRE_PAR_DEFAUT), height=140,
             help="Offre écartée si son titre contient un de ces mots "
                  "(accents/casse ignorés).",
         )
@@ -204,7 +215,7 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
 with st.expander("⭐ Profil Optimum — classement par adéquation"):
     profil_txt = st.text_area(
         "Compétences (une par ligne ; « terme:poids », ex. mutuelle:3)",
-        value="\n".join(ro.PROFIL_OPTIMUM), height=160,
+        value="\n".join(ro.PROFIL_OPTIMUM), height=140,
         help="Classe l'onglet France par adéquation. Les domaines (RH, mutuelle, "
              "assurance, banque) sont pondérés plus fort. Titre compté ×2.",
     )

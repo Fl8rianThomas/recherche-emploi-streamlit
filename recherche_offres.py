@@ -454,11 +454,20 @@ def region_offre(o):
             return DEPT_REGION.get(code, "Autre")
     return "Autre"
 
+# Noms de chefs-lieux -> on les detecte aussi au milieu d'un libelle (« Paris 8e »,
+# « Tours Centre »). Tries du plus long au plus court pour matcher en priorite les
+# noms composes (« Le Mans » avant « Mans »).
+_REGEX_VILLES_DEPT = re.compile(
+    "|".join(r"\b" + re.escape(v) + r"\b"
+             for v in sorted(_NOM_VERS_CODE, key=len, reverse=True))
+)
+
 def departement_offre(o):
     """Devine le code departement (« 37 », « 75 »…) d'une offre, ou None.
 
-    Meme heuristique que region_offre : prefixe numerique du libelle (« 37 - Tours »
-    France Travail), sinon ville chef-lieu reconnue (Adzuna/Jooble).
+    Gere : prefixe numerique (« 37 - Tours », FT), code postal complet
+    (« 75008 », « 75008 Paris »), et nom de ville chef-lieu present n'importe ou
+    dans le libelle (« Paris 8e », « Paris (75) », « Paris, Ile-de-France »).
     """
     lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
     if not lieu.strip():
@@ -466,10 +475,14 @@ def departement_offre(o):
     m = re.match(r"\s*(2[AB]|\d{2,3})\b", lieu)           # « 37 - Tours »
     if m:
         return m.group(1).upper()
-    for part in re.split(r"[,/]", lieu):                  # ville chef-lieu -> code
-        code = _NOM_VERS_CODE.get(normaliser(part))
-        if code:
-            return code
+    norm = normaliser(lieu)
+    mcp = re.search(r"\b(\d{5})\b", norm)                 # code postal « 75008 »
+    if mcp:
+        cp = mcp.group(1)
+        return cp[:3] if cp.startswith("97") else cp[:2]  # DOM 97x sinon 2 chiffres
+    mv = _REGEX_VILLES_DEPT.search(norm)                  # « Paris 8e » -> Paris
+    if mv:
+        return _NOM_VERS_CODE.get(mv.group(0))
     return None
 
 def est_departement_favori(o, codes):

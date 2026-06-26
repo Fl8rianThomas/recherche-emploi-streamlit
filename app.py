@@ -603,7 +603,7 @@ perfect_items = sorted(
 
 onglet_perfect, onglet_fr, onglet_ch, onglet_excl, onglet_dash = st.tabs([
     f"💎 Perfect ({len(perfect_items)})",
-    f"🎯 France ({len(france_items)})",
+    f"⭐ Optimum ({len(france_items)})",
     f"🇨🇭 Suisse ({len(suisse_items)})",
     f"🗑️ Exclues ({len(exclues)})",
     "📊 Tableau de bord",

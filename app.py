@@ -507,6 +507,37 @@ def _decorer(offres):
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
     return items
 
+def _legende(items):
+    """Bandeau de comptage : total + 🆕/⭐/👥 + chips couleur BA/PO."""
+    n = len(items)
+    nrec = sum(1 for it in items if it.get("recent"))
+    nsc = sum(1 for it in items if it.get("score"))
+    nrh = sum(1 for it in items if it.get("rh"))
+    npo = sum(1 for it in items if it.get("po"))
+    BA_TERMES = ("analyst", "business", "amoa", "fonctionnel")
+    nba = sum(1 for it in items
+              if any(t in ro.normaliser(it["o"].get("intitule", "")) for t in BA_TERMES))
+    hex_ba = COULEURS_LIGNE.get(couleurs_mot.get("analyst") or couleurs_mot.get("business"), "#3b7dd8")
+    hex_po = COULEURS_LIGNE.get(couleurs_mot.get("owner") or couleurs_mot.get("product manager"), "#dd7a1c")
+
+    def pill(contenu, bg=None):
+        style = ("padding:2px 9px;border-radius:11px;white-space:nowrap;"
+                 "font-size:.85rem;" + (f"background:{bg};color:#fff;font-weight:600;"
+                                        if bg else "background:rgba(128,128,128,.18);"))
+        return f'<span style="{style}">{contenu}</span>'
+
+    chips = [
+        pill(f"📋 {n} offres"),
+        pill(f"🆕 {nrec} récentes"),
+        pill(f"⭐ {nsc} scorées"),
+        pill(f"👥 {nrh} RH/SIRH"),
+        pill(f"BA&nbsp;{nba}", hex_ba),
+        pill(f"PO&nbsp;{npo}", hex_po),
+    ]
+    return ('<div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;'
+            'margin:.1rem 0 .55rem">' + "".join(chips) + '</div>')
+
+
 france_items = _decorer(francaises)
 suisse_items = _decorer(suisse)
 
@@ -517,18 +548,17 @@ onglet_fr, onglet_ch, onglet_excl, onglet_dash = st.tabs([
     "📊 Tableau de bord",
 ])
 with onglet_fr:
-    st.caption(f"Toutes les offres France. Ordre : 🆕 récentes (≤ {jours_recent} j) "
-               "d'abord, puis adéquation profil (⭐), puis date. 👥 = RH/SIRH. "
-               "**Couleur de ligne = métier** (🔵 Business Analyst, 🟠 Product Owner) — "
-               "configurable via « mot:couleur » dans les Filtres. "
-               "Clique une annonce pour son détail.")
+    st.markdown(_legende(france_items), unsafe_allow_html=True)
+    st.caption(f"Tri : 🆕 récentes (≤ {jours_recent} j) d'abord, puis score profil ⭐, "
+               "puis date. Couleur de ligne = métier (configurable « mot:couleur » dans "
+               "les Filtres). Clique une annonce pour son détail.")
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_ch:
-    st.caption("Offres en **Suisse** via **jobup.ch** + offres suisses des sources "
-               "France. **Offres en allemand exclues** (Suisse romande + annonces en "
-               "anglais). Mêmes filtres et même scoring Optimum que l'onglet France. "
-               "📍 = lieu ; tri 🆕 récentes puis score ⭐.")
+    st.markdown(_legende(suisse_items), unsafe_allow_html=True)
+    st.caption("**Suisse** via jobup.ch + offres suisses des sources France — "
+               "**allemand exclu** (romande + anglais). Mêmes filtres et scoring que "
+               "France ; tri 🆕 récentes puis score ⭐.")
     vue_liste_detail(suisse_items, "ch", "offres_suisse.csv")
 
 with onglet_excl:

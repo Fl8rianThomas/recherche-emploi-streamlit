@@ -46,18 +46,20 @@ SYNONYMES_PAR_DEFAUT = [
 ]
 
 # Le TITRE doit contenir au moins un de ces mots (sinon l'offre est ecartee).
-# Vise le coeur du metier : evite le bruit capte via la description seule
-# (developpeurs, techniciens...). Editable / desactivable dans l'interface.
-# NB : "owner"/"produit" ciblent Product Owner & Chef de produit sans attraper
-# "production" (qui ne contient ni "owner" ni "produit").
+# Vise le coeur du metier : evite le bruit capte via la description seule.
+# Syntaxe « mot:couleur » -> colore la ligne entiere dans la liste (par metier).
+# Couleurs : violet, bleu, vert, orange, rouge, jaune, rose, cyan, gris.
+# L'ordre compte pour la couleur : la 1re couleur trouvee dans le titre gagne
+# (PO en tete -> une offre « Business Analyst / Product Owner » est violette).
+# NB : "owner"/"produit" ciblent PO & Chef de produit sans attraper "production".
 INCLUSIONS_TITRE_PAR_DEFAUT = [
-    "analyst",      # couvre analyst + analyste
-    "business",
-    "amoa",
-    "fonctionnel",
-    "owner",            # product owner, proxy product owner
-    "product manager",
-    "produit",          # chef de produit
+    "owner:violet",            # product owner, proxy product owner
+    "product manager:violet",
+    "produit:violet",          # chef de produit
+    "analyst:bleu",            # couvre analyst + analyste
+    "business:bleu",
+    "amoa:bleu",
+    "fonctionnel:bleu",
 ]
 
 # Mots dont la presence dans le TITRE exclut l'offre (metiers voisins / hors sujet).

@@ -96,8 +96,18 @@ def csv_bytes(lignes, champs):
 st.title("🔎 Recherche d'offres")
 st.caption("Recherche multi-variantes, filtrée des ESN, cabinets et doublons.")
 
-TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble"]
+TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble", "🇨🇭 jobup.ch"]
 contrats = ["", "CDI", "CDD", "MIS"]
+
+# Couleurs de ligne (fond clair, texte lisible) pour le coloriage par métier
+# défini dans « Le titre doit contenir un de ces mots » (syntaxe mot:couleur).
+COULEURS_LIGNE = {
+    "violet": "#efe0fb", "bleu": "#dbe9fe", "blue": "#dbe9fe",
+    "vert": "#dcf5e3", "green": "#dcf5e3", "orange": "#ffe8d1",
+    "rouge": "#fcdede", "red": "#fcdede", "jaune": "#fdf3c4", "yellow": "#fdf3c4",
+    "rose": "#fcdcef", "pink": "#fcdcef", "cyan": "#d4f3f3",
+    "gris": "#e9e9e9", "gray": "#e9e9e9",
+}
 
 # 1) Recherche (métiers, lieu, sources, contrat) — repliée une fois lancée
 with st.expander("🔎 Critères de recherche", expanded=not st.session_state.get("lancee")):
@@ -123,12 +133,6 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
             "Type de contrat", options=contrats,
             index=contrats.index(ro.CONFIG["type_contrat"] or ""),
             format_func=lambda x: x or "Tous",
-        )
-        recherche_ch = st.checkbox(
-            "🇨🇭 Inclure la Suisse", value=True,
-            help="Interroge jobup.ch (job board suisse francophone, gratuit) et "
-                 "alimente l'onglet « 🇨🇭 Suisse » — mêmes filtres et même scoring "
-                 "Optimum que l'onglet France.",
         )
     variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
     departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
@@ -167,11 +171,26 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
         if filtre_pertinence:
             inclusions_txt = st.text_area(
                 "Le titre doit contenir un de ces mots",
-                value="\n".join(ro.INCLUSIONS_TITRE_PAR_DEFAUT), height=120,
+                value="\n".join(ro.INCLUSIONS_TITRE_PAR_DEFAUT), height=150,
+                help="Un mot par ligne. Optionnel : « mot:couleur » colore la ligne "
+                     "entière des offres dont le titre contient ce mot (couleurs : "
+                     "violet, bleu, vert, orange, rouge, jaune, rose, cyan, gris). "
+                     "La 1re couleur trouvée dans le titre l'emporte.",
             )
-            inclure_titres = [x.strip() for x in inclusions_txt.splitlines() if x.strip()]
+            inclure_titres, couleurs_mot = [], {}
+            for ligne_inc in inclusions_txt.splitlines():
+                ligne_inc = ligne_inc.strip()
+                if not ligne_inc:
+                    continue
+                mot, sep, coul = ligne_inc.rpartition(":")
+                coul = coul.strip().lower()
+                if sep and mot.strip() and coul in COULEURS_LIGNE:
+                    inclure_titres.append(mot.strip())
+                    couleurs_mot[mot.strip()] = coul
+                else:
+                    inclure_titres.append(ligne_inc)
         else:
-            inclure_titres = None
+            inclure_titres, couleurs_mot = None, {}
     with col_exc:
         exclusions_txt = st.text_area(
             "Exclure si le titre contient (un mot par ligne)",
@@ -222,7 +241,7 @@ if go:
             t, lieu_nom or "", type_contrat, max_offres, jours_max)))
     if "Jooble" in sources:
         fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
-    if recherche_ch:
+    if "🇨🇭 jobup.ch" in sources:
         fetchers.append(("🇨🇭 jobup.ch", lambda t: chercher_jobup(t, max_offres)))
 
     brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
@@ -420,6 +439,16 @@ def vue_liste_detail(items, cle, csv_nom):
     )
     sel_key = f"sel_{cle}"
     sel = min(st.session_state.get(sel_key, 0), len(items) - 1)
+    # Coloriage du fond des lignes par métier (classe st-key-<cle>_<i> de Streamlit).
+    regles = []
+    for i, it in enumerate(items):
+        bg = COULEURS_LIGNE.get(it.get("couleur"))
+        if bg:
+            sel_extra = "box-shadow:inset 4px 0 0 #555 !important;" if i == sel else ""
+            regles.append(f".st-key-{cle}_{i} button {{ background-color:{bg} !important; "
+                          f"border-color:{bg} !important; {sel_extra} }}")
+    if regles:
+        st.markdown("<style>" + "".join(regles) + "</style>", unsafe_allow_html=True)
     col_liste, col_detail = st.columns([2, 3], gap="medium")
     with col_liste:
         with st.container(height=680):
@@ -436,8 +465,6 @@ def vue_liste_detail(items, cle, csv_nom):
                 bdg = ("🆕 " if it.get("recent") else "")
                 if it.get("rh"):
                     bdg += "👥 "
-                if it.get("po"):
-                    bdg += "🟣 "
                 if it.get("score"):
                     bdg += f"⭐{it['score']} "
                 if lieu:
@@ -454,6 +481,17 @@ def vue_liste_detail(items, cle, csv_nom):
             afficher_detail(items[sel])
 
 
+# Couleur de ligne d'une offre : 1re couleur (mot:couleur) trouvée dans le titre.
+def _couleur_offre(o):
+    if not couleurs_mot:
+        return None
+    titre = ro.normaliser(o.get("intitule", ""))
+    for mot in (inclure_titres or []):
+        c = couleurs_mot.get(mot)
+        if c and ro.normaliser(mot) in titre:
+            return c
+    return None
+
 # Décoration commune (France & Suisse) : score Optimum, RH, récence, puis tri
 # 🆕 récentes d'abord, puis adéquation profil (⭐), puis date — décroissant.
 def _decorer(offres):
@@ -462,7 +500,7 @@ def _decorer(offres):
         sc, comp = ro.score_optimum(o, profil_optimum)
         items.append({"o": o, "score": sc, "comp": comp,
                       "recent": _est_recente(o), "rh": ro.comprend_rh(comp),
-                      "po": ro.est_product_owner(o)})
+                      "po": ro.est_product_owner(o), "couleur": _couleur_offre(o)})
     items.sort(key=lambda it: (it["recent"], it["score"],
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
     return items
@@ -478,9 +516,10 @@ onglet_fr, onglet_ch, onglet_excl, onglet_dash = st.tabs([
 ])
 with onglet_fr:
     st.caption(f"Toutes les offres France. Ordre : 🆕 récentes (≤ {jours_recent} j) "
-               "d'abord, puis adéquation profil (⭐), puis date. Badges : 👥 RH/SIRH · "
-               "🟣 Product Owner · ⭐ score. Clique une annonce pour son détail. "
-               "Profil & filtres éditables en haut de page.")
+               "d'abord, puis adéquation profil (⭐), puis date. 👥 = RH/SIRH. "
+               "**Couleur de ligne = métier** (🔵 Business Analyst, 🟣 Product Owner) — "
+               "configurable via « mot:couleur » dans les Filtres. "
+               "Clique une annonce pour son détail.")
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_ch:

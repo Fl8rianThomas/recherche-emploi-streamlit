@@ -68,42 +68,6 @@ def chercher_jooble(mots_cles, lieu, max_offres):
     return ro.rechercher_jooble(config, api_key)
 
 
-@st.cache_data(show_spinner=False)
-def chercher_mycareersfuture(mots_cles, max_offres):
-    """Singapour — portail gouvernemental, API publique sans clé."""
-    config = dict(ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres)
-    return ro.rechercher_mycareersfuture(config)
-
-
-@st.cache_data(show_spinner=False)
-def chercher_adzuna_pays(mots_cles, pays, max_offres, jours_max):
-    """Adzuna sur un pays donné (ex: 'sg' Singapour, 'in' Inde)."""
-    app_id, app_key = os.getenv("ADZUNA_APP_ID"), os.getenv("ADZUNA_APP_KEY")
-    if not app_id or not app_key:
-        raise RuntimeError("Adzuna : ADZUNA_APP_ID / ADZUNA_APP_KEY manquants dans .env")
-    config = dict(
-        ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres,
-        pays_adzuna=pays, jours_max=jours_max,
-    )
-    offres = ro.rechercher_adzuna(config, app_id, app_key)
-    for o in offres:
-        o["_source"] = f"Adzuna {pays.upper()}"
-    return offres
-
-
-@st.cache_data(show_spinner=False)
-def chercher_jsearch(query, max_offres, pages=1):
-    """JSearch (RapidAPI). query = « HR business analyst in <lieu> » (lieu inclus)."""
-    key = os.getenv("RAPIDAPI_KEY")
-    if not key:
-        raise RuntimeError(
-            "JSearch : RAPIDAPI_KEY manquant dans .env "
-            "(clé gratuite : abonnement JSearch sur rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch)"
-        )
-    config = dict(ro.CONFIG, mots_cles=query, max_offres=max_offres, jsearch_pages=pages)
-    return ro.rechercher_jsearch(config, key)
-
-
 def champ(o, *chemin, defaut=""):
     cur = o
     for cle in chemin:
@@ -153,21 +117,6 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
             index=contrats.index(ro.CONFIG["type_contrat"] or ""),
             format_func=lambda x: x or "Tous",
         )
-        recherche_intl = st.checkbox(
-            "🌏 Inclure l'international (Asie)", value=True,
-            help="Interroge des sources étrangères — MyCareersFuture (Singapour) "
-                 "et Adzuna Singapour (gratuit), + JSearch (Singapour, Hong Kong, "
-                 "Dubaï, Japon, Corée, Vietnam, Thaïlande, Malaisie, Indonésie, "
-                 "Philippines) si une clé RAPIDAPI_KEY est présente dans .env. "
-                 "Alimente l'onglet « 🌍 BA International ». Décoche pour t'en passer.",
-        )
-        poids_fr = int(st.number_input(
-            "🇫🇷 Bonus de score « français demandé »", min_value=0, max_value=10,
-            value=4, step=1,
-            help="Critère (pas un filtre) : sur l'onglet International, une offre "
-                 "exigeant le français gagne ce bonus de score ⭐ et remonte — sans "
-                 "exclure les autres. Mets 0 pour neutraliser. Marqué 🇫🇷 dans la liste.",
-        ))
     variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
     departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
     if lieu_saisi.strip():
@@ -219,17 +168,6 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
         )
         exclure_titres = [x.strip() for x in exclusions_txt.splitlines() if x.strip()]
 
-    st.divider()
-    intl_txt = st.text_area(
-        "🌍 Onglet International — mots-clés (un par ligne)",
-        value="\n".join(ro.MOTS_INTERNATIONAL_PAR_DEFAUT), height=90,
-        help="Alimente l'onglet « 🌍 International » : parmi tes offres BA, celles "
-             "dont le titre OU la description contient un de ces mots (international, "
-             "monde, Asie, Singapour, export…). N'ajoute aucune requête API. Filtre "
-             "ESN désactivé sur cet onglet ; tri par score profil.",
-    )
-    mots_international = [x.strip() for x in intl_txt.splitlines() if x.strip()]
-
 # 3) Profil Optimum (classement par adéquation)
 with st.expander("⭐ Profil Optimum — classement par adéquation"):
     profil_txt = st.text_area(
@@ -260,68 +198,36 @@ if go:
         st.warning("Indique au moins un métier à rechercher.")
         st.stop()
 
-    # Sources France : (label, fn(terme), zone), interrogées pour chaque variante.
+    # Sources France : (label, fn(terme)). Les offres « à l'étranger » sont
+    # détectées en aval dans ces mêmes résultats (aucune source étrangère).
     fetchers = []
     if "France Travail" in sources:
         fetchers.append(("France Travail", lambda t: chercher_france_travail(
-            t, departement or "", type_contrat, max_offres, jours_max), None))
+            t, departement or "", type_contrat, max_offres, jours_max)))
     if "Adzuna" in sources:
         fetchers.append(("Adzuna", lambda t: chercher_adzuna(
-            t, lieu_nom or "", type_contrat, max_offres, jours_max), None))
+            t, lieu_nom or "", type_contrat, max_offres, jours_max)))
     if "Jooble" in sources:
-        fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres), None))
+        fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
 
-    # Plan = (terme, label, fn, zone). Les sources France tournent par variante.
-    plan = [(t, label, fn, zone) for t in variantes for (label, fn, zone) in fetchers]
-
-    if recherche_intl:
-        INTL_MAX = 80          # Singapour (sources gratuites) : on remonte le plafond
-        JSEARCH_PAGES = 2      # 2 pages JSearch (~20 offres/ville) au lieu d'1
-        # Singapour (par variante : MyCareersFuture + Adzuna SG)
-        for t in variantes:
-            plan.append((t, "🇸🇬 MyCareersFuture",
-                         lambda q: chercher_mycareersfuture(q, INTL_MAX), "International"))
-            if "Adzuna" in sources:
-                plan.append((t, "🇸🇬 Adzuna Singapour",
-                             lambda q: chercher_adzuna_pays(q, "sg", INTL_MAX, jours_max), "International"))
-        # JSearch : 1 requête par LIEU (le lieu va dans la requête, pas en param
-        # country qui renvoie 0 pour HK/SG). Indépendant des variantes → ménage le
-        # quota RapidAPI. Actif seulement si une clé est configurée.
-        if os.getenv("RAPIDAPI_KEY"):
-            JSEARCH_LIEUX = [("Singapore", "🇸🇬 Singapour"), ("Hong Kong", "🇭🇰 Hong Kong"),
-                             ("Dubai", "🇦🇪 Dubaï"), ("Tokyo", "🇯🇵 Japon"),
-                             ("Seoul", "🇰🇷 Corée"), ("Ho Chi Minh City", "🇻🇳 Vietnam"),
-                             ("Bangkok", "🇹🇭 Thaïlande"), ("Kuala Lumpur", "🇲🇾 Malaisie"),
-                             ("Jakarta", "🇮🇩 Indonésie"), ("Manila", "🇵🇭 Philippines")]
-            for lieu_q, lib in JSEARCH_LIEUX:
-                # Requête large pour le VOLUME (« HR business analyst » plafonnait
-                # à ~9/ville) ; le tri par score + 👥 RH + critère 🇫🇷 remonte le profil.
-                requete = f"business analyst in {lieu_q}"
-                plan.append((requete, f"JSearch {lib}",
-                             lambda q: chercher_jsearch(q, 20, JSEARCH_PAGES), "International"))
-
-    brutes, erreurs, total = [], [], len(plan)
-    with st.status(f"Recherche : {total} requêtes "
-                   f"({len(variantes)} variantes × {len(fetchers)} sources France"
-                   f"{' + international' if recherche_intl else ''})…",
-                   expanded=True) as statut:
+    brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
+    with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
+                   f"({total} requêtes)…", expanded=True) as statut:
         barre = st.progress(0.0)
         journal = st.empty()
         lignes, fait = [], 0
-        for terme, nom_src, fn, zone in plan:
-            fait += 1
-            barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
-            try:
-                res = _tag(fn(terme), terme)
-                if zone:
-                    for o in res:
-                        o["_zone"] = zone
-                brutes += res
-                lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
-                              f"_(cumul brut : {len(brutes)})_")
-            except Exception as e:  # noqa: BLE001
-                erreurs.append(f"{nom_src} « {terme} » : {e}")
-                lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
+        for terme in variantes:
+            for nom_src, fn in fetchers:
+                fait += 1
+                barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
+                try:
+                    res = _tag(fn(terme), terme)
+                    brutes += res
+                    lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
+                                  f"_(cumul brut : {len(brutes)})_")
+                except Exception as e:  # noqa: BLE001
+                    erreurs.append(f"{nom_src} « {terme} » : {e}")
+                    lignes.append(f"⚠️ **{nom_src}** · « {terme} » → erreur : {str(e)[:80]}")
             journal.markdown("\n".join(f"- {x}" for x in lignes))
         barre.empty()
         statut.update(
@@ -355,38 +261,26 @@ if not gardees:
     st.warning("Aucune offre retenue avec ces critères.")
     st.stop()
 
-# Onglet « 🌍 BA International » : (1) les offres des sources étrangères
-# (MyCareersFuture, Adzuna SG/IN — _zone="International") ET (2) parmi les offres
-# BA françaises, celles dont le titre/description mentionne un mot international
-# (liste éditable). Mêmes filtres titre que l'onglet France, sans exclusions ESN.
-gardees_intl, _, _ = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
-                                ignorer_esn=True)
-regex_intl = ro.construire_regex(mots_international) if mots_international else None
-# Onglet = uniquement de VRAIS postes à l'étranger : (1) sources étrangères
-# dédiées (Singapour…) ; (2) offres FR dont le TITRE est explicitement
-# international (« Responsable zone Asie »…) — le match sur la seule description
-# ramenait des jobs franco-français (AIR FRANCE, Soufflet…). VIE exclus.
-ba_intl = [o for o in gardees_intl
-           if (o.get("_zone") == "International"
-               or (regex_intl and ro.mentionne_titre(o, regex_intl)
-                   and not ro.est_international(o)))
-           and not ro.est_vie(o)]
+# Onglet « 🌍 À l'étranger » : offres dont le POSTE est hors de France, prises
+# dans les MÊMES sources françaises et SANS AUCUN filtre (ni ESN, ni titre, ni
+# ancienneté). On part des brutes, on dédoublonne simplement.
+etranger, _vus = [], set()
+for o in brutes:
+    if ro.poste_a_etranger(o):
+        s = ro.signature(o)
+        if s not in _vus:
+            _vus.add(s)
+            etranger.append(o)
 
-# Separation geographique France / hors France (lieu) pour l'onglet combiné. On
-# écarte les offres des sources internationales (sinon « Singapour » tomberait
-# dans France faute d'être reconnu) : elles vivent dans l'onglet BA International.
-internationales = [o for o in gardees
-                   if o.get("_zone") != "International" and ro.est_international(o)]
-francaises = [o for o in gardees
-              if o.get("_zone") != "International" and not ro.est_international(o)]
+# Separation geographique France / hors France (lieu) pour l'onglet « Hors France ».
+francaises = [o for o in gardees if not ro.est_international(o)]
 
-c1, c2, c3, c4, c5, c6 = st.columns(6)
+c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("Récupérées", stats["brutes"])
 c2.metric("France", len(francaises))
-c3.metric("🌍 BA Inter.", len(ba_intl))
-c4.metric("Hors France", len(internationales))
-c5.metric("Exclues", stats["exclues"])
-c6.metric("Doublons", stats["doublons"])
+c3.metric("🌍 À l'étranger", len(etranger))
+c4.metric("Exclues", stats["exclues"])
+c5.metric("Doublons", stats["doublons"])
 
 # Récapitulatif visible de tout ce qui est filtré (y compris les listes du code)
 with st.expander("🔧 Filtres actifs — rappel de ce qui est recherché et exclu"):
@@ -453,11 +347,6 @@ def afficher_detail(it):
         rh_mots = ro.mots_rh_offre(o)
         chips = " ".join(f"`{m}`" for m in rh_mots)
         st.markdown(f"👥 **Domaine RH détecté** : {chips}")
-    if it.get("fr_requis"):
-        st.markdown("🇫🇷 **Français demandé** — poste pour profil francophone (FR + EN).")
-    if it.get("langues"):
-        chips = " ".join(f"`{l}`" for l in it["langues"])
-        st.markdown(f"🗣️ **Langues citées** : {chips}")
     if it.get("comp"):
         chips = " ".join(f"`{m}`" for m in it["comp"])
         st.markdown(f"⭐ **Score {it['score']}** ({len(it['comp'])} compétences) : {chips}")
@@ -481,16 +370,13 @@ def _csv_items(items):
         row = ro.ligne(o)  # intitule, entreprise, lieu, contrat, date, url
         row["source"] = o.get("_source", "")
         row["salaire"] = champ(o, "salaire", "libelle")
-        row["fr_requis"] = "oui" if it.get("fr_requis") else ""
-        row["langues"] = ", ".join(it.get("langues") or [])
         row["rh"] = ", ".join(ro.mots_rh_offre(o))
         if has_score:
             row["score"] = it["score"]
             row["competences"] = ", ".join(it.get("comp") or [])
         row["description"] = (o.get("description") or "").replace("\n", " ").strip()[:1500]
         rows.append(row)
-    cols = (["intitule", "entreprise", "lieu", "source", "salaire", "contrat", "date",
-             "fr_requis", "langues", "rh"]
+    cols = (["intitule", "entreprise", "lieu", "source", "salaire", "contrat", "date", "rh"]
             + (["score", "competences"] if has_score else [])
             + ["url", "description"])
     return csv_bytes(rows, cols)
@@ -535,8 +421,6 @@ def vue_liste_detail(items, cle, csv_nom):
                 bdg = ("🆕 " if it.get("recent") else "")
                 if it.get("rh"):
                     bdg += "👥 "
-                if it.get("fr_requis"):
-                    bdg += "🇫🇷 "
                 if it.get("score"):
                     bdg += f"⭐{it['score']} "
                 if lieu:
@@ -565,30 +449,24 @@ france_items.sort(key=lambda it: (it["recent"], it["score"],
 
 
 def _items(offres):
-    """Décore des offres brutes pour vue_liste_detail (score, RH, récence, FR)."""
+    """Décore des offres brutes pour vue_liste_detail (score, RH, récence)."""
     items = []
     for o in offres:
         sc, comp = ro.score_optimum(o, profil_optimum)
-        # « français demandé » : critère de score (comme l'Optimum), pas un filtre.
-        fr = ro.exige_francais(o)
-        if fr and poids_fr:
-            sc += poids_fr
-            comp = comp + ["français"]
         # 👥 : RH détecté directement dans l'offre (indépendant du profil Optimum)
         items.append({"o": o, "score": sc, "comp": comp,
-                      "recent": _est_recente(o), "rh": ro.offre_rh(o),
-                      "fr_requis": fr, "langues": ro.langues_requises(o)})
+                      "recent": _est_recente(o), "rh": ro.offre_rh(o)})
     items.sort(key=lambda it: (it["recent"], it["score"],
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
     return items
 
 
-ba_intl_items = _items(ba_intl)
+etranger_items = _items(etranger)
 
-onglet_fr, onglet_intl, onglet_autres, onglet_dash = st.tabs([
+onglet_fr, onglet_intl, onglet_excl, onglet_dash = st.tabs([
     f"🎯 France ({len(france_items)})",
-    f"🌍 BA International ({len(ba_intl_items)})",
-    f"🌐 Hors France + 🗑️ Exclues ({len(internationales) + len(exclues)})",
+    f"🌍 À l'étranger ({len(etranger_items)})",
+    f"🗑️ Exclues ({len(exclues)})",
     "📊 Tableau de bord",
 ])
 with onglet_fr:
@@ -599,20 +477,16 @@ with onglet_fr:
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_intl:
-    st.caption("Uniquement de **vrais postes à l'étranger** : 🇸🇬 Singapour, et — si "
-               "clé RapidAPI — 🇭🇰 Hong Kong, 🇦🇪 Dubaï, 🇯🇵 Japon, 🇰🇷 Corée, 🇻🇳 Vietnam, "
-               "🇹🇭 Thaïlande, 🇲🇾 Malaisie, 🇮🇩 Indonésie, 🇵🇭 Philippines via **JSearch**. "
-               "Chaque ligne : 📍 lieu ; 👥 = RH/SIRH détecté ; 🇫🇷 = français demandé "
-               "(bonus de score ⭐). Tri par score profil ⭐ (RH en tête).")
-    vue_liste_detail(ba_intl_items, "intl", "offres_international.csv")
+    st.caption("Offres dont le **poste est à l'étranger**, repérées dans les sources "
+               "**françaises** (France Travail, Adzuna, Jooble) — lieu hors France, "
+               "pays/ville étranger dans l'intitulé, ou mention « à l'étranger / "
+               "expatriation ». **Aucun filtre** (ni ESN, ni titre, ni ancienneté). "
+               "📍 = lieu ; tri par récence puis score profil ⭐.")
+    vue_liste_detail(etranger_items, "etr", "offres_etranger.csv")
 
-with onglet_autres:
-    # Tableau combiné International + Exclues, filtrable + triable (clic en-tête)
+with onglet_excl:
+    # Tableau des offres exclues par le filtrage France, filtrable + triable.
     lignes_tbl = []
-    for o in internationales:
-        r = ro.ligne(o)
-        r.update(statut="International", motif="", source=o.get("_source", ""))
-        lignes_tbl.append(r)
     for e in exclues:
         lignes_tbl.append({
             "intitule": e.get("intitule", ""), "entreprise": e.get("entreprise", ""),
@@ -622,15 +496,15 @@ with onglet_autres:
         })
 
     if not lignes_tbl:
-        st.info("Aucune offre internationale ni exclue.")
+        st.info("Aucune offre exclue.")
     else:
         with st.expander("Répartition des exclusions par motif"):
             for raison, n in sorted(stats["compte"].items(), key=lambda x: -x[1]):
                 st.markdown(f"- {raison} : **{n}**")
 
         f1, f2, f3 = st.columns([1, 2, 2])
-        statuts = f1.multiselect("Statut", ["International", "Exclue"],
-                                 default=["International", "Exclue"], key="f_statut")
+        statuts = f1.multiselect("Statut", ["Exclue"],
+                                 default=["Exclue"], key="f_statut")
         motifs_dispo = sorted({r["motif"] for r in lignes_tbl if r["motif"]})
         motifs = f2.multiselect("Motif d'exclusion", motifs_dispo, default=motifs_dispo,
                                 key="f_motif")

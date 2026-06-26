@@ -154,18 +154,6 @@ SIGNAUX_ESN = [
     "en prestation", "cabinet de conseil", "societe de conseil en informatique",
 ]
 
-# Mots dont la presence (titre OU description) marque la dimension internationale
-# d'une offre -> alimentent l'onglet « BA International ». Editable dans l'interface.
-# NB : on evite "vie" (ambigu : assurance vie, qualite de vie...) bien que VIE =
-# volontariat international en entreprise.
-MOTS_INTERNATIONAL_PAR_DEFAUT = [
-    "international", "internationale", "internationaux",
-    "a l'international", "monde", "mondial", "worldwide", "global",
-    "etranger", "overseas", "multinational", "expatriation",
-    "mobilite internationale", "emea", "apac",
-    "asie", "singapour", "hong kong", "shanghai", "tokyo", "dubai", "export",
-]
-
 # === 3. FILTRAGE ============================================================
 APOSTROPHES = "’‘ʼ`´′"
 
@@ -199,74 +187,6 @@ REGEX_ESN = construire_regex(ESN_CONNUES)
 REGEX_AGENCES = construire_regex(AGENCES_RECRUTEMENT)
 REGEX_SIGNAUX = construire_regex(SIGNAUX_ESN)
 _REGEX_RH = construire_regex(MOTS_RH)
-def mentionne(o, regex):
-    """True si l'intitule + la description de l'offre matche la regex fournie."""
-    return bool(regex.search(normaliser(
-        o.get("intitule", "") + " " + (o.get("description") or ""))))
-
-def mentionne_titre(o, regex):
-    """True si l'INTITULE seul matche la regex (signal plus fort que la description)."""
-    return bool(regex.search(normaliser(o.get("intitule", ""))))
-
-# Detecteur de VIE (Volontariat International en Entreprise) : on cible le
-# PROGRAMME, pas le mot « vie » omnipresent (assurance vie, qualite de vie...).
-# Signaux fiables dans le TITRE : « volontariat international », ou l'acronyme en
-# MAJUSCULES (VIE / V.I.E). On epargne les postes du secteur assurance vie.
-RE_VIE_ACRONYME = re.compile(r"\bV\.?I\.?E\.?\b")          # casse respectee (majuscules)
-RE_VIE_PHRASE = re.compile(r"volontariat international", re.I)
-RE_ASSURANCE_VIE = re.compile(r"assurance|pr[ée]voyance|mutuelle|iard|[ée]pargne|"
-                              r"d[ée]c[èe]s|sant[ée]|retraite", re.I)
-
-def est_vie(o):
-    """True si l'offre est un VIE/VIA (programme), d'apres son intitule."""
-    titre = o.get("intitule", "")
-    if RE_VIE_PHRASE.search(titre):
-        return True
-    if RE_VIE_ACRONYME.search(titre) and not RE_ASSURANCE_VIE.search(titre):
-        return True
-    return False
-
-# Detecteur « le poste demande le français » : on cible une exigence de LANGUE
-# (et non « entreprise française »), via des tournures de competence linguistique.
-# Texte normalise (accents retires) -> on ecrit « francais ».
-_FR_REQUIS = [
-    r"francophone",
-    r"french[- ]speaking", r"speaks?\s+french", r"speaking\s+french",
-    r"fluen\w*\s+(in\s+)?french", r"french\s+fluen",
-    r"french\s+and\s+english", r"english\s+and\s+french",
-    r"bilingual[^.]{0,25}french", r"french[^.]{0,25}bilingual",
-    r"maitrise\w*\s+(du\s+|de\s+)?francais", r"francais\s+courant", r"courant\w*\s+francais",
-    r"francais\s*(/|et|and|&|,)\s*anglais", r"anglais\s*(/|et|and|&|,)\s*francais",
-    r"french[^.]{0,20}(required|mandatory|preferred|advantage|asset|essential|plus|must)",
-    r"(required|mandatory|preferred|advantage|asset|essential|fluent)[^.]{0,20}french",
-]
-RE_FRANCAIS_REQUIS = re.compile("|".join(_FR_REQUIS), re.I)
-
-def exige_francais(o):
-    """True si l'offre demande la maitrise du français (competence linguistique)."""
-    txt = normaliser(o.get("intitule", "") + " " + (o.get("description") or ""))
-    return bool(RE_FRANCAIS_REQUIS.search(txt))
-
-# Langues citees dans une offre (texte normalise, sans accents). Sert a LISTER
-# les langues attendues, en particulier reperer le français + synonymes.
-LANGUES = {
-    "français": [r"francais", r"french", r"francophone"],
-    "anglais": [r"anglais", r"english"],
-    "mandarin": [r"mandarin", r"chinese", r"chinois", r"cantonese", r"cantonais", r"putonghua"],
-    "japonais": [r"japonais", r"japanese", r"nihongo"],
-    "coréen": [r"coreen", r"korean"],
-    "allemand": [r"allemand", r"german", r"deutsch"],
-    "espagnol": [r"espagnol", r"spanish"],
-}
-RE_LANGUES = {lang: re.compile(r"\b(" + "|".join(pats) + r")\b")
-              for lang, pats in LANGUES.items()}
-
-def langues_requises(o):
-    """Liste des langues citees dans l'offre (français en tete s'il est present)."""
-    txt = normaliser(o.get("intitule", "") + " " + (o.get("description") or ""))
-    trouvees = [lang for lang, rx in RE_LANGUES.items() if rx.search(txt)]
-    trouvees.sort(key=lambda l: (l != "français", l))   # français d'abord
-    return trouvees
 
 def nom_entreprise(o):
     return o.get("entreprise", {}).get("nom", "").strip()
@@ -514,6 +434,56 @@ def est_international(o):
             return True
     return False
 
+# === Postes a l'etranger (offres FR concernant un emploi hors de France) =====
+# Pays / villes etrangeres (noms FR + EN courants), normalises (sans accents).
+PAYS_ETRANGERS = {
+    "singapour", "singapore", "hong kong", "chine", "china", "shanghai", "pekin",
+    "beijing", "japon", "japan", "tokyo", "coree", "korea", "seoul", "vietnam",
+    "hanoi", "ho chi minh", "thailande", "thailand", "bangkok", "malaisie",
+    "malaysia", "kuala lumpur", "indonesie", "indonesia", "jakarta", "philippines",
+    "manille", "manila", "inde", "india", "taiwan", "emirats", "emirates", "dubai",
+    "abu dhabi", "qatar", "doha", "arabie saoudite", "riyad", "koweit", "bahrein",
+    "oman", "liban", "israel", "turquie",
+    "etats-unis", "usa", "canada", "montreal", "quebec", "mexique", "bresil",
+    "argentine", "chili", "perou", "colombie",
+    "royaume-uni", "angleterre", "londres", "irlande", "dublin", "allemagne",
+    "berlin", "munich", "espagne", "madrid", "barcelone", "italie", "milan",
+    "rome", "portugal", "lisbonne", "belgique", "bruxelles", "pays-bas",
+    "amsterdam", "suisse", "geneve", "zurich", "lausanne", "luxembourg",
+    "autriche", "pologne", "varsovie", "suede", "norvege", "danemark", "finlande",
+    "grece", "roumanie", "republique tcheque", "hongrie",
+    "maroc", "casablanca", "rabat", "tunisie", "tunis", "algerie", "alger",
+    "senegal", "dakar", "cote d'ivoire", "abidjan", "cameroun", "gabon",
+    "afrique du sud", "kenya", "nigeria", "egypte", "ile maurice",
+    "australie", "sydney", "nouvelle-zelande",
+    "asie", "moyen-orient", "amerique du sud", "amerique latine", "afrique",
+}
+REGEX_PAYS_ETRANGERS = construire_regex(PAYS_ETRANGERS)
+
+# Tournures explicites « le poste est a l'etranger ».
+RE_A_ETRANGER = re.compile(
+    r"a l'etranger|a l etranger|expatri|"
+    r"mobilite internationale|poste a l'international|"
+    r"mission\w*\s+a l'etranger|base\w*\s+a l'etranger"
+)
+
+def poste_a_etranger(o):
+    """True si l'offre (source FR) concerne un emploi A L'ETRANGER.
+
+    Signaux : lieu de travail hors France, mention d'un pays/ville etranger
+    (lieu ou intitule), ou tournure explicite « a l'etranger / expatriation ».
+    """
+    if est_international(o):
+        return True
+    lieu = normaliser((o.get("lieuTravail") or {}).get("libelle", ""))
+    if REGEX_PAYS_ETRANGERS.search(lieu):
+        return True
+    titre = normaliser(o.get("intitule", ""))
+    if REGEX_PAYS_ETRANGERS.search(titre):
+        return True
+    txt = titre + " " + normaliser(o.get("description") or "")
+    return bool(RE_A_ETRANGER.search(txt))
+
 def _competence_poids(brut):
     """'mutuelle:3' -> ('mutuelle', 3) ; 'sql' -> ('sql', 1)."""
     terme, sep, p = brut.rpartition(":")
@@ -746,110 +716,6 @@ def rechercher_jooble(config, api_key):
         page += 1
         time.sleep(0.3)
     return offres[: config["max_offres"]]
-
-# === 8. SOURCE MYCAREERSFUTURE (Singapour, portail gouvernemental) ==========
-# API publique non documentee mais ouverte (sans cle) du portail emploi du
-# gouvernement singapourien. Ideale pour le hub n°1 (Singapour) : on y trouve
-# explicitement des postes BA / HRIS / SIRH.
-MCF_URL = "https://api.mycareersfuture.gov.sg/v2/search"
-
-def _mcf_salaire(j):
-    s = j.get("salary") or {}
-    bas, haut = s.get("minimum"), s.get("maximum")
-    per = ((s.get("type") or {}).get("salaryType") or "").lower()
-    unite = "/mois" if per == "monthly" else (f"/{per}" if per else "")
-    if bas and haut:
-        return f"S${bas:,}–{haut:,}{unite}".replace(",", " ")
-    return ""
-
-def _mcf_vers_offre(j):
-    """Convertit un resultat MyCareersFuture au format interne."""
-    meta = j.get("metadata") or {}
-    return {
-        "intitule": j.get("title", ""),
-        "entreprise": {"nom": (j.get("postedCompany") or {}).get("name", "")},
-        "lieuTravail": {"libelle": "Singapour"},
-        "typeContratLibelle": ", ".join(
-            (t or {}).get("employmentType", "") for t in (j.get("employmentTypes") or [])
-        ),
-        "typeContrat": "",
-        "dateCreation": meta.get("newPostingDate", "") or "",
-        "description": j.get("description", "") or "",
-        "origineOffre": {"urlOrigine": meta.get("jobDetailsUrl", "")},
-        "salaire": {"libelle": _mcf_salaire(j)},
-        "_source": "MyCareersFuture",
-    }
-
-def rechercher_mycareersfuture(config):
-    """Recherche MyCareersFuture (Singapour, POST JSON, sans cle). Format interne."""
-    offres, page, par_page = [], 0, 20
-    while len(offres) < config["max_offres"]:
-        url = f"{MCF_URL}?limit={par_page}&page={page}"
-        try:
-            r = requests.post(url, json={"search": config["mots_cles"]},
-                              headers={"Content-Type": "application/json"}, timeout=25)
-        except requests.exceptions.RequestException as e:
-            raise RuntimeError(f"MyCareersFuture injoignable : {e}")
-        if r.status_code != 200:
-            raise RuntimeError(f"MyCareersFuture {r.status_code}")
-        lot = r.json().get("results", [])
-        if not lot:
-            break
-        offres.extend(_mcf_vers_offre(j) for j in lot)
-        if len(lot) < par_page:
-            break
-        page += 1
-        time.sleep(0.3)
-    return offres[: config["max_offres"]]
-
-# === 9. SOURCE JSEARCH (RapidAPI / OpenWeb Ninja) ===========================
-# Agrege Google for Jobs (LinkedIn, Indeed, Glassdoor...). Endpoint /search-v2,
-# reponse data.jobs[]. Le LIEU se met dans la requete (« ... in Hong Kong ») :
-# le parametre country seul renvoie 0 pour HK/SG. La Chine continentale n'est
-# pas indexee par Google for Jobs. Cle RapidAPI requise (RAPIDAPI_KEY).
-JSEARCH_URL = "https://jsearch.p.rapidapi.com/search-v2"
-
-def _jsearch_salaire(j):
-    s = j.get("job_salary_string")
-    if s:
-        return s
-    bas, haut = j.get("job_min_salary"), j.get("job_max_salary")
-    per = (j.get("job_salary_period") or "").lower()
-    if bas and haut:
-        return f"{int(bas)}–{int(haut)}/{per}".rstrip("/")
-    return ""
-
-def _jsearch_vers_offre(j):
-    """Convertit un resultat JSearch (/search-v2) au format interne."""
-    ville, pays = j.get("job_city") or "", j.get("job_country") or ""
-    lieu = ", ".join(x for x in (ville, pays) if x)
-    return {
-        "intitule": j.get("job_title", "") or "",
-        "entreprise": {"nom": j.get("employer_name") or ""},
-        "lieuTravail": {"libelle": lieu},
-        "typeContratLibelle": j.get("job_employment_type") or "",
-        "typeContrat": "",
-        "dateCreation": j.get("job_posted_at_datetime_utc") or "",
-        "description": j.get("job_description") or "",
-        "origineOffre": {"urlOrigine": j.get("job_apply_link") or j.get("job_google_link") or ""},
-        "salaire": {"libelle": _jsearch_salaire(j)},
-        "_source": f"JSearch {pays}".strip(),
-    }
-
-def rechercher_jsearch(config, api_key):
-    """Recherche JSearch (RapidAPI /search-v2). Le lieu est inclus dans mots_cles."""
-    headers = {"X-RapidAPI-Key": api_key, "X-RapidAPI-Host": "jsearch.p.rapidapi.com"}
-    params = {
-        "query": config["mots_cles"],
-        "page": "1",
-        "num_pages": str(config.get("jsearch_pages", 1)),
-        "date_posted": config.get("date_posted", "month"),
-    }
-    r = _get_avec_retries(JSEARCH_URL, params, timeout=40, headers=headers)
-    if r.status_code != 200:
-        raise RuntimeError(f"JSearch {r.status_code}")
-    jobs = (r.json().get("data") or {}).get("jobs") or []
-    return [_jsearch_vers_offre(j) for j in jobs][: config["max_offres"]]
 
 def main():
     load_dotenv(override=True)

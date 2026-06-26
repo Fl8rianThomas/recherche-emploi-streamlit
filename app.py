@@ -18,6 +18,17 @@ import recherche_offres as ro
 st.set_page_config(page_title="Recherche d'offres", page_icon="🔎", layout="wide")
 load_dotenv(override=True)
 
+# Hébergement (Streamlit Community Cloud, etc.) : il n'y a pas de fichier .env, les
+# clés sont fournies via les « Secrets » Streamlit. On les recopie dans l'environnement
+# pour que les os.getenv(...) du reste du code marchent sans modification. En local,
+# .env a déjà tout chargé et ce bloc ne fait rien (try/except si aucun secret défini).
+try:
+    for _cle, _val in st.secrets.items():
+        if isinstance(_val, str):
+            os.environ.setdefault(_cle, _val)
+except Exception:  # noqa: BLE001 — aucun secrets.toml configuré (cas local courant)
+    pass
+
 
 # === Recuperation par source (mise en cache par criteres) ===================
 @st.cache_data(show_spinner=False)

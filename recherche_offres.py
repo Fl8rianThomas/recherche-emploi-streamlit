@@ -6,6 +6,7 @@ import re
 import csv
 import sys
 import time
+import html
 import unicodedata
 from datetime import date, timedelta
 
@@ -687,6 +688,49 @@ def rechercher_jooble(config, api_key):
             break
         offres.extend(_jooble_vers_offre(j) for j in lot)
         if len(lot) < par_page:
+            break
+        page += 1
+        time.sleep(0.3)
+    return offres[: config["max_offres"]]
+
+# === 8. SOURCE JOBUP.CH (Suisse romande, francophone) =======================
+# API JSON publique (non documentee) du job board suisse francophone jobup.ch.
+# Toutes les offres sont en Suisse -> alimente directement l'onglet 🇨🇭.
+JOBUP_URL = "https://www.jobup.ch/api/v1/public/search"
+
+def _jobup_vers_offre(d):
+    """Convertit un document jobup.ch au format interne."""
+    liens = d.get("_links") or {}
+    url = ((liens.get("detail_fr") or liens.get("detail_en") or {}).get("href")) or ""
+    return {
+        "intitule": d.get("title", "") or "",
+        "entreprise": {"nom": d.get("company_name", "") or ""},
+        "lieuTravail": {"libelle": d.get("place", "") or ""},
+        "typeContratLibelle": "",
+        "typeContrat": "",
+        "dateCreation": d.get("publication_date", "") or "",
+        "description": html.unescape(d.get("preview", "") or ""),
+        "origineOffre": {"urlOrigine": url},
+        "salaire": {"libelle": ""},
+        "_source": "jobup.ch",
+    }
+
+def rechercher_jobup(config):
+    """Recherche jobup.ch (Suisse romande, GET JSON public). Format interne."""
+    headers = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
+    offres, page, rows = [], 1, 20      # l'API plafonne rows a 20
+    while len(offres) < config["max_offres"]:
+        params = {"query": mots_cles_recherche(config["mots_cles"]),
+                  "rows": rows, "page": page}
+        r = _get_avec_retries(JOBUP_URL, params, timeout=20, headers=headers)
+        if r.status_code != 200:
+            raise RuntimeError(f"jobup.ch {r.status_code}")
+        data = r.json()
+        docs = data.get("documents") or []
+        if not docs:
+            break
+        offres.extend(_jobup_vers_offre(x) for x in docs)
+        if page >= (data.get("num_pages") or 1):
             break
         page += 1
         time.sleep(0.3)

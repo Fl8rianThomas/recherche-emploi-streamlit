@@ -69,19 +69,10 @@ def chercher_jooble(mots_cles, lieu, max_offres):
 
 
 @st.cache_data(show_spinner=False)
-def chercher_adzuna_pays(mots_cles, pays, type_contrat, max_offres, jours_max):
-    """Adzuna sur un pays donné (ex: 'ch' Suisse). Tag _source = « Adzuna <PAYS> »."""
-    app_id, app_key = os.getenv("ADZUNA_APP_ID"), os.getenv("ADZUNA_APP_KEY")
-    if not app_id or not app_key:
-        raise RuntimeError("Adzuna : ADZUNA_APP_ID / ADZUNA_APP_KEY manquants dans .env")
-    config = dict(
-        ro.CONFIG, mots_cles=mots_cles, type_contrat=type_contrat or None,
-        max_offres=max_offres, pays_adzuna=pays, jours_max=jours_max,
-    )
-    offres = ro.rechercher_adzuna(config, app_id, app_key)
-    for o in offres:
-        o["_source"] = f"Adzuna {pays.upper()}"
-    return offres
+def chercher_jobup(mots_cles, max_offres):
+    """jobup.ch — job board suisse francophone, API publique sans clé."""
+    config = dict(ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres)
+    return ro.rechercher_jobup(config)
 
 
 def champ(o, *chemin, defaut=""):
@@ -135,9 +126,9 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
         )
         recherche_ch = st.checkbox(
             "🇨🇭 Inclure la Suisse", value=True,
-            help="Interroge Adzuna Suisse (en plus des sources France) et alimente "
-                 "l'onglet « 🇨🇭 Suisse » — mêmes filtres et même scoring Optimum "
-                 "que l'onglet France. Nécessite la clé Adzuna.",
+            help="Interroge jobup.ch (job board suisse francophone, gratuit) et "
+                 "alimente l'onglet « 🇨🇭 Suisse » — mêmes filtres et même scoring "
+                 "Optimum que l'onglet France.",
         )
     variantes = [v.strip() for v in variantes_txt.splitlines() if v.strip()]
     departement, lieu_nom = ro.resoudre_lieu(lieu_saisi)
@@ -231,9 +222,8 @@ if go:
             t, lieu_nom or "", type_contrat, max_offres, jours_max)))
     if "Jooble" in sources:
         fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
-    if recherche_ch and "Adzuna" in sources:
-        fetchers.append(("🇨🇭 Adzuna Suisse", lambda t: chercher_adzuna_pays(
-            t, "ch", type_contrat, max_offres, jours_max)))
+    if recherche_ch:
+        fetchers.append(("🇨🇭 jobup.ch", lambda t: chercher_jobup(t, max_offres)))
 
     brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
     with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
@@ -286,10 +276,12 @@ if not gardees:
     st.warning("Aucune offre retenue avec ces critères.")
     st.stop()
 
-# Offres France (lieu en France) et Suisse (lieu/ville suisse). Mêmes filtres
-# (gardees applique déjà ESN + titre + ancienneté + dedup).
-suisse = [o for o in gardees if ro.est_suisse(o)]
-francaises = [o for o in gardees if not ro.est_international(o)]
+# Offres France (lieu en France) et Suisse (source jobup.ch — toute suisse — ou
+# ville suisse reconnue ailleurs). Mêmes filtres (gardees applique déjà ESN +
+# titre + ancienneté + dedup).
+suisse = [o for o in gardees if o.get("_source") == "jobup.ch" or ro.est_suisse(o)]
+francaises = [o for o in gardees
+              if o.get("_source") != "jobup.ch" and not ro.est_international(o)]
 
 c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("Récupérées", stats["brutes"])
@@ -482,10 +474,10 @@ with onglet_fr:
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 
 with onglet_ch:
-    st.caption("Offres en **Suisse** (Adzuna Suisse + offres suisses des sources "
-               "France). **Mêmes filtres et même scoring Optimum que l'onglet France.** "
-               "📍 = lieu ; tri 🆕 récentes puis score ⭐. Active/désactive la recherche "
-               "Suisse dans les critères en haut.")
+    st.caption("Offres en **Suisse** via **jobup.ch** (job board suisse francophone) "
+               "+ offres suisses des sources France. **Mêmes filtres et même scoring "
+               "Optimum que l'onglet France.** 📍 = lieu ; tri 🆕 récentes puis score ⭐. "
+               "Active/désactive la recherche Suisse dans les critères en haut.")
     vue_liste_detail(suisse_items, "ch", "offres_suisse.csv")
 
 with onglet_excl:

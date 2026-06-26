@@ -308,12 +308,22 @@ SEARCH_URL = "https://api.francetravail.io/partenaire/offresdemploi/v2/offres/se
 SCOPE = "api_offresdemploiv2 o2dsoffre"
 
 def obtenir_token(cid, secret):
-    r = requests.post(TOKEN_URL, data={
-        "grant_type": "client_credentials", "client_id": cid,
-        "client_secret": secret, "scope": SCOPE}, timeout=20)
-    if r.status_code != 200:
-        raise RuntimeError(f"Code {r.status_code} - {r.text}")
-    return r.json()["access_token"]
+    data = {"grant_type": "client_credentials", "client_id": cid,
+            "client_secret": secret, "scope": SCOPE}
+    derniere = None
+    for n in range(4):
+        try:
+            r = requests.post(TOKEN_URL, data=data, timeout=20)
+            if r.status_code == 200:
+                return r.json()["access_token"]
+            if r.status_code not in TRANSITOIRES:
+                raise RuntimeError(f"Code {r.status_code} - {r.text}")
+            derniere = f"HTTP {r.status_code}"
+        except requests.exceptions.RequestException as e:
+            derniere = str(e)
+        if n < 3:
+            time.sleep(min(8, 2 ** n))
+    raise RuntimeError(f"Authentification France Travail indisponible ({derniere})")
 
 def rechercher(token, config):
     headers = {"Authorization": f"Bearer {token}"}
@@ -332,7 +342,12 @@ def rechercher(token, config):
     offres, taille, debut = [], 50, 0
     while len(offres) < config["max_offres"]:
         params = dict(base, range=f"{debut}-{debut + taille - 1}")
-        r = requests.get(SEARCH_URL, headers=headers, params=params, timeout=20)
+        try:
+            r = _get_avec_retries(SEARCH_URL, params, headers=headers)
+        except RuntimeError:
+            if offres:          # page suivante KO : on garde ce qu'on a deja
+                break
+            raise               # premiere page KO : on remonte l'erreur
         if r.status_code not in (200, 206):
             print(f"  Erreur API {r.status_code} : {r.text[:200]}")
             break
@@ -621,8 +636,12 @@ def _adzuna_vers_offre(j):
 
 TRANSITOIRES = (429, 500, 502, 503, 504)
 
-def _get_avec_retries(url, params, timeout=20, tentatives=3, headers=None):
-    """GET avec reessais sur erreurs reseau ou statuts transitoires (5xx/429)."""
+def _get_avec_retries(url, params, timeout=20, tentatives=4, headers=None):
+    """GET avec reessais sur erreurs reseau ou statuts transitoires (5xx/429).
+
+    Backoff exponentiel (1s, 2s, 4s...) pour laisser le temps a un service
+    surcharge (503) ou a une connexion coupee (RST) de se retablir.
+    """
     derniere = None
     for n in range(tentatives):
         try:
@@ -633,7 +652,7 @@ def _get_avec_retries(url, params, timeout=20, tentatives=3, headers=None):
         except requests.exceptions.RequestException as e:
             derniere = str(e)
         if n < tentatives - 1:
-            time.sleep(1.5 * (n + 1))
+            time.sleep(min(8, 2 ** n))
     raise RuntimeError(f"service indisponible après {tentatives} essais ({derniere})")
 
 def rechercher_adzuna(config, app_id, app_key):

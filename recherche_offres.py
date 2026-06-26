@@ -42,7 +42,6 @@ SYNONYMES_PAR_DEFAUT = [
     "AMOA",
     "product owner",
     "product manager",
-    "chef de produit",
 ]
 
 # Le TITRE doit contenir au moins un de ces mots (sinon l'offre est ecartee).
@@ -54,8 +53,8 @@ SYNONYMES_PAR_DEFAUT = [
 # NB : "owner"/"produit" ciblent PO & Chef de produit sans attraper "production".
 INCLUSIONS_TITRE_PAR_DEFAUT = [
     "owner:orange",            # product owner, proxy product owner
-    "product manager:orange",
-    "produit:orange",          # chef de produit
+    "product manager:orange",  # PO digital (on EVITE "produit" -> chef de produit
+                               # marketing / chef de rayon = hors sujet)
     "analyst:bleu",            # couvre analyst + analyste
     "business:bleu",
     "amoa:bleu",
@@ -70,6 +69,7 @@ EXCLUSIONS_TITRE_PAR_DEFAUT = [
     "assainissement",
     "reseaux humides",
     "affaires reglementaires",
+    "chef de rayon",        # responsable de rayon (supermarche), hors sujet
 ]
 
 # Profil "Optimum" : competences / domaines servant a classer les offres par
@@ -134,10 +134,10 @@ def mots_rh_offre(o):
     return sorted({m for m in MOTS_RH
                    if re.search(r"\b" + re.escape(normaliser(m)) + r"\b", txt)})
 
-# Detecteur Product Owner (2e profil cible) -> badge couleur dans la liste.
+# Detecteur Product Owner DIGITAL (2e profil cible) -> couleur de ligne.
+# On evite "chef de produit" (marketing) et "produit" (chef de rayon).
 RE_PRODUCT_OWNER = re.compile(
-    r"product owner|product manager|chef de produit|responsable produit|"
-    r"proxy[ -]?(product )?owner|\bowner\b")
+    r"product owner|product manager|proxy[ -]?(product )?owner|\bowner\b")
 
 def est_product_owner(o):
     """True si l'intitule designe un poste Product Owner / Product Manager."""

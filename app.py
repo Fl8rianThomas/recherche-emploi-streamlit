@@ -92,7 +92,7 @@ def chercher_adzuna_pays(mots_cles, pays, max_offres, jours_max):
 
 
 @st.cache_data(show_spinner=False)
-def chercher_jsearch(query, max_offres):
+def chercher_jsearch(query, max_offres, pages=1):
     """JSearch (RapidAPI). query = « HR business analyst in <lieu> » (lieu inclus)."""
     key = os.getenv("RAPIDAPI_KEY")
     if not key:
@@ -100,7 +100,7 @@ def chercher_jsearch(query, max_offres):
             "JSearch : RAPIDAPI_KEY manquant dans .env "
             "(clé gratuite : abonnement JSearch sur rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch)"
         )
-    config = dict(ro.CONFIG, mots_cles=query, max_offres=max_offres)
+    config = dict(ro.CONFIG, mots_cles=query, max_offres=max_offres, jsearch_pages=pages)
     return ro.rechercher_jsearch(config, key)
 
 
@@ -157,9 +157,9 @@ with st.expander("🔎 Critères de recherche", expanded=not st.session_state.ge
             "🌏 Inclure l'international (Asie)", value=True,
             help="Interroge des sources étrangères — MyCareersFuture (Singapour) "
                  "et Adzuna Singapour (gratuit), + JSearch (Singapour, Hong Kong, "
-                 "Dubaï, Japon, Vietnam, Thaïlande, Malaisie) si une clé RAPIDAPI_KEY "
-                 "est présente dans .env. Alimente l'onglet « 🌍 BA International ». "
-                 "Décoche pour t'en passer.",
+                 "Dubaï, Japon, Corée, Vietnam, Thaïlande, Malaisie, Indonésie, "
+                 "Philippines) si une clé RAPIDAPI_KEY est présente dans .env. "
+                 "Alimente l'onglet « 🌍 BA International ». Décoche pour t'en passer.",
         )
         poids_fr = int(st.number_input(
             "🇫🇷 Bonus de score « français demandé »", min_value=0, max_value=10,
@@ -275,7 +275,8 @@ if go:
     plan = [(t, label, fn, zone) for t in variantes for (label, fn, zone) in fetchers]
 
     if recherche_intl:
-        INTL_MAX = 30
+        INTL_MAX = 80          # Singapour (sources gratuites) : on remonte le plafond
+        JSEARCH_PAGES = 2      # 2 pages JSearch (~20 offres/ville) au lieu d'1
         # Singapour (par variante : MyCareersFuture + Adzuna SG)
         for t in variantes:
             plan.append((t, "🇸🇬 MyCareersFuture",
@@ -289,12 +290,15 @@ if go:
         if os.getenv("RAPIDAPI_KEY"):
             JSEARCH_LIEUX = [("Singapore", "🇸🇬 Singapour"), ("Hong Kong", "🇭🇰 Hong Kong"),
                              ("Dubai", "🇦🇪 Dubaï"), ("Tokyo", "🇯🇵 Japon"),
-                             ("Ho Chi Minh City", "🇻🇳 Vietnam"), ("Bangkok", "🇹🇭 Thaïlande"),
-                             ("Kuala Lumpur", "🇲🇾 Malaisie")]
+                             ("Seoul", "🇰🇷 Corée"), ("Ho Chi Minh City", "🇻🇳 Vietnam"),
+                             ("Bangkok", "🇹🇭 Thaïlande"), ("Kuala Lumpur", "🇲🇾 Malaisie"),
+                             ("Jakarta", "🇮🇩 Indonésie"), ("Manila", "🇵🇭 Philippines")]
             for lieu_q, lib in JSEARCH_LIEUX:
-                requete = f"HR business analyst in {lieu_q}"
+                # Requête large pour le VOLUME (« HR business analyst » plafonnait
+                # à ~9/ville) ; le tri par score + 👥 RH + critère 🇫🇷 remonte le profil.
+                requete = f"business analyst in {lieu_q}"
                 plan.append((requete, f"JSearch {lib}",
-                             lambda q: chercher_jsearch(q, 10), "International"))
+                             lambda q: chercher_jsearch(q, 20, JSEARCH_PAGES), "International"))
 
     brutes, erreurs, total = [], [], len(plan)
     with st.status(f"Recherche : {total} requêtes "
@@ -596,11 +600,10 @@ with onglet_fr:
 
 with onglet_intl:
     st.caption("Uniquement de **vrais postes à l'étranger** : 🇸🇬 Singapour, et — si "
-               "clé RapidAPI — 🇭🇰 Hong Kong, 🇦🇪 Dubaï, 🇯🇵 Japon, 🇻🇳 Vietnam, "
-               "🇹🇭 Thaïlande, 🇲🇾 Malaisie via **JSearch**. Chaque ligne affiche 📍 le "
-               "lieu ; 🇫🇷 = le poste **demande le français** (bonus de score ⭐, pas un "
-               "filtre — réglable en haut). VIE et bruit franco-français exclus. "
-               "Tri par score profil ⭐.")
+               "clé RapidAPI — 🇭🇰 Hong Kong, 🇦🇪 Dubaï, 🇯🇵 Japon, 🇰🇷 Corée, 🇻🇳 Vietnam, "
+               "🇹🇭 Thaïlande, 🇲🇾 Malaisie, 🇮🇩 Indonésie, 🇵🇭 Philippines via **JSearch**. "
+               "Chaque ligne : 📍 lieu ; 👥 = RH/SIRH détecté ; 🇫🇷 = français demandé "
+               "(bonus de score ⭐). Tri par score profil ⭐ (RH en tête).")
     vue_liste_detail(ba_intl_items, "intl", "offres_international.csv")
 
 with onglet_autres:

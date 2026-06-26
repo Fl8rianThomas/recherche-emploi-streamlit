@@ -842,7 +842,7 @@ def rechercher_jsearch(config, api_key):
     params = {
         "query": config["mots_cles"],
         "page": "1",
-        "num_pages": "1",
+        "num_pages": str(config.get("jsearch_pages", 1)),
         "date_posted": config.get("date_posted", "month"),
     }
     r = _get_avec_retries(JSEARCH_URL, params, timeout=40, headers=headers)

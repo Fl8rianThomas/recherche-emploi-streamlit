@@ -446,7 +446,7 @@ def afficher_detail(it):
         meta += f" · 💶 {salaire}"
     st.markdown(meta)
     if it.get("rh"):
-        rh_mots = ro.competences_rh(it.get("comp") or [])
+        rh_mots = ro.mots_rh_offre(o)
         chips = " ".join(f"`{m}`" for m in rh_mots)
         st.markdown(f"👥 **Domaine RH détecté** : {chips}")
     if it.get("fr_requis"):
@@ -470,12 +470,22 @@ def _csv_items(items):
     has_score = bool(items) and "score" in items[0]
     rows = []
     for it in items:
-        row = ro.ligne(it["o"])
+        o = it["o"]
+        row = ro.ligne(o)  # intitule, entreprise, lieu, contrat, date, url
+        row["source"] = o.get("_source", "")
+        row["salaire"] = champ(o, "salaire", "libelle")
+        row["fr_requis"] = "oui" if it.get("fr_requis") else ""
+        row["rh"] = ", ".join(ro.mots_rh_offre(o))
         if has_score:
             row["score"] = it["score"]
             row["competences"] = ", ".join(it.get("comp") or [])
+        row["description"] = (o.get("description") or "").replace("\n", " ").strip()[:1500]
         rows.append(row)
-    return csv_bytes(rows, champs + (["score", "competences"] if has_score else []))
+    cols = (["intitule", "entreprise", "lieu", "source", "salaire", "contrat", "date",
+             "fr_requis", "rh"]
+            + (["score", "competences"] if has_score else [])
+            + ["url", "description"])
+    return csv_bytes(rows, cols)
 
 
 # Items de liste : texte aligné à gauche et limité à UNE seule ligne (… si trop long)
@@ -551,8 +561,9 @@ def _items(offres):
     items = []
     for o in offres:
         sc, comp = ro.score_optimum(o, profil_optimum)
+        # 👥 : RH détecté directement dans l'offre (indépendant du profil Optimum)
         items.append({"o": o, "score": sc, "comp": comp,
-                      "recent": _est_recente(o), "rh": ro.comprend_rh(comp),
+                      "recent": _est_recente(o), "rh": ro.offre_rh(o),
                       "fr_requis": ro.exige_francais(o)})
     items.sort(key=lambda it: (it["recent"], it["score"],
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)

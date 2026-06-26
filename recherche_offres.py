@@ -98,6 +98,31 @@ def comprend_rh(competences):
     """True si au moins une competence trouvee releve du domaine RH."""
     return bool(competences_rh(competences))
 
+# Termes RH/SIRH (FR + EN) pour reperer une offre du domaine RH DIRECTEMENT dans
+# son texte (titre + description), independamment du profil Optimum editable.
+# Sert au badge 👥 de l'onglet International (offres surtout anglophones).
+MOTS_RH = {
+    "ressources humaines", "rh", "sirh", "human resources", "hris", "hcm",
+    "hr systems", "hr data", "hr operations", "hr information", "people operations",
+    "people analytics", "gpec", "administration du personnel", "gestion du personnel",
+    "paie", "payroll", "remuneration", "compensation", "benefits", "rewards",
+    "talent", "talent management", "talent acquisition", "recrutement",
+    "recruitment", "recruiting", "formation", "learning and development",
+    "workday", "successfactors", "sap sf", "talentsoft", "gta",
+    "employee experience", "workforce",
+}
+
+def offre_rh(o):
+    """True si l'offre releve du domaine RH (scan direct de l'intitule + description)."""
+    return bool(_REGEX_RH.search(normaliser(
+        o.get("intitule", "") + " " + (o.get("description") or ""))))
+
+def mots_rh_offre(o):
+    """Termes RH detectes dans l'offre (pour affichage des chips)."""
+    txt = normaliser(o.get("intitule", "") + " " + (o.get("description") or ""))
+    return sorted({m for m in MOTS_RH
+                   if re.search(r"\b" + re.escape(normaliser(m)) + r"\b", txt)})
+
 # === 2. LISTES D'EXCLUSION ==================================================
 ESN_CONNUES = {
     "capgemini", "sopra steria", "atos", "cgi", "alten", "altran",
@@ -173,6 +198,7 @@ def construire_regex(termes):
 REGEX_ESN = construire_regex(ESN_CONNUES)
 REGEX_AGENCES = construire_regex(AGENCES_RECRUTEMENT)
 REGEX_SIGNAUX = construire_regex(SIGNAUX_ESN)
+_REGEX_RH = construire_regex(MOTS_RH)
 def mentionne(o, regex):
     """True si l'intitule + la description de l'offre matche la regex fournie."""
     return bool(regex.search(normaliser(

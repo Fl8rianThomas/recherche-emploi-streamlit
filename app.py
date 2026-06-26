@@ -220,6 +220,14 @@ with st.expander("⭐ Profil Optimum — classement par adéquation"):
              "assurance, banque) sont pondérés plus fort. Titre compté ×2.",
     )
     profil_optimum = [x.strip() for x in profil_txt.splitlines() if x.strip()]
+    depts_txt = st.text_input(
+        "🎯 Départements favoris (codes séparés par une virgule)",
+        value=", ".join(ro.DEPTS_FAVORIS_PAR_DEFAUT),
+        help="Une offre située dans un de ces départements reçoit l'icône 🎯 dans la "
+             "liste (n'exclut rien). Défaut : 37 (Tours), 41 (Blois), 45 (Orléans), "
+             "75 (Paris).",
+    )
+    depts_favoris = {d.strip().upper() for d in depts_txt.replace(";", ",").split(",") if d.strip()}
 
 go = st.button("🔎 Rechercher", type="primary")
 st.divider()
@@ -386,6 +394,8 @@ def afficher_detail(it):
     if salaire:
         meta += f" · 💶 {salaire}"
     st.markdown(meta)
+    if it.get("favori"):
+        st.markdown("🎯 **Département favori**")
     if it.get("po"):
         st.markdown("🟣 :violet[**Profil Product Owner / Product Manager**]")
     if it.get("rh"):
@@ -476,6 +486,8 @@ def vue_liste_detail(items, cle, csv_nom):
                 d = (o.get("dateCreation", "") or "")[:10]
                 lieu = champ(o, "lieuTravail", "libelle")
                 bdg = ("🆕 " if it.get("recent") else "")
+                if it.get("favori"):
+                    bdg += "🎯 "
                 if it.get("rh"):
                     bdg += "👥 "
                 if it.get("score"):
@@ -513,7 +525,8 @@ def _decorer(offres):
         sc, comp = ro.score_optimum(o, profil_optimum)
         items.append({"o": o, "score": sc, "comp": comp,
                       "recent": _est_recente(o), "rh": ro.comprend_rh(comp),
-                      "po": ro.est_product_owner(o), "couleur": _couleur_offre(o)})
+                      "po": ro.est_product_owner(o), "couleur": _couleur_offre(o),
+                      "favori": ro.est_departement_favori(o, depts_favoris)})
     items.sort(key=lambda it: (it["recent"], it["score"],
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
     return items
@@ -525,6 +538,7 @@ def _legende(items):
     nsc = sum(1 for it in items if it.get("score"))
     nrh = sum(1 for it in items if it.get("rh"))
     npo = sum(1 for it in items if it.get("po"))
+    nfav = sum(1 for it in items if it.get("favori"))
     BA_TERMES = ("analyst", "business", "amoa", "fonctionnel")
     nba = sum(1 for it in items
               if any(t in ro.normaliser(it["o"].get("intitule", "")) for t in BA_TERMES))
@@ -539,6 +553,7 @@ def _legende(items):
 
     chips = [
         pill(f"📋 {n} offres"),
+        pill(f"🎯 {nfav} favoris"),
         pill(f"🆕 {nrec} récentes"),
         pill(f"⭐ {nsc} scorées"),
         pill(f"👥 {nrh} RH/SIRH"),

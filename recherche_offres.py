@@ -94,6 +94,10 @@ PROFIL_OPTIMUM = [
     "agile:1", "scrum:1", "kanban:1", "psm:1", "backlog:1",
 ]
 
+# Departements favoris (Optimum) : une offre qui s'y trouve recoit l'icone 🎯.
+# 37 Indre-et-Loire (Tours), 41 Loir-et-Cher (Blois), 45 Loiret (Orleans), 75 Paris.
+DEPTS_FAVORIS_PAR_DEFAUT = ["37", "41", "45", "75"]
+
 # Competences relevant du domaine RH -> declenchent l'icone 👥 dans l'interface.
 COMPETENCES_RH = {
     "ressources humaines", "rh", "sirh", "human resources", "hris", "hcm",
@@ -449,6 +453,31 @@ def region_offre(o):
         if code:
             return DEPT_REGION.get(code, "Autre")
     return "Autre"
+
+def departement_offre(o):
+    """Devine le code departement (« 37 », « 75 »…) d'une offre, ou None.
+
+    Meme heuristique que region_offre : prefixe numerique du libelle (« 37 - Tours »
+    France Travail), sinon ville chef-lieu reconnue (Adzuna/Jooble).
+    """
+    lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
+    if not lieu.strip():
+        return None
+    m = re.match(r"\s*(2[AB]|\d{2,3})\b", lieu)           # « 37 - Tours »
+    if m:
+        return m.group(1).upper()
+    for part in re.split(r"[,/]", lieu):                  # ville chef-lieu -> code
+        code = _NOM_VERS_CODE.get(normaliser(part))
+        if code:
+            return code
+    return None
+
+def est_departement_favori(o, codes):
+    """True si l'offre est localisee dans l'un des departements `codes`."""
+    if not codes:
+        return False
+    dep = departement_offre(o)
+    return bool(dep) and dep in codes
 
 def date_offre(o):
     """Date de parution d'une offre (les 10 premiers caracteres ISO), ou None."""

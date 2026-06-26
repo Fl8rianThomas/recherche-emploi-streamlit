@@ -225,23 +225,34 @@ def signature(o):
     return titre + "||" + normaliser(nom_entreprise(o))
 
 # Detecteur d'offre redigee en ALLEMAND (pour ne garder, en Suisse, que les
-# offres francophones + anglophones). Mots-outils + forme inclusive « .../in ».
+# offres francophones + anglophones). Mots-outils + vocabulaire d'annonce DE +
+# morphologie (mots en -ung/-schaft/-keit...) + forme inclusive « .../in ».
 MARQUEURS_ALLEMAND = {
     "und", "der", "die", "das", "fur", "mit", "sie", "wir", "ein", "eine", "im",
     "zu", "von", "auf", "ist", "werden", "wird", "bei", "aus", "dem", "den",
     "oder", "auch", "als", "sich", "nicht", "wie", "unsere", "unser", "sind",
-    "haben", "dieser", "diese", "du", "aufgaben", "kenntnisse", "erfahrung",
-    "bereich", "sowie", "stelle", "mitarbeiter", "uns", "einer", "einen",
+    "haben", "dieser", "diese", "du", "dich", "dir", "deine", "deinen", "deiner",
+    "uns", "einer", "einen", "nach", "uber", "unter", "durch", "zum", "zur",
+    "gerne", "sowie", "ihre", "ihren", "ihr",
+    # vocabulaire d'annonce RH allemand
+    "aufgaben", "kenntnisse", "erfahrung", "bereich", "stelle", "mitarbeiter",
+    "berufserfahrene", "unbefristet", "pensum", "arbeitsort", "stellenantritt",
+    "bewerbung", "bewerben", "jetzt", "schweiz", "zukunft", "gestalten", "umfeld",
+    "begeisterst", "erwartet", "anforderungen", "verantwortung", "spannende",
+    "standort", "profil", "rolle", "wochen", "taglich",
 }
 
 def est_allemand(o):
-    """True si l'offre est redigee en allemand (titre ou description)."""
+    """True si l'offre est redigee en allemand (titre, description ou entreprise)."""
     titre = o.get("intitule", "")
     if re.search(r"/-?in\b", titre, re.I) or "analystin" in normaliser(titre):
         return True
-    mots = set(re.findall(r"[a-z]+", normaliser(
-        titre + " " + (o.get("description") or ""))))
-    return len(MARQUEURS_ALLEMAND & mots) >= 3
+    mots = re.findall(r"[a-z]+", normaliser(
+        titre + " " + (o.get("description") or "") + " " + nom_entreprise(o)))
+    fonct = len(MARQUEURS_ALLEMAND & set(mots))
+    morpho = sum(1 for m in mots
+                 if len(m) > 6 and m.endswith(("ung", "ungen", "schaft", "keit", "heit")))
+    return fonct >= 2 or morpho >= 2
 
 # === 4. API FRANCE TRAVAIL ==================================================
 TOKEN_URL = "https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire"

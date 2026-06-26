@@ -356,6 +356,8 @@ def afficher_detail(it):
     if salaire:
         meta += f" · 💶 {salaire}"
     st.markdown(meta)
+    if it.get("po"):
+        st.markdown("🟣 :violet[**Profil Product Owner / Product Manager**]")
     if it.get("rh"):
         rh_mots = ro.mots_rh_offre(o)
         chips = " ".join(f"`{m}`" for m in rh_mots)
@@ -434,6 +436,8 @@ def vue_liste_detail(items, cle, csv_nom):
                 bdg = ("🆕 " if it.get("recent") else "")
                 if it.get("rh"):
                     bdg += "👥 "
+                if it.get("po"):
+                    bdg += "🟣 "
                 if it.get("score"):
                     bdg += f"⭐{it['score']} "
                 if lieu:
@@ -457,7 +461,8 @@ def _decorer(offres):
     for o in offres:
         sc, comp = ro.score_optimum(o, profil_optimum)
         items.append({"o": o, "score": sc, "comp": comp,
-                      "recent": _est_recente(o), "rh": ro.comprend_rh(comp)})
+                      "recent": _est_recente(o), "rh": ro.comprend_rh(comp),
+                      "po": ro.est_product_owner(o)})
     items.sort(key=lambda it: (it["recent"], it["score"],
                                (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
     return items
@@ -473,8 +478,8 @@ onglet_fr, onglet_ch, onglet_excl, onglet_dash = st.tabs([
 ])
 with onglet_fr:
     st.caption(f"Toutes les offres France. Ordre : 🆕 récentes (≤ {jours_recent} j) "
-               "d'abord (les plus pertinentes en tête), puis par adéquation profil "
-               "(⭐), puis par date. Clique une annonce pour son détail. "
+               "d'abord, puis adéquation profil (⭐), puis date. Badges : 👥 RH/SIRH · "
+               "🟣 Product Owner · ⭐ score. Clique une annonce pour son détail. "
                "Profil & filtres éditables en haut de page.")
     vue_liste_detail(france_items, "fr", "offres_france.csv")
 

@@ -132,6 +132,15 @@ def mots_rh_offre(o):
     return sorted({m for m in MOTS_RH
                    if re.search(r"\b" + re.escape(normaliser(m)) + r"\b", txt)})
 
+# Detecteur Product Owner (2e profil cible) -> badge couleur dans la liste.
+RE_PRODUCT_OWNER = re.compile(
+    r"product owner|product manager|chef de produit|responsable produit|"
+    r"proxy[ -]?(product )?owner|\bowner\b")
+
+def est_product_owner(o):
+    """True si l'intitule designe un poste Product Owner / Product Manager."""
+    return bool(RE_PRODUCT_OWNER.search(normaliser(o.get("intitule", ""))))
+
 # === 2. LISTES D'EXCLUSION ==================================================
 ESN_CONNUES = {
     "capgemini", "sopra steria", "atos", "cgi", "alten", "altran",

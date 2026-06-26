@@ -113,13 +113,10 @@ def decorer_france(brutes):
     return items, stats
 
 
-def construire_html(items, stats, erreurs):
-    aujourd = date.today().isoformat()
-    nrec = sum(1 for it in items if it["recent"])
-    nfav = sum(1 for it in items if it["favori"])
-    nrh = sum(1 for it in items if it["rh"])
+def _rendu_items(items):
+    """Liste HTML <li> d'offres (badges + intitulé cliquable + méta)."""
     lignes = []
-    for it in items[:MAX_MAIL]:
+    for it in items:
         o = it["o"]
         titre = html.escape(o.get("intitule", "Sans titre"))
         ent = html.escape(ro.nom_entreprise(o) or "Entreprise non précisée")
@@ -138,22 +135,38 @@ def construire_html(items, stats, erreurs):
         lignes.append(
             f'<li style="margin:0 0 10px"><b>{badges}{lien}</b><br>'
             f'<span style="color:#555">{ent} · {lieu} · {d} · {src}</span></li>')
+    return "".join(lignes)
+
+
+def _section(titre, items, vide):
+    corps = (f"<ol>{_rendu_items(items)}</ol>" if items
+             else f"<p><i>{vide}</i></p>")
+    return f"<h3>{titre}</h3>{corps}"
+
+
+def construire_html(items, stats, erreurs):
+    """Mail = 💎 Perfect + 🎯 France RÉCENTES uniquement (pas les plus anciennes)."""
+    aujourd = date.today().isoformat()
+    # Perfect : score > 2 ET RH/SIRH ET département favori (cf. onglet Perfect).
+    perfect = [it for it in items if it["score"] > 2 and it["rh"] and it["favori"]]
+    pids = {id(it) for it in perfect}
+    # France récentes : uniquement la partie « 🆕 » (on exclut les plus anciennes),
+    # sans répéter celles déjà listées en Perfect.
+    recents = [it for it in items if it["recent"] and id(it) not in pids][:MAX_MAIL]
+    n_envoye = len(perfect) + len(recents)
     err_html = ""
     if erreurs:
         err_html = ("<p style='color:#b00'>⚠️ Sources en erreur : "
                     + html.escape("; ".join(erreurs)) + "</p>")
-    tronq = ("" if len(items) <= MAX_MAIL
-             else f"<p><i>… et {len(items) - MAX_MAIL} autres "
-                  f"(voir l'app pour la liste complète).</i></p>")
-    return f"""<html><body style="font-family:Arial,sans-serif;font-size:14px">
+    corps = f"""<html><body style="font-family:Arial,sans-serif;font-size:14px">
 <h2>🔎 Offres du {aujourd}</h2>
-<p><b>{len(items)}</b> offres France retenues
-({stats['brutes']} brutes) · 🆕 {nrec} récentes · 🎯 {nfav} favoris · 👥 {nrh} RH/SIRH</p>
+<p>{stats['brutes']} offres brutes · 💎 {len(perfect)} Perfect · 🆕 {len(recents)} récentes</p>
 {err_html}
-<ol>{''.join(lignes)}</ol>
-{tronq}
-<p style="color:#888">Recherche automatique — onglet France/Optimum.</p>
+{_section(f"💎 Perfect ({len(perfect)})", perfect, "Aucune offre Perfect aujourd'hui.")}
+{_section(f"🎯 France — récentes ({len(recents)})", recents, "Aucune offre récente aujourd'hui.")}
+<p style="color:#888">Recherche automatique — offres récentes + Perfect.</p>
 </body></html>"""
+    return corps, n_envoye
 
 
 def envoyer(html_corps, n):
@@ -178,7 +191,9 @@ def main():
     print(f"{stats['brutes']} brutes -> {len(items)} offres France.")
     for e in erreurs:
         print(" [!]", e)
-    envoyer(construire_html(items, stats, erreurs), len(items))
+    corps, n_envoye = construire_html(items, stats, erreurs)
+    print(f"E-mail : {n_envoye} offres (Perfect + recentes).")
+    envoyer(corps, n_envoye)
 
 
 if __name__ == "__main__":

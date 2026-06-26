@@ -418,55 +418,6 @@ MARQUEURS_ETRANGERS = {
     "puerto rico","united arab emirates","qatar","japan",
 }
 
-# Noms complets des etats US (+ marqueurs pays US) pour EXCLURE les offres US.
-ETATS_US_NOMS = {
-    "alabama", "alaska", "arizona", "arkansas", "california", "colorado",
-    "connecticut", "delaware", "florida", "hawaii", "idaho", "illinois",
-    "indiana", "iowa", "kansas", "kentucky", "louisiana", "maryland",
-    "massachusetts", "michigan", "minnesota", "mississippi", "missouri",
-    "montana", "nebraska", "nevada", "new hampshire", "new jersey",
-    "new mexico", "new york", "north carolina", "north dakota", "ohio",
-    "oklahoma", "oregon", "pennsylvania", "rhode island", "south carolina",
-    "south dakota", "tennessee", "texas", "utah", "vermont", "virginia",
-    "washington", "washington dc", "west virginia", "wisconsin", "wyoming",
-}
-US_MARQUEURS = ETATS_US_NOMS | {"united states", "usa", "u s a", "etats-unis"}
-
-def est_usa(o):
-    """True si l'offre est localisee aux Etats-Unis (code etat ou nom d'etat/pays)."""
-    lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
-    m = re.search(r",\s*([A-Z]{2})\b", lieu)
-    if m and m.group(1) in ETATS_US:
-        return True
-    for p in re.split(r"[,/]", lieu):
-        n = normaliser(p).strip()
-        if n.endswith(" state"):
-            n = n[:-6].strip()
-        if n in US_MARQUEURS:
-            return True
-    return False
-
-# Marqueurs Canada (provinces, villes) pour EXCLURE les offres canadiennes.
-PROVINCES_CANADA = {"QC", "ON", "BC", "AB", "MB", "SK", "NS", "NB", "NL", "PE",
-                    "YT", "NT", "NU"}
-CANADA_NOMS = {
-    "canada", "quebec", "ontario", "british columbia", "alberta", "manitoba",
-    "saskatchewan", "nova scotia", "new brunswick", "terre-neuve",
-    "montreal", "toronto", "vancouver", "ottawa", "gatineau", "calgary",
-    "edmonton", "winnipeg", "halifax", "laval", "mississauga", "sherbrooke",
-}
-
-def est_canada(o):
-    """True si l'offre est localisee au Canada (province, ville ou « Canada »)."""
-    lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
-    m = re.search(r",\s*([A-Z]{2})\b", lieu)
-    if m and m.group(1) in PROVINCES_CANADA:
-        return True
-    for p in re.split(r"[,/]", lieu):
-        if normaliser(p).strip() in CANADA_NOMS:
-            return True
-    return False
-
 def est_international(o):
     """True si l'offre est hors France (etat US, pays etranger...)."""
     lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
@@ -482,56 +433,6 @@ def est_international(o):
         if n in MARQUEURS_ETRANGERS:
             return True
     return False
-
-# === Postes a l'etranger (offres FR concernant un emploi hors de France) =====
-# Pays / villes etrangeres (noms FR + EN courants), normalises (sans accents).
-PAYS_ETRANGERS = {
-    "singapour", "singapore", "hong kong", "chine", "china", "shanghai", "pekin",
-    "beijing", "japon", "japan", "tokyo", "coree", "korea", "seoul", "vietnam",
-    "hanoi", "ho chi minh", "thailande", "thailand", "bangkok", "malaisie",
-    "malaysia", "kuala lumpur", "indonesie", "indonesia", "jakarta", "philippines",
-    "manille", "manila", "inde", "india", "taiwan", "emirats", "emirates", "dubai",
-    "abu dhabi", "qatar", "doha", "arabie saoudite", "riyad", "koweit", "bahrein",
-    "oman", "liban", "israel", "turquie",
-    "etats-unis", "usa", "canada", "montreal", "quebec", "mexique", "bresil",
-    "argentine", "chili", "perou", "colombie",
-    "royaume-uni", "angleterre", "londres", "irlande", "dublin", "allemagne",
-    "berlin", "munich", "espagne", "madrid", "barcelone", "italie", "milan",
-    "rome", "portugal", "lisbonne", "belgique", "bruxelles", "pays-bas",
-    "amsterdam", "suisse", "geneve", "zurich", "lausanne", "luxembourg",
-    "autriche", "pologne", "varsovie", "suede", "norvege", "danemark", "finlande",
-    "grece", "roumanie", "republique tcheque", "hongrie",
-    "maroc", "casablanca", "rabat", "tunisie", "tunis", "algerie", "alger",
-    "senegal", "dakar", "cote d'ivoire", "abidjan", "cameroun", "gabon",
-    "afrique du sud", "kenya", "nigeria", "egypte", "ile maurice",
-    "australie", "sydney", "nouvelle-zelande",
-    "asie", "moyen-orient", "amerique du sud", "amerique latine", "afrique",
-}
-REGEX_PAYS_ETRANGERS = construire_regex(PAYS_ETRANGERS)
-
-# Tournures explicites « le poste est a l'etranger ».
-RE_A_ETRANGER = re.compile(
-    r"a l'etranger|a l etranger|expatri|"
-    r"mobilite internationale|poste a l'international|"
-    r"mission\w*\s+a l'etranger|base\w*\s+a l'etranger"
-)
-
-def poste_a_etranger(o):
-    """True si l'offre (source FR) concerne un emploi A L'ETRANGER.
-
-    Signaux : lieu de travail hors France, mention d'un pays/ville etranger
-    (lieu ou intitule), ou tournure explicite « a l'etranger / expatriation ».
-    """
-    if est_international(o):
-        return True
-    lieu = normaliser((o.get("lieuTravail") or {}).get("libelle", ""))
-    if REGEX_PAYS_ETRANGERS.search(lieu):
-        return True
-    titre = normaliser(o.get("intitule", ""))
-    if REGEX_PAYS_ETRANGERS.search(titre):
-        return True
-    txt = titre + " " + normaliser(o.get("description") or "")
-    return bool(RE_A_ETRANGER.search(txt))
 
 def _competence_poids(brut):
     """'mutuelle:3' -> ('mutuelle', 3) ; 'sql' -> ('sql', 1)."""

@@ -261,26 +261,14 @@ if not gardees:
     st.warning("Aucune offre retenue avec ces critères.")
     st.stop()
 
-# Onglet « 🌍 À l'étranger » : offres dont le POSTE est hors de France, prises
-# dans les MÊMES sources françaises et SANS AUCUN filtre (ni ESN, ni titre, ni
-# ancienneté). On EXCLUT États-Unis et Canada ; on dédoublonne.
-etranger, _vus = [], set()
-for o in brutes:
-    if ro.poste_a_etranger(o) and not ro.est_usa(o) and not ro.est_canada(o):
-        s = ro.signature(o)
-        if s not in _vus:
-            _vus.add(s)
-            etranger.append(o)
-
-# Separation geographique France / hors France (lieu) pour l'onglet « Hors France ».
+# Offres France (on écarte les rares offres dont le lieu est hors de France).
 francaises = [o for o in gardees if not ro.est_international(o)]
 
-c1, c2, c3, c4, c5 = st.columns(5)
+c1, c2, c3, c4 = st.columns(4)
 c1.metric("Récupérées", stats["brutes"])
 c2.metric("France", len(francaises))
-c3.metric("🌍 À l'étranger", len(etranger))
-c4.metric("Exclues", stats["exclues"])
-c5.metric("Doublons", stats["doublons"])
+c3.metric("Exclues", stats["exclues"])
+c4.metric("Doublons", stats["doublons"])
 
 # Récapitulatif visible de tout ce qui est filtré (y compris les listes du code)
 with st.expander("🔧 Filtres actifs — rappel de ce qui est recherché et exclu"):
@@ -448,24 +436,8 @@ france_items.sort(key=lambda it: (it["recent"], it["score"],
                                   (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
 
 
-def _items(offres):
-    """Décore des offres brutes pour vue_liste_detail (score, RH, récence)."""
-    items = []
-    for o in offres:
-        sc, comp = ro.score_optimum(o, profil_optimum)
-        # 👥 : RH détecté directement dans l'offre (indépendant du profil Optimum)
-        items.append({"o": o, "score": sc, "comp": comp,
-                      "recent": _est_recente(o), "rh": ro.offre_rh(o)})
-    items.sort(key=lambda it: (it["recent"], it["score"],
-                               (it["o"].get("dateCreation", "") or "")[:10]), reverse=True)
-    return items
-
-
-etranger_items = _items(etranger)
-
-onglet_fr, onglet_intl, onglet_excl, onglet_dash = st.tabs([
+onglet_fr, onglet_excl, onglet_dash = st.tabs([
     f"🎯 France ({len(france_items)})",
-    f"🌍 À l'étranger ({len(etranger_items)})",
     f"🗑️ Exclues ({len(exclues)})",
     "📊 Tableau de bord",
 ])
@@ -475,14 +447,6 @@ with onglet_fr:
                "(⭐), puis par date. Clique une annonce pour son détail. "
                "Profil & filtres éditables en haut de page.")
     vue_liste_detail(france_items, "fr", "offres_france.csv")
-
-with onglet_intl:
-    st.caption("Offres dont le **poste est à l'étranger**, repérées dans les sources "
-               "**françaises** (France Travail, Adzuna, Jooble) — lieu hors France, "
-               "pays/ville étranger dans l'intitulé, ou mention « à l'étranger / "
-               "expatriation ». **États-Unis et Canada exclus.** Aucun autre filtre "
-               "(ni ESN, ni titre, ni ancienneté). 📍 = lieu ; tri par récence puis score ⭐.")
-    vue_liste_detail(etranger_items, "etr", "offres_etranger.csv")
 
 with onglet_excl:
     # Tableau des offres exclues par le filtrage France, filtrable + triable.

@@ -374,6 +374,20 @@ def _est_recente(o):
     return bool(d) and d >= SEUIL_RECENT
 
 
+AUJOURDHUI = date.today().isoformat()
+HIER = (date.today() - timedelta(days=1)).isoformat()
+
+
+def _bucket_jour(it):
+    """Libellé du groupe temporel d'une offre (Aujourd'hui / Hier / date)."""
+    d = (it["o"].get("dateCreation", "") or "")[:10]
+    if d == AUJOURDHUI:
+        return "📅 Aujourd'hui"
+    if d == HIER:
+        return "📅 Hier"
+    return f"📅 {d}" if d else "📅 Date inconnue"
+
+
 def afficher_detail(it):
     """Panneau de droite : détail complet de l'offre sélectionnée."""
     o = it["o"]
@@ -449,8 +463,12 @@ st.markdown(
 )
 
 
-def vue_liste_detail(items, cle, csv_nom):
-    """Affichage façon LinkedIn : liste cliquable à gauche, détail à droite."""
+def vue_liste_detail(items, cle, csv_nom, grouper_par_jour=False):
+    """Affichage façon LinkedIn : liste cliquable à gauche, détail à droite.
+
+    grouper_par_jour : insère un séparateur par jour (Aujourd'hui / Hier / date)
+    au lieu du séparateur 🆕 récentes / plus anciennes.
+    """
     if not items:
         st.info("Aucune offre à afficher.")
         return
@@ -476,8 +494,15 @@ def vue_liste_detail(items, cle, csv_nom):
     with col_liste:
         with st.container(height=680):
             for i, it in enumerate(items):
+                if grouper_par_jour:
+                    # Séparateur par jour (Aujourd'hui / Hier / date), en-tête inclus
+                    bucket = _bucket_jour(it)
+                    if i == 0 or bucket != _bucket_jour(items[i - 1]):
+                        if i > 0:
+                            st.divider()
+                        st.caption(bucket)
                 # Séparateur entre les offres récentes (🆕) et les plus anciennes
-                if i > 0 and items[i - 1].get("recent") and not it.get("recent"):
+                elif i > 0 and items[i - 1].get("recent") and not it.get("recent"):
                     st.divider()
                     st.caption("🕒 Offres plus anciennes")
                 o = it["o"]
@@ -567,12 +592,30 @@ def _legende(items):
 france_items = _decorer(francaises)
 suisse_items = _decorer(suisse)
 
-onglet_fr, onglet_ch, onglet_excl, onglet_dash = st.tabs([
+# Onglet « Perfect » : sous-ensemble France le plus exigeant — score > 2 ⭐ ET
+# domaine RH/SIRH 👥 ET département favori 🎯. Tri strict par date (la plus
+# récente d'abord), avec séparation Aujourd'hui / Hier / plus ancien.
+perfect_items = sorted(
+    [it for it in france_items
+     if it["score"] > 2 and it.get("rh") and it.get("favori")],
+    key=lambda it: (it["o"].get("dateCreation", "") or ""), reverse=True,
+)
+
+onglet_perfect, onglet_fr, onglet_ch, onglet_excl, onglet_dash = st.tabs([
+    f"💎 Perfect ({len(perfect_items)})",
     f"🎯 France ({len(france_items)})",
     f"🇨🇭 Suisse ({len(suisse_items)})",
     f"🗑️ Exclues ({len(exclues)})",
     "📊 Tableau de bord",
 ])
+with onglet_perfect:
+    st.markdown(_legende(perfect_items), unsafe_allow_html=True)
+    st.caption("**Perfect** = offres France les plus alignées : score **> 2 ⭐** "
+               "**ET** domaine **👥 RH/SIRH** **ET** 🎯 département favori. "
+               "Triées par date (plus récente d'abord), séparées Aujourd'hui / Hier.")
+    vue_liste_detail(perfect_items, "perfect", "offres_perfect.csv",
+                     grouper_par_jour=True)
+
 with onglet_fr:
     st.markdown(_legende(france_items), unsafe_allow_html=True)
     st.caption(f"Tri : 🆕 récentes (≤ {jours_recent} j) d'abord, puis score profil ⭐, "

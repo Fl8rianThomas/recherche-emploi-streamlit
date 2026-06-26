@@ -99,14 +99,14 @@ st.caption("Recherche multi-variantes, filtrée des ESN, cabinets et doublons.")
 TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble", "🇨🇭 jobup.ch"]
 contrats = ["", "CDI", "CDD", "MIS"]
 
-# Couleurs de ligne (fond clair, texte lisible) pour le coloriage par métier
-# défini dans « Le titre doit contenir un de ces mots » (syntaxe mot:couleur).
+# Couleurs de ligne (assez vives pour bien se distinguer sur fond sombre ; texte
+# force en sombre cote CSS). Coloriage par metier via « mot:couleur ».
 COULEURS_LIGNE = {
-    "violet": "#efe0fb", "bleu": "#dbe9fe", "blue": "#dbe9fe",
-    "vert": "#dcf5e3", "green": "#dcf5e3", "orange": "#ffe8d1",
-    "rouge": "#fcdede", "red": "#fcdede", "jaune": "#fdf3c4", "yellow": "#fdf3c4",
-    "rose": "#fcdcef", "pink": "#fcdcef", "cyan": "#d4f3f3",
-    "gris": "#e9e9e9", "gray": "#e9e9e9",
+    "violet": "#b388eb", "bleu": "#6fa8f5", "blue": "#6fa8f5",
+    "vert": "#5fd28a", "green": "#5fd28a", "orange": "#ff9d4d",
+    "rouge": "#ff7b7b", "red": "#ff7b7b", "jaune": "#ffd633", "yellow": "#ffd633",
+    "rose": "#ff7bc7", "pink": "#ff7bc7", "cyan": "#3fd0d0",
+    "gris": "#b8b8b8", "gray": "#b8b8b8",
 }
 
 # 1) Recherche (métiers, lieu, sources, contrat) — repliée une fois lancée
@@ -444,9 +444,11 @@ def vue_liste_detail(items, cle, csv_nom):
     for i, it in enumerate(items):
         bg = COULEURS_LIGNE.get(it.get("couleur"))
         if bg:
-            sel_extra = "box-shadow:inset 4px 0 0 #555 !important;" if i == sel else ""
-            regles.append(f".st-key-{cle}_{i} button {{ background-color:{bg} !important; "
-                          f"border-color:{bg} !important; {sel_extra} }}")
+            sel_extra = "box-shadow:inset 5px 0 0 #111 !important;" if i == sel else ""
+            regles.append(
+                f".st-key-{cle}_{i} button {{ background-color:{bg} !important; "
+                f"border:1px solid rgba(0,0,0,.25) !important; {sel_extra} }}"
+                f".st-key-{cle}_{i} button p {{ color:#111 !important; }}")
     if regles:
         st.markdown("<style>" + "".join(regles) + "</style>", unsafe_allow_html=True)
     col_liste, col_detail = st.columns([2, 3], gap="medium")
@@ -517,7 +519,7 @@ onglet_fr, onglet_ch, onglet_excl, onglet_dash = st.tabs([
 with onglet_fr:
     st.caption(f"Toutes les offres France. Ordre : 🆕 récentes (≤ {jours_recent} j) "
                "d'abord, puis adéquation profil (⭐), puis date. 👥 = RH/SIRH. "
-               "**Couleur de ligne = métier** (🔵 Business Analyst, 🟣 Product Owner) — "
+               "**Couleur de ligne = métier** (🔵 Business Analyst, 🟠 Product Owner) — "
                "configurable via « mot:couleur » dans les Filtres. "
                "Clique une annonce pour son détail.")
     vue_liste_detail(france_items, "fr", "offres_france.csv")

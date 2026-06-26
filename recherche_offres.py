@@ -53,9 +53,9 @@ SYNONYMES_PAR_DEFAUT = [
 # (PO en tete -> une offre « Business Analyst / Product Owner » est violette).
 # NB : "owner"/"produit" ciblent PO & Chef de produit sans attraper "production".
 INCLUSIONS_TITRE_PAR_DEFAUT = [
-    "owner:violet",            # product owner, proxy product owner
-    "product manager:violet",
-    "produit:violet",          # chef de produit
+    "owner:orange",            # product owner, proxy product owner
+    "product manager:orange",
+    "produit:orange",          # chef de produit
     "analyst:bleu",            # couvre analyst + analyste
     "business:bleu",
     "amoa:bleu",

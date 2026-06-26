@@ -461,13 +461,17 @@ def _csv_items(items):
     return csv_bytes(rows, cols)
 
 
-# Items de liste : texte aligné à gauche et limité à UNE seule ligne (… si trop long)
+# Items de liste : texte aligné à gauche et limité à UNE seule ligne (… si trop long).
+# Hauteur des deux panneaux (liste & détail) calée sur la fenêtre plutôt que figée
+# à 680 px : sur un petit écran le bas n'est plus coupé (le scroll reste interne).
 st.markdown(
     "<style>"
     "section.main div.stButton > button "
     "{ text-align:left; justify-content:flex-start; overflow:hidden; }"
     "section.main div.stButton > button p "
     "{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0; }"
+    "[class*='st-key-scroll_'] "
+    "{ height: calc(100vh - 300px) !important; min-height: 360px !important; }"
     "</style>",
     unsafe_allow_html=True,
 )
@@ -502,7 +506,7 @@ def vue_liste_detail(items, cle, csv_nom, grouper_par_jour=False):
         st.markdown("<style>" + "".join(regles) + "</style>", unsafe_allow_html=True)
     col_liste, col_detail = st.columns([2, 3], gap="medium")
     with col_liste:
-        with st.container(height=680):
+        with st.container(height=680, key=f"scroll_{cle}_l"):
             for i, it in enumerate(items):
                 if grouper_par_jour:
                     # Séparateur par jour (Aujourd'hui / Hier / date), en-tête inclus
@@ -537,7 +541,7 @@ def vue_liste_detail(items, cle, csv_nom, grouper_par_jour=False):
                     st.session_state[sel_key] = i
                     st.rerun()
     with col_detail:
-        with st.container(height=680):
+        with st.container(height=680, key=f"scroll_{cle}_d"):
             afficher_detail(items[sel])
 
 

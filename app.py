@@ -861,7 +861,7 @@ if st.session_state.get("_fav_msg"):
     f"💎 Perfect ({len(perfect_items)})",
     f"🎯 France ({len(france_items)})",
     f"🇨🇭 Suisse ({len(suisse_items)})",
-    f"⭐ Sauvegardées ({len(favoris_items)})",
+    f"💾 Sauvegardées ({len(favoris_items)})",
     f"🗑️ Exclues ({len(exclues)})",
     "📊 Tableau de bord",
 ])

@@ -1,12 +1,11 @@
-name: Recherche automatique (toutes les 4 h)
+name: Recherche quotidienne (e-mail 20h)
 
-# Toutes les 4 heures : 00,04,08,12,16,20 UTC = 6 runs/jour.
-# En heure de Paris (été, CEST) : 02h, 06h, 10h, 14h, 18h, 22h.
-# Quota : ~28 appels Adzuna/run × 6 ≈ 168/jour, sous la limite gratuite Adzuna
-# de 250/jour (à 200 offres/variante/source). FT (4 req/s) et Jooble suivent.
+# Une fois par jour à 18:00 UTC = 20h heure de Paris (été, CEST).
+# ⚠️ En hiver (CET, UTC+1) cela tombe à 19h Paris. Pour 20h pile toute l'année,
+# il faudrait deux crons (18:00 et 19:00 UTC) + un garde-fou dans le script.
 on:
   schedule:
-    - cron: "0 */4 * * *"
+    - cron: "0 18 * * *"
   workflow_dispatch:        # bouton « Run workflow » pour tester à la demande
 
 jobs:

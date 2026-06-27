@@ -6,8 +6,10 @@ Lancement :  streamlit run app.py
 import io
 import csv
 import os
+import json
+import base64
 from collections import Counter
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -26,6 +28,15 @@ SNAPSHOT_URL = ("https://raw.githubusercontent.com/dylanhatte/"
                 "recherche-emploi/data/offres_snapshot.json")
 SNAPSHOT_API_URL = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
                     "contents/offres_snapshot.json?ref=data")
+
+# Offres sauvegardées (★) : petit fichier favoris.json sur la branche `data`,
+# lu ET écrit via l'API GitHub. Nécessite un jeton GH_TOKEN avec le droit
+# « Contents : Read and Write ». Chaque offre est stockée EN ENTIER pour rester
+# affichable même après sa sortie du flux des snapshots (renouvelés toutes les 4 h).
+FAVORIS_API_URL = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
+                   "contents/favoris.json?ref=data")
+FAVORIS_PUT_URL = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
+                   "contents/favoris.json")
 
 st.set_page_config(page_title="Recherche d'offres", page_icon="🔎", layout="wide")
 load_dotenv(override=True)
@@ -122,6 +133,92 @@ def charger_snapshot():
         return d.get("offres") or [], d.get("genere_le"), d.get("erreurs") or []
     except Exception:  # noqa: BLE001
         return None, None, []
+
+
+@st.cache_data(show_spinner=False, ttl=120)
+def charger_favoris():
+    """Lit favoris.json (branche `data`) → (liste d'offres, sha).
+
+    Renvoie ([], None) si le fichier n'existe pas encore (404) ou si GH_TOKEN est
+    absent. Le `sha` est requis pour une écriture ultérieure (API Contents GitHub).
+    """
+    token = os.getenv("GH_TOKEN")
+    if not token:
+        return [], None
+    try:
+        r = requests.get(
+            FAVORIS_API_URL, timeout=20,
+            headers={"Authorization": f"Bearer {token}",
+                     "Accept": "application/vnd.github+json",
+                     "X-GitHub-Api-Version": "2022-11-28"})
+        if r.status_code != 200:          # 404 = pas encore créé
+            return [], None
+        meta = r.json()
+        contenu = base64.b64decode(meta.get("content", "")).decode("utf-8")
+        d = json.loads(contenu) if contenu.strip() else {}
+        return d.get("offres") or [], meta.get("sha")
+    except Exception:  # noqa: BLE001
+        return [], None
+
+
+def _ecrire_favoris(offres, sha):
+    """Écrit favoris.json sur la branche `data` via l'API GitHub. → (ok, err, sha)."""
+    token = os.getenv("GH_TOKEN")
+    if not token:
+        return False, "Jeton GH_TOKEN absent — impossible de sauvegarder.", sha
+    payload = {"maj_le": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+               "offres": offres}
+    contenu = base64.b64encode(
+        json.dumps(payload, ensure_ascii=False).encode("utf-8")).decode("ascii")
+    body = {"message": "maj favoris", "content": contenu, "branch": "data"}
+    if sha:
+        body["sha"] = sha
+    try:
+        r = requests.put(
+            FAVORIS_PUT_URL, timeout=25, json=body,
+            headers={"Authorization": f"Bearer {token}",
+                     "Accept": "application/vnd.github+json",
+                     "X-GitHub-Api-Version": "2022-11-28"})
+        if r.status_code in (200, 201):
+            return True, None, (r.json().get("content") or {}).get("sha")
+        try:
+            msg = r.json().get("message", "")
+        except Exception:  # noqa: BLE001
+            msg = r.text[:160]
+        return False, f"HTTP {r.status_code} — {msg[:160]}", sha
+    except Exception as e:  # noqa: BLE001
+        return False, str(e), sha
+
+
+def _cle_favori(o):
+    """Identifiant stable d'une offre : son URL (sinon repli sur le titre)."""
+    return (champ(o, "origineOffre", "urlOrigine") or o.get("intitule", "")).strip()
+
+
+def _set_favoris():
+    """Ensemble des clés (URL) actuellement sauvegardées, pour test d'appartenance."""
+    return {_cle_favori(o) for o in st.session_state.get("favoris", [])}
+
+
+def basculer_favori(o):
+    """Ajoute/retire l'offre des sauvegardées, persiste sur GitHub, puis relance."""
+    cle = _cle_favori(o)
+    actuels = st.session_state.get("favoris", [])
+    favs = [x for x in actuels if _cle_favori(x) != cle]
+    ajoute = len(favs) == len(actuels)      # rien retiré → c'est un ajout
+    if ajoute:
+        favs.append(o)
+    ok, err, sha = _ecrire_favoris(favs, st.session_state.get("favoris_sha"))
+    if ok:
+        st.session_state["favoris"] = favs
+        st.session_state["favoris_sha"] = sha
+        charger_favoris.clear()             # invalide le cache pour les autres sessions
+        # Toast affiché APRÈS le rerun (un toast émis juste avant st.rerun est perdu).
+        st.session_state["_fav_msg"] = ("⭐ Offre sauvegardée" if ajoute
+                                        else "Retirée des sauvegardées")
+    else:
+        st.session_state["_fav_err"] = err
+    st.rerun()
 
 
 def _fmt_dt_paris(iso):
@@ -507,7 +604,7 @@ def _bucket_jour4(it):
     return _LIBELLES_JOUR4[_rang_jour4(it)]
 
 
-def afficher_detail(it):
+def afficher_detail(it, cle=""):
     """Panneau de droite : détail complet de l'offre sélectionnée."""
     o = it["o"]
     titre = o.get("intitule", "Sans titre")
@@ -543,8 +640,15 @@ def afficher_detail(it):
     badges = " ".join(f"`{x}`" for x in (src, f"via {via}" if via else "") if x)
     if badges:
         st.caption(badges)
+    deja = _cle_favori(o) in _set_favoris()
+    c_lien, c_fav = st.columns(2)
     if url:
-        st.link_button("➡️ Voir / postuler", url, type="primary")
+        c_lien.link_button("➡️ Voir / postuler", url, type="primary",
+                           use_container_width=True)
+    if os.getenv("GH_TOKEN"):
+        if c_fav.button("★ Retirer des sauvegardées" if deja else "☆ Sauvegarder",
+                        key=f"fav_{cle}", use_container_width=True):
+            basculer_favori(o)
     st.divider()
     if desc:
         st.write(desc)
@@ -603,6 +707,7 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
     )
     sel_key = f"sel_{cle}"
     sel = min(st.session_state.get(sel_key, 0), len(items) - 1)
+    favset = _set_favoris()
     # Coloriage du fond des lignes par métier (classe st-key-<cle>_<i> de Streamlit).
     regles = []
     for i, it in enumerate(items):
@@ -635,7 +740,9 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
                 ent = ro.nom_entreprise(o) or "Entreprise non précisée"
                 d = (o.get("dateCreation", "") or "")[:10]
                 lieu = champ(o, "lieuTravail", "libelle")
-                bdg = ("🆕 " if it.get("recent") else "")
+                bdg = ("★ " if _cle_favori(o) in favset else "")
+                if it.get("recent"):
+                    bdg += "🆕 "
                 if it.get("favori"):
                     bdg += "🎯 "
                 if it.get("rh"):
@@ -653,7 +760,7 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
                     st.rerun()
     with col_detail:
         with st.container(height=600, key=f"scroll_{cle}_d"):
-            afficher_detail(items[sel])
+            afficher_detail(items[sel], cle)
 
 
 # Couleur de ligne d'une offre : 1re couleur (mot:couleur) trouvée dans le titre.
@@ -734,10 +841,27 @@ perfect_items = sorted(
     key=lambda it: (it["o"].get("dateCreation", "") or ""), reverse=True,
 )
 
-onglet_perfect, onglet_fr, onglet_ch, onglet_excl, onglet_dash = st.tabs([
+# Offres sauvegardées (★) — chargées une fois par session depuis la branche `data`,
+# puis maintenues en session_state (la liste fait foi pendant toute la visite).
+if "favoris" not in st.session_state:
+    _favs, _sha = charger_favoris()
+    st.session_state["favoris"] = _favs
+    st.session_state["favoris_sha"] = _sha
+favoris_items = _decorer(st.session_state["favoris"])
+
+# Erreur de sauvegarde éventuelle (affichée en haut, visible quel que soit l'onglet).
+if st.session_state.get("_fav_err"):
+    st.error(f"⚠️ Sauvegarde impossible : {st.session_state.pop('_fav_err')}  \n"
+             "Vérifie que le jeton **GH_TOKEN** a le droit « Contents : Read **and Write** ».")
+if st.session_state.get("_fav_msg"):
+    st.toast(st.session_state.pop("_fav_msg"))
+
+(onglet_perfect, onglet_fr, onglet_ch, onglet_fav,
+ onglet_excl, onglet_dash) = st.tabs([
     f"💎 Perfect ({len(perfect_items)})",
     f"🎯 France ({len(france_items)})",
     f"🇨🇭 Suisse ({len(suisse_items)})",
+    f"⭐ Sauvegardées ({len(favoris_items)})",
     f"🗑️ Exclues ({len(exclues)})",
     "📊 Tableau de bord",
 ])
@@ -762,6 +886,19 @@ with onglet_ch:
                "**allemand exclu** (romande + anglais). Mêmes filtres et scoring que "
                "France ; tri 🆕 récentes puis score ⭐.")
     vue_liste_detail(suisse_items, "ch", "offres_suisse.csv")
+
+with onglet_fav:
+    if not os.getenv("GH_TOKEN"):
+        st.warning("Jeton **GH_TOKEN** non configuré : la sauvegarde est désactivée. "
+                   "Ajoute-le dans les Secrets (droit « Contents : Read and Write »).")
+    st.markdown(_legende(favoris_items), unsafe_allow_html=True)
+    st.caption("Offres mises de côté via le bouton **☆ Sauvegarder** du détail. "
+               "Stockées sur GitHub (branche `data`) → conservées entre les sessions "
+               "et accessibles depuis tous tes appareils. ★ Retirer pour les enlever.")
+    if not favoris_items:
+        st.info("Aucune offre sauvegardée. Ouvre une offre puis clique **☆ Sauvegarder**.")
+    else:
+        vue_liste_detail(favoris_items, "fav", "offres_sauvegardees.csv")
 
 with onglet_excl:
     # Tableau des offres exclues par le filtrage France, filtrable + triable.

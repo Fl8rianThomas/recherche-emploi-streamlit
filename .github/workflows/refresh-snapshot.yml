@@ -1,0 +1,43 @@
+name: Snapshot offres (toutes les 4 h)
+
+# Toutes les 4 heures : récupère les offres (toutes sources) et publie un
+# instantané JSON sur la branche `data`. L'app lit ce fichier → données
+# rafraîchies toutes les 4 h sans interroger les API à chaque visite.
+# Quota Adzuna : ~20-28 appels/run × 6 ≈ 120-168/jour (< 250/jour gratuit).
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write          # nécessaire pour pousser sur la branche `data`
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Générer le snapshot
+        env:
+          FT_CLIENT_ID: ${{ secrets.FT_CLIENT_ID }}
+          FT_CLIENT_SECRET: ${{ secrets.FT_CLIENT_SECRET }}
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+          JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
+        run: python refresh_snapshot.py
+
+      - name: Publier sur la branche data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f offres_snapshot.json
+          git commit -m "snapshot $(date -u +%FT%TZ)" -q
+          git push -f origin HEAD:data

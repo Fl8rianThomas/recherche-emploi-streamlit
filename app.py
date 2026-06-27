@@ -7,13 +7,20 @@ import io
 import csv
 import os
 from collections import Counter
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+from zoneinfo import ZoneInfo
 
 import pandas as pd
+import requests
 import streamlit as st
 from dotenv import load_dotenv
 
 import recherche_offres as ro
+
+# Instantané publié toutes les 4 h par GitHub Actions (branche `data`). L'app le
+# lit à l'ouverture → données rafraîchies en arrière-plan, sans interroger les API.
+SNAPSHOT_URL = ("https://raw.githubusercontent.com/dylanhatte/"
+                "recherche-emploi/data/offres_snapshot.json")
 
 st.set_page_config(page_title="Recherche d'offres", page_icon="🔎", layout="wide")
 load_dotenv(override=True)
@@ -86,6 +93,34 @@ def chercher_jobup(mots_cles, max_offres):
     return ro.rechercher_jobup(config)
 
 
+@st.cache_data(show_spinner=False, ttl=600)  # relit l'instantané au plus toutes les 10 min
+def charger_snapshot():
+    """Lit l'instantané JSON publié toutes les 4 h (branche `data`).
+
+    Retourne (offres, genere_le, erreurs) ou (None, None, []) si indisponible.
+    Aucune API métier n'est appelée ici : c'est un simple fichier statique.
+    """
+    try:
+        r = requests.get(SNAPSHOT_URL, timeout=20)
+        if r.status_code != 200:
+            return None, None, []
+        d = r.json()
+        return d.get("offres") or [], d.get("genere_le"), d.get("erreurs") or []
+    except Exception:  # noqa: BLE001
+        return None, None, []
+
+
+def _fmt_dt_paris(iso):
+    """Formate un horodatage ISO (UTC) en heure de Paris lisible (ex. 27/06 18h00)."""
+    if not iso:
+        return "?"
+    try:
+        dt = datetime.fromisoformat(iso).astimezone(ZoneInfo("Europe/Paris"))
+        return dt.strftime("%d/%m %Hh%M")
+    except Exception:  # noqa: BLE001
+        return iso
+
+
 def champ(o, *chemin, defaut=""):
     cur = o
     for cle in chemin:
@@ -130,7 +165,7 @@ COULEURS_LIGNE = {
 }
 
 # 1) Recherche (métiers, lieu, sources, contrat) — repliée une fois lancée
-with st.expander("🔎 Critères de recherche", expanded=not st.session_state.get("lancee")):
+with st.expander("🔎 Critères de recherche", expanded=False):
     col_m, col_p = st.columns([3, 2])
     with col_m:
         variantes_txt = st.text_area(
@@ -240,9 +275,14 @@ with st.expander("⭐ Profil Optimum — classement par adéquation"):
     )
     depts_favoris = {d.strip().upper() for d in depts_txt.replace(";", ",").split(",") if d.strip()}
 
-go = st.button("🔎 Rechercher", type="primary")
-st.caption("🔄 Données rafraîchies automatiquement au plus toutes les 4 h "
-           "(cache). Clique « Rechercher » pour forcer une mise à jour immédiate.")
+col_go, col_actu = st.columns(2)
+go = col_go.button("🔎 Rechercher", type="primary", use_container_width=True,
+                   help="Recherche EN DIRECT avec les critères ci-dessus.")
+actu = col_actu.button("🔄 Actualiser", use_container_width=True,
+                       help="Force une récupération EN DIRECT maintenant.")
+st.caption("À l'ouverture, les offres viennent d'un **instantané rafraîchi toutes "
+           "les 4 h** (aucune API appelée). **🔄 Actualiser** force du frais "
+           "immédiatement ; **🔎 Rechercher** applique tes critères en direct.")
 st.divider()
 
 def _tag(offres, terme):
@@ -251,12 +291,12 @@ def _tag(offres, terme):
         o.setdefault("_variante", terme)
     return offres
 
-# La recherche part au clic sur "Rechercher" OU automatiquement à l'ouverture
-# (première visite, critères par défaut) : grâce au cache de 4 h sur les sources,
-# les données affichées sont rafraîchies au plus toutes les 4 h, sans rien cliquer.
-# Les offres brutes sont mémorisées (session_state) pour survivre aux reruns
-# (clic sur une annonce, changement de filtre) sans tout relancer.
-if go or not st.session_state.get("lancee"):
+# Deux modes d'alimentation :
+#  - PAR DÉFAUT (ouverture du site) : on lit l'INSTANTANÉ publié toutes les 4 h
+#    (aucune API appelée → pas de surconsommation de quota à la visite).
+#  - clic « Rechercher » / « Actualiser » : recherche EN DIRECT, mémorisée en
+#    session (st.session_state["live"]) pour le reste de la visite.
+if go or actu:
     if not sources:
         st.warning("Sélectionne au moins une source.")
         st.stop()
@@ -264,11 +304,8 @@ if go or not st.session_state.get("lancee"):
         st.warning("Indique au moins un métier à rechercher.")
         st.stop()
 
-    # Clic manuel sur « Rechercher » = forcer une actualisation (on vide le cache
-    # de 4 h pour réinterroger les API). Le lancement automatique à l'ouverture, lui,
-    # garde le cache (données ≤ 4 h) pour ne pas surconsommer les quotas.
-    if go:
-        st.cache_data.clear()
+    # On vide le cache de 4 h pour réinterroger réellement les API (frais immédiat).
+    st.cache_data.clear()
 
     # Sources : (label, fn(terme)). jobup.ch (suisse francophone) alimente
     # l'onglet 🇨🇭 ; ses offres passent les mêmes filtres que la France.
@@ -310,21 +347,33 @@ if go or not st.session_state.get("lancee"):
         )
     st.session_state["brutes"] = brutes
     st.session_state["erreurs"] = erreurs
-    st.session_state["lancee"] = True
+    st.session_state["live"] = True
     # Re-rendu propre, sans le bloc de progression, pour figer la mise en page :
     # évite le "recadrement" au premier clic sur une offre.
     st.rerun()
 
-# Tant qu'aucune recherche n'a été lancée : écran d'accueil
-if not st.session_state.get("lancee"):
-    st.info("Renseigne tes critères ci-dessus puis clique sur **Rechercher**.")
-    st.stop()
+if st.session_state.get("live"):
+    # Données EN DIRECT (clic Rechercher/Actualiser cette session).
+    brutes = st.session_state["brutes"]
+    erreurs_aff = st.session_state.get("erreurs", [])
+    st.caption("🟢 Données **en direct** (recherche manuelle). Recharge la page pour "
+               "revenir à l'instantané automatique.")
+else:
+    # PAR DÉFAUT : instantané rafraîchi toutes les 4 h (aucune API appelée ici).
+    snap_offres, genere_le, erreurs_aff = charger_snapshot()
+    if snap_offres is None:
+        st.warning("Instantané indisponible pour l'instant (il sera généré au "
+                   "prochain cycle de 4 h). Clique **🔄 Actualiser** pour une "
+                   "recherche en direct maintenant.")
+        st.stop()
+    brutes = snap_offres
+    st.caption(f"🗂️ Instantané du **{_fmt_dt_paris(genere_le)}** "
+               f"(rafraîchi automatiquement toutes les 4 h).")
 
-brutes = st.session_state["brutes"]
-for msg in st.session_state.get("erreurs", []):
+for msg in erreurs_aff:
     st.warning(msg)
 if not brutes:
-    st.error("Aucune offre récupérée.")
+    st.error("Aucune offre disponible.")
     st.stop()
 
 # Filtrage (ré-appliqué à chaque rerun : les filtres se modifient sans relancer

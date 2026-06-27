@@ -3,6 +3,8 @@
 
 # Sorties générées par l'app
 offres_*.csv
+# Instantané : publié sur la branche `data` par le workflow (git add -f), jamais sur main
+offres_snapshot.json
 
 # Python
 __pycache__/

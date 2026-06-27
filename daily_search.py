@@ -27,8 +27,8 @@ BREVO_URL = "https://api.brevo.com/v3/smtp/email"
 load_dotenv(override=True)
 
 JOURS_MAX = int(os.getenv("JOURS_MAX", "14"))
-MAX_OFFRES = int(os.getenv("MAX_OFFRES", "50"))
-MAX_MAIL = int(os.getenv("MAX_MAIL", "80"))
+MAX_OFFRES = int(os.getenv("MAX_OFFRES", "200"))
+MAX_MAIL = int(os.getenv("MAX_MAIL", "120"))
 TYPE_CONTRAT = "CDI"
 
 

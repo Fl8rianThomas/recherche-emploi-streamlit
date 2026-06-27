@@ -179,7 +179,7 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
              "Envoyé aux API → relance « Rechercher » pour élargir.",
     ))
     max_offres = fp3.slider(
-        "Max d'offres / variante / source", 10, 200, 50, 10,
+        "Max d'offres / variante / source", 10, 200, 200, 10,
         help="Plafond par recherche. Le total cumulé peut être bien plus élevé.",
     )
     filtre_pertinence = st.checkbox(
@@ -482,7 +482,8 @@ st.markdown(
     "section.main div.stButton > button p "
     "{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0; }"
     "[class*='st-key-scroll_'] "
-    "{ height: calc(100vh - 300px) !important; min-height: 360px !important; }"
+    "{ height: calc(100vh - 360px) !important; min-height: 320px !important; "
+    "overflow-y: auto !important; }"
     "</style>",
     unsafe_allow_html=True,
 )

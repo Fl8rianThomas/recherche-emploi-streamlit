@@ -384,8 +384,10 @@ else:
     st.caption(f"🗂️ Instantané du **{_fmt_dt_paris(genere_le)}** "
                f"(rafraîchi automatiquement toutes les 4 h).")
 
-for msg in erreurs_aff:
-    st.warning(msg)
+if erreurs_aff:
+    with st.expander(f"⚠️ {len(erreurs_aff)} avertissement(s) de récupération"):
+        for msg in erreurs_aff:
+            st.caption(msg)
 if not brutes:
     st.error("Aucune offre disponible.")
     st.stop()

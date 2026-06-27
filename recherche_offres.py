@@ -823,7 +823,17 @@ def _jobup_vers_offre(d):
 
 def rechercher_jobup(config):
     """Recherche jobup.ch (Suisse romande, GET JSON public). Format interne."""
-    headers = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
+    # En-têtes « navigateur » plus complets : jobup.ch (Cloudflare) renvoie 403
+    # depuis les IP de datacenter (GitHub Actions, Streamlit Cloud). Ces en-têtes
+    # aident parfois ; si l'IP est bloquée, le 403 persiste (onglet 🇨🇭 limité).
+    headers = {
+        "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                       "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "fr-CH,fr;q=0.9,en;q=0.8",
+        "Referer": "https://www.jobup.ch/fr/emplois/",
+        "Origin": "https://www.jobup.ch",
+    }
     offres, page, rows = [], 1, 20      # l'API plafonne rows a 20
     while len(offres) < config["max_offres"]:
         params = {"query": mots_cles_recherche(config["mots_cles"]),

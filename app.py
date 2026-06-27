@@ -19,8 +19,13 @@ import recherche_offres as ro
 
 # Instantané publié toutes les 4 h par GitHub Actions (branche `data`). L'app le
 # lit à l'ouverture → données rafraîchies en arrière-plan, sans interroger les API.
+# - Dépôt PUBLIC : URL brute (raw) directe, sans jeton.
+# - Dépôt PRIVÉ : API GitHub authentifiée (jeton GH_TOKEN dans les Secrets), via le
+#   media type « raw » qui gère les fichiers > 1 Mo.
 SNAPSHOT_URL = ("https://raw.githubusercontent.com/dylanhatte/"
                 "recherche-emploi/data/offres_snapshot.json")
+SNAPSHOT_API_URL = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
+                    "contents/offres_snapshot.json?ref=data")
 
 st.set_page_config(page_title="Recherche d'offres", page_icon="🔎", layout="wide")
 load_dotenv(override=True)
@@ -97,11 +102,20 @@ def chercher_jobup(mots_cles, max_offres):
 def charger_snapshot():
     """Lit l'instantané JSON publié toutes les 4 h (branche `data`).
 
-    Retourne (offres, genere_le, erreurs) ou (None, None, []) si indisponible.
-    Aucune API métier n'est appelée ici : c'est un simple fichier statique.
+    Si GH_TOKEN est défini (dépôt privé), lit via l'API GitHub authentifiée ;
+    sinon via l'URL brute publique. Retourne (offres, genere_le, erreurs) ou
+    (None, None, []) si indisponible. Aucune API métier n'est appelée ici.
     """
+    token = os.getenv("GH_TOKEN")
     try:
-        r = requests.get(SNAPSHOT_URL, timeout=20)
+        if token:
+            r = requests.get(
+                SNAPSHOT_API_URL, timeout=25,
+                headers={"Authorization": f"Bearer {token}",
+                         "Accept": "application/vnd.github.raw",
+                         "X-GitHub-Api-Version": "2022-11-28"})
+        else:
+            r = requests.get(SNAPSHOT_URL, timeout=25)
         if r.status_code != 200:
             return None, None, []
         d = r.json()

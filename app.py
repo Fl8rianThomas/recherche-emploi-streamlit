@@ -262,7 +262,7 @@ st.markdown(
 st.title("🔎 Recherche d'offres")
 st.caption("Recherche multi-variantes, filtrée des ESN, cabinets et doublons.")
 
-TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble", "🇨🇭 jobup.ch"]
+TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble", "🚩 jobup.ch"]
 contrats = ["", "CDI", "CDD", "MIS"]
 
 # Couleurs de ligne : tons medium-fonces saturés (texte blanc cote CSS) pour
@@ -429,8 +429,8 @@ if go or actu:
             t, lieu_nom or "", type_contrat, max_offres, jours_max)))
     if "Jooble" in sources:
         fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
-    if "🇨🇭 jobup.ch" in sources:
-        fetchers.append(("🇨🇭 jobup.ch", lambda t: chercher_jobup(t, max_offres)))
+    if "🚩 jobup.ch" in sources:
+        fetchers.append(("🚩 jobup.ch", lambda t: chercher_jobup(t, max_offres)))
 
     brutes, erreurs, total = [], [], len(variantes) * len(fetchers)
     with st.status(f"Recherche : {len(variantes)} variantes × {len(fetchers)} sources "
@@ -512,7 +512,7 @@ francaises = [o for o in gardees
 c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("Récupérées", stats["brutes"])
 c2.metric("France", len(francaises))
-c3.metric("🇨🇭 Suisse", len(suisse))
+c3.metric("🚩 Suisse", len(suisse))
 c4.metric("Exclues", stats["exclues"])
 c5.metric("Doublons", stats["doublons"])
 
@@ -860,7 +860,7 @@ if st.session_state.get("_fav_msg"):
  onglet_excl, onglet_dash) = st.tabs([
     f"💎 Perfect ({len(perfect_items)})",
     f"🎯 France ({len(france_items)})",
-    f"🇨🇭 Suisse ({len(suisse_items)})",
+    f"🚩 Suisse ({len(suisse_items)})",
     f"💾 Sauvegardées ({len(favoris_items)})",
     f"🗑️ Exclues ({len(exclues)})",
     "📊 Tableau de bord",

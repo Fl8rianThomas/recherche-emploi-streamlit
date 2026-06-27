@@ -861,6 +861,26 @@ def _legende(items):
             'margin:.1rem 0 .55rem">' + "".join(chips) + '</div>')
 
 
+def _filtrer_recherche(items, requete):
+    """Filtre une liste d'items par mots-clés (titre + entreprise + lieu + description).
+
+    Recherche AND : chaque mot doit apparaître quelque part (accents/casse ignorés).
+    Requête vide -> liste inchangée.
+    """
+    mots = ro.normaliser(requete or "").split()
+    if not mots:
+        return items
+    res = []
+    for it in items:
+        o = it["o"]
+        txt = ro.normaliser(
+            o.get("intitule", "") + " " + (ro.nom_entreprise(o) or "") + " "
+            + champ(o, "lieuTravail", "libelle") + " " + (o.get("description") or ""))
+        if all(mot in txt for mot in mots):
+            res.append(it)
+    return res
+
+
 france_items = _decorer(francaises)
 # Onglet France : 4 tranches temporelles (Aujourd'hui / Hier / Cette semaine /
 # Plus anciennes) ; DANS chaque tranche, les 👥 RH/SIRH remontent en tête, puis
@@ -915,11 +935,22 @@ with onglet_perfect:
                      bucket_fn=_bucket_jour)
 
 with onglet_fr:
-    st.markdown(_legende(france_items), unsafe_allow_html=True)
-    st.caption("Regroupé par **📅 Aujourd'hui / 📅 Hier / 🗓️ Cette semaine / 🕒 Plus "
-               "anciennes** ; dans chaque tranche, 👥 RH/SIRH en tête puis score ⭐. "
-               "Couleur de ligne = métier (configurable « mot:couleur » dans les Filtres).")
-    vue_liste_detail(france_items, "fr", "offres_france.csv", bucket_fn=_bucket_jour4)
+    requete_fr = st.text_input(
+        "🔎 Rechercher dans les offres France", key="recherche_fr",
+        placeholder="ex. SIRH Paris, ou un nom d'entreprise…",
+        help="Filtre la liste : titre, entreprise, lieu et description. Plusieurs "
+             "mots = tous doivent apparaître (accents/casse ignorés).",
+    )
+    france_affiche = _filtrer_recherche(france_items, requete_fr)
+    st.markdown(_legende(france_affiche), unsafe_allow_html=True)
+    if requete_fr.strip():
+        st.caption(f"🔎 **{len(france_affiche)}** résultat(s) sur {len(france_items)} "
+                   f"pour « {requete_fr.strip()} ».")
+    else:
+        st.caption("Regroupé par **📅 Aujourd'hui / 📅 Hier / 🗓️ Cette semaine / 🕒 Plus "
+                   "anciennes** ; dans chaque tranche, 👥 RH/SIRH en tête puis score ⭐. "
+                   "Couleur de ligne = métier (configurable « mot:couleur » dans les Filtres).")
+    vue_liste_detail(france_affiche, "fr", "offres_france.csv", bucket_fn=_bucket_jour4)
 
 with onglet_ch:
     st.markdown(_legende(suisse_items), unsafe_allow_html=True)

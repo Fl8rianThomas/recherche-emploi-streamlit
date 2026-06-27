@@ -13,9 +13,10 @@ Variables d'environnement attendues :
 Optionnel : JOURS_MAX (défaut 14), MAX_OFFRES (défaut 50), MAX_MAIL (défaut 80).
 """
 import os
+import re
 import sys
 import html
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 from zoneinfo import ZoneInfo
 
 import requests
@@ -170,13 +171,41 @@ def _bucket(o):
     return f"📅 {d}" if d else "📅 Date inconnue"
 
 
+def _dt_paris_offre(iso):
+    """Date d'offre (ISO, sources variées) -> datetime heure de Paris (ou None)."""
+    if not iso:
+        return None
+    s = str(iso).strip().replace("Z", "+00:00")
+    s = re.sub(r"(\.\d{6})\d+", r"\1", s)   # tronque les fractions > 6 chiffres (Jooble)
+    try:
+        dt = datetime.fromisoformat(s)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:                   # sans fuseau -> supposé UTC
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(ZoneInfo("Europe/Paris"))
+
+
+def _fmt_date_heure(iso):
+    """« JJ/MM HHhMM » si l'heure est réellement fournie, sinon « JJ/MM » (heure de Paris)."""
+    if not iso:
+        return ""
+    s = str(iso).strip()
+    heure_brute = s.split("T", 1)[1][:5] if "T" in s else ""
+    a_heure = bool(heure_brute) and heure_brute != "00:00"
+    dt = _dt_paris_offre(s)
+    if dt is None:
+        return s[:10]
+    return dt.strftime("%d/%m %Hh%M") if a_heure else dt.strftime("%d/%m")
+
+
 def _ligne_offre(it):
     """Une offre = une ligne pleine colorée par métier (comme la liste de l'app)."""
     o = it["o"]
     titre = html.escape(o.get("intitule", "Sans titre"))
     ent = html.escape(ro.nom_entreprise(o) or "Entreprise non précisée")
     lieu = html.escape((o.get("lieuTravail") or {}).get("libelle", "") or "")
-    d = (o.get("dateCreation", "") or "")[:10]
+    d = _fmt_date_heure(o.get("dateCreation"))
     url = html.escape((o.get("origineOffre") or {}).get("urlOrigine", "") or "")
     bg = _couleur_ligne(o)
     fond = bg or "#eceef2"
@@ -306,14 +335,17 @@ def envoyer(html_corps, n):
 
 
 def main():
-    # Garde-fou « 20h Paris toute l'année » : le cron GitHub est en UTC et ignore
-    # l'heure d'été, donc on programme deux crons (18:00 et 19:00 UTC) et on ne
-    # poursuit que sur celui qui correspond à 20h heure de Paris. Actif uniquement
-    # quand CHECK_20H est défini (runs planifiés) ; un lancement manuel passe outre.
+    # Garde-fou « ~20h Paris toute l'année ». Le cron GitHub est en UTC (ignore
+    # l'heure d'été) ET souvent retardé, surtout en haut de l'heure. On planifie
+    # donc deux crons en heure creuse (17:55 et 18:55 UTC) et on n'envoie que dans
+    # une FENÊTRE bornée 19h55→20h45 Paris : un seul cron y tombe par saison, et la
+    # borne haute empêche tout envoi qui dériverait vers 21h en cas de gros retard.
+    # Actif seulement quand CHECK_20H est défini ; un lancement manuel passe outre.
     if os.getenv("CHECK_20H"):
-        h = datetime.now(ZoneInfo("Europe/Paris")).hour
-        if h != 20:
-            print(f"Hors créneau 20h Paris (il est {h}h) — run ignoré.")
+        now = datetime.now(ZoneInfo("Europe/Paris"))
+        minutes = now.hour * 60 + now.minute
+        if not (19 * 60 + 55 <= minutes < 20 * 60 + 45):   # [19h55, 20h45[
+            print(f"Hors fenêtre d'envoi (il est {now:%Hh%M} à Paris) — run ignoré.")
             return
 
     brutes, erreurs = collecter_brutes()

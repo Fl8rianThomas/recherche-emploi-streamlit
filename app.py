@@ -732,6 +732,13 @@ st.markdown(
 )
 
 
+# Hauteur fixe (px) des deux panneaux liste/détail. Volontairement en pixels et
+# non en « 100vh » : la page reste défilable quand on déplie un expander (un calc
+# basé sur la fenêtre bloquait l'accès au bas de page). Augmenter pour voir plus
+# d'offres et de description d'un coup d'œil.
+HAUTEUR_PANNEAU = 820
+
+
 def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
     """Affichage façon LinkedIn : liste cliquable à gauche, détail à droite.
 
@@ -763,7 +770,7 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
         st.markdown("<style>" + "".join(regles) + "</style>", unsafe_allow_html=True)
     col_liste, col_detail = st.columns([2, 3], gap="medium")
     with col_liste:
-        with st.container(height=600, key=f"scroll_{cle}_l"):
+        with st.container(height=HAUTEUR_PANNEAU, key=f"scroll_{cle}_l"):
             for i, it in enumerate(items):
                 if bucket_fn is not None:
                     # En-tête de tranche temporelle, inséré à chaque changement
@@ -800,7 +807,7 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
                     st.session_state[sel_key] = i
                     st.rerun()
     with col_detail:
-        with st.container(height=600, key=f"scroll_{cle}_d"):
+        with st.container(height=HAUTEUR_PANNEAU, key=f"scroll_{cle}_d"):
             afficher_detail(items[sel], cle)
 
 

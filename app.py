@@ -4,6 +4,7 @@
 Lancement :  streamlit run app.py
 """
 import io
+import re
 import csv
 import os
 import json
@@ -230,6 +231,46 @@ def _fmt_dt_paris(iso):
         return dt.strftime("%d/%m %Hh%M")
     except Exception:  # noqa: BLE001
         return iso
+
+
+def _dt_paris_offre(iso):
+    """Parse la date d'une offre (ISO, sources variées) -> datetime heure de Paris.
+
+    Gère le « Z », les décalages, l'absence de fuseau (supposé UTC) et les
+    fractions de seconde « .NET » à 7 chiffres (Jooble). Renvoie None si illisible.
+    """
+    if not iso:
+        return None
+    s = str(iso).strip().replace("Z", "+00:00")
+    # Tronque une fraction de seconde > 6 chiffres (sinon fromisoformat échoue).
+    s = re.sub(r"(\.\d{6})\d+", r"\1", s)
+    try:
+        dt = datetime.fromisoformat(s)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:                 # horodatage sans fuseau -> supposé UTC
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(ZoneInfo("Europe/Paris"))
+
+
+def fmt_date_heure(iso, court=False):
+    """Date + heure de parution d'une offre, en heure de Paris.
+
+    - « 27/06 à 14h30 » si une heure réelle est fournie (court=True -> « 27/06 14h30 ») ;
+    - « 27/06 » si la source ne donne qu'une date (ou heure d'origine à minuit) ;
+    - '' si la valeur est vide.
+    """
+    if not iso:
+        return ""
+    s = str(iso).strip()
+    heure_brute = s.split("T", 1)[1][:5] if "T" in s else ""   # « HH:MM » d'origine
+    a_heure = bool(heure_brute) and heure_brute != "00:00"
+    dt = _dt_paris_offre(s)
+    if dt is None:
+        return s[:10]
+    if not a_heure:
+        return dt.strftime("%d/%m")
+    return dt.strftime("%d/%m %Hh%M") if court else dt.strftime("%d/%m à %Hh%M")
 
 
 def champ(o, *chemin, defaut=""):
@@ -611,7 +652,7 @@ def afficher_detail(it, cle=""):
     ent = ro.nom_entreprise(o) or "Entreprise non précisée"
     lieu = champ(o, "lieuTravail", "libelle", defaut="-")
     contrat = o.get("typeContratLibelle") or o.get("typeContrat", "")
-    d = (o.get("dateCreation", "") or "")[:10]
+    d = fmt_date_heure(o.get("dateCreation"))
     salaire = champ(o, "salaire", "libelle")
     url = champ(o, "origineOffre", "urlOrigine")
     src, via = o.get("_source", ""), o.get("_variante", "")
@@ -620,7 +661,7 @@ def afficher_detail(it, cle=""):
     st.markdown(f"## {titre}")
     meta = f"**{ent}** · {lieu} · {contrat}"
     if d:
-        meta += f" · {d}"
+        meta += f" · 📅 {d}"
     if salaire:
         meta += f" · 💶 {salaire}"
     st.markdown(meta)
@@ -738,7 +779,7 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
                 o = it["o"]
                 titre = o.get("intitule", "Sans titre")
                 ent = ro.nom_entreprise(o) or "Entreprise non précisée"
-                d = (o.get("dateCreation", "") or "")[:10]
+                d = fmt_date_heure(o.get("dateCreation"), court=True)
                 lieu = champ(o, "lieuTravail", "libelle")
                 bdg = ("★ " if _cle_favori(o) in favset else "")
                 if it.get("recent"):

@@ -117,6 +117,15 @@ def decorer_france(brutes):
 
 FONT = "font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;"
 
+# Palette « mode sombre » du mail. Les lignes colorées par métier gardent leurs
+# couleurs vives ; seules les zones neutres (fond, lignes sans couleur, textes)
+# passent en sombre.
+FOND_PAGE = "#14161b"      # fond de page
+FOND_LIGNE = "#272b33"     # ligne d'offre neutre (sans couleur métier)
+TXT_CLAIR = "#e7e9ee"      # texte principal clair
+TXT_DOUX = "#aab2bf"       # texte secondaire (badges sur ligne neutre)
+TXT_FAIBLE = "#8b94a1"     # légendes / sous-titres / en-têtes de jour
+
 # Coloriage de ligne par métier, IDENTIQUE à l'app (liste) : on lit la syntaxe
 # « mot:couleur » de INCLUSIONS_TITRE_PAR_DEFAUT (owner/PM → orange, analyst/
 # business/amoa/fonctionnel → bleu) et on colore la ligne entière comme dans la liste.
@@ -208,9 +217,9 @@ def _ligne_offre(it):
     d = _fmt_date_heure(o.get("dateCreation"))
     url = html.escape((o.get("origineOffre") or {}).get("urlOrigine", "") or "")
     bg = _couleur_ligne(o)
-    fond = bg or "#eceef2"
-    txt = "#ffffff" if bg else "#1f2430"
-    sub = "rgba(255,255,255,.88)" if bg else "#5b6472"
+    fond = bg or FOND_LIGNE
+    txt = "#ffffff" if bg else TXT_CLAIR
+    sub = "rgba(255,255,255,.88)" if bg else TXT_DOUX
 
     bdg = "🆕 " if it["recent"] else ""
     if it["favori"]:
@@ -237,19 +246,19 @@ def _ligne_offre(it):
 def _section(titre, sous_titre, items, vide):
     """Section avec en-têtes de jour (Aujourd'hui / Hier / date), comme la liste."""
     if not items:
-        corps = f'<p style="color:#9aa0aa;font-size:14px;{FONT}">{vide}</p>'
+        corps = f'<p style="color:{TXT_FAIBLE};font-size:14px;{FONT}">{vide}</p>'
     else:
         parts, prev = [], None
         for it in items:
             b = _bucket(it["o"])
             if b != prev:
-                parts.append(f'<div style="font-size:13px;font-weight:700;color:#6b7280;'
+                parts.append(f'<div style="font-size:13px;font-weight:700;color:{TXT_DOUX};'
                              f'margin:12px 0 5px;{FONT}">{b}</div>')
                 prev = b
             parts.append(_ligne_offre(it))
         corps = "".join(parts)
-    return (f'<h2 style="font-size:17px;margin:22px 0 2px;color:#111;{FONT}">{titre}</h2>'
-            f'<p style="font-size:12px;color:#9aa0aa;margin:0 0 6px;{FONT}">{sous_titre}</p>'
+    return (f'<h2 style="font-size:17px;margin:22px 0 2px;color:{TXT_CLAIR};{FONT}">{titre}</h2>'
+            f'<p style="font-size:12px;color:{TXT_FAIBLE};margin:0 0 6px;{FONT}">{sous_titre}</p>'
             f'{corps}')
 
 
@@ -273,8 +282,8 @@ def construire_html(items, stats, erreurs):
 
     err_html = ""
     if erreurs:
-        err_html = (f'<div style="background:#fff4f4;border:1px solid #f3c2c2;'
-                    f'color:#a23;border-radius:8px;padding:10px 14px;font-size:13px;'
+        err_html = (f'<div style="background:#3a2020;border:1px solid #6e3a3a;'
+                    f'color:#f0b3b3;border-radius:8px;padding:10px 14px;font-size:13px;'
                     f'margin:8px 0 0;{FONT}">⚠️ Sources en erreur : '
                     + html.escape("; ".join(erreurs)) + "</div>")
 
@@ -290,8 +299,8 @@ def construire_html(items, stats, erreurs):
         + _pill(f"👥 {nrh} RH/SIRH")
         + '</div></td></tr></table>')
 
-    corps = f"""<!DOCTYPE html><html><body style="margin:0;background:#eef0f4;padding:18px 10px;{FONT}">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+    corps = f"""<!DOCTYPE html><html><body style="margin:0;background:{FOND_PAGE};padding:18px 10px;color:{TXT_CLAIR};{FONT}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="{FOND_PAGE}" style="background:{FOND_PAGE}"><tr><td align="center" style="background:{FOND_PAGE}">
 <table role="presentation" width="660" cellpadding="0" cellspacing="0" style="max-width:660px;width:100%">
 <tr><td>
 {entete}
@@ -302,7 +311,7 @@ def construire_html(items, stats, erreurs):
 {_section(f"🎯 France — récentes ({len(recents)})",
           "Business Analyst en bleu · Product Owner en orange (comme la liste de l'app)",
           recents, "Aucune offre récente aujourd'hui.")}
-<p style="color:#9aa0aa;font-size:12px;text-align:center;margin:22px 0 6px;{FONT}">
+<p style="color:{TXT_FAIBLE};font-size:12px;text-align:center;margin:22px 0 6px;{FONT}">
 Recherche automatique quotidienne · offres récentes + Perfect</p>
 </td></tr></table>
 </td></tr></table>

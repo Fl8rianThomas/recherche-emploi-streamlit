@@ -387,6 +387,8 @@ def _est_recente(o):
 
 AUJOURDHUI = date.today().isoformat()
 HIER = (date.today() - timedelta(days=1)).isoformat()
+# Lundi 00h00 de la semaine en cours (weekday(): lundi=0 … dimanche=6).
+LUNDI = (date.today() - timedelta(days=date.today().weekday())).isoformat()
 
 # Détection « profil Business Analyst » d'après le titre (même logique que la légende).
 BA_TERMES = ("analyst", "business", "amoa", "fonctionnel")
@@ -405,6 +407,29 @@ def _bucket_jour(it):
     if d == HIER:
         return "📅 Hier"
     return f"📅 {d}" if d else "📅 Date inconnue"
+
+
+def _rang_jour4(it):
+    """Rang du groupe temporel (0 Aujourd'hui … 3 Plus anciennes)."""
+    d = (it["o"].get("dateCreation", "") or "")[:10]
+    if d == AUJOURDHUI:
+        return 0
+    if d == HIER:
+        return 1
+    if d and d >= LUNDI:
+        return 2
+    return 3
+
+
+_LIBELLES_JOUR4 = {
+    0: "📅 Aujourd'hui", 1: "📅 Hier",
+    2: "🗓️ Cette semaine", 3: "🕒 Offres plus anciennes",
+}
+
+
+def _bucket_jour4(it):
+    """Libellé en 4 tranches : Aujourd'hui / Hier / Cette semaine / Plus anciennes."""
+    return _LIBELLES_JOUR4[_rang_jour4(it)]
 
 
 def afficher_detail(it):
@@ -489,11 +514,12 @@ st.markdown(
 )
 
 
-def vue_liste_detail(items, cle, csv_nom, grouper_par_jour=False):
+def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
     """Affichage façon LinkedIn : liste cliquable à gauche, détail à droite.
 
-    grouper_par_jour : insère un séparateur par jour (Aujourd'hui / Hier / date)
-    au lieu du séparateur 🆕 récentes / plus anciennes.
+    bucket_fn : fonction it -> libellé de tranche. Si fournie, un en-tête est
+    inséré à chaque changement de tranche (ex. Aujourd'hui / Hier / Cette semaine
+    / Plus anciennes). Sinon, séparateur 🆕 récentes / plus anciennes par défaut.
     """
     if not items:
         st.info("Aucune offre à afficher.")
@@ -520,10 +546,10 @@ def vue_liste_detail(items, cle, csv_nom, grouper_par_jour=False):
     with col_liste:
         with st.container(height=680, key=f"scroll_{cle}_l"):
             for i, it in enumerate(items):
-                if grouper_par_jour:
-                    # Séparateur par jour (Aujourd'hui / Hier / date), en-tête inclus
-                    bucket = _bucket_jour(it)
-                    if i == 0 or bucket != _bucket_jour(items[i - 1]):
+                if bucket_fn is not None:
+                    # En-tête de tranche temporelle, inséré à chaque changement
+                    bucket = bucket_fn(it)
+                    if i == 0 or bucket != bucket_fn(items[i - 1]):
                         if i > 0:
                             st.divider()
                         st.caption(bucket)
@@ -615,14 +641,15 @@ def _legende(items):
 
 
 france_items = _decorer(francaises)
-# Onglet France : on conserve la séparation 🆕 récentes / plus anciennes, et DANS
-# chacune de ces deux sections les offres 👥 RH/SIRH remontent en tête, puis le
-# classement reprend par score ⭐ puis date.
-france_items.sort(
-    key=lambda it: (it["recent"], bool(it.get("rh")), it["score"],
-                    (it["o"].get("dateCreation", "") or "")[:10]),
-    reverse=True,
-)
+# Onglet France : 4 tranches temporelles (Aujourd'hui / Hier / Cette semaine /
+# Plus anciennes) ; DANS chaque tranche, les 👥 RH/SIRH remontent en tête, puis
+# le classement reprend par score ⭐ puis date. Tri stable en 2 passes : d'abord
+# date décroissante, puis (tranche, RH, score) — l'ordre date est conservé à
+# l'intérieur d'un même (tranche, RH, score).
+france_items.sort(key=lambda it: (it["o"].get("dateCreation", "") or "")[:10],
+                  reverse=True)
+france_items.sort(key=lambda it: (_rang_jour4(it), 0 if it.get("rh") else 1,
+                                  -it["score"]))
 suisse_items = _decorer(suisse)
 
 # Onglet « Perfect » : sous-ensemble France le plus exigeant — score > 2 ⭐ ET
@@ -647,14 +674,14 @@ with onglet_perfect:
                "**ET** domaine **👥 RH/SIRH** **ET** 🎯 département favori. "
                "Triées par date (plus récente d'abord), séparées Aujourd'hui / Hier.")
     vue_liste_detail(perfect_items, "perfect", "offres_perfect.csv",
-                     grouper_par_jour=True)
+                     bucket_fn=_bucket_jour)
 
 with onglet_fr:
     st.markdown(_legende(france_items), unsafe_allow_html=True)
-    st.caption(f"Tri : 🆕 récentes (≤ {jours_recent} j) d'abord, puis score profil ⭐, "
-               "puis date. Couleur de ligne = métier (configurable « mot:couleur » dans "
-               "les Filtres). Clique une annonce pour son détail.")
-    vue_liste_detail(france_items, "fr", "offres_france.csv")
+    st.caption("Regroupé par **📅 Aujourd'hui / 📅 Hier / 🗓️ Cette semaine / 🕒 Plus "
+               "anciennes** ; dans chaque tranche, 👥 RH/SIRH en tête puis score ⭐. "
+               "Couleur de ligne = métier (configurable « mot:couleur » dans les Filtres).")
+    vue_liste_detail(france_items, "fr", "offres_france.csv", bucket_fn=_bucket_jour4)
 
 with onglet_ch:
     st.markdown(_legende(suisse_items), unsafe_allow_html=True)

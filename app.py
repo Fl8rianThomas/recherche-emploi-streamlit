@@ -31,7 +31,7 @@ except Exception:  # noqa: BLE001 — aucun secrets.toml configuré (cas local c
 
 
 # === Recuperation par source (mise en cache par criteres) ===================
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=14400)  # 4 h : données rafraîchies au plus toutes les 4 h
 def chercher_france_travail(mots_cles, departement, type_contrat, max_offres, jours_max):
     cid, secret = os.getenv("FT_CLIENT_ID"), os.getenv("FT_CLIENT_SECRET")
     if not cid or not secret:
@@ -49,7 +49,7 @@ def chercher_france_travail(mots_cles, departement, type_contrat, max_offres, jo
     return offres
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=14400)  # 4 h : données rafraîchies au plus toutes les 4 h
 def chercher_adzuna(mots_cles, lieu, type_contrat, max_offres, jours_max):
     app_id, app_key = os.getenv("ADZUNA_APP_ID"), os.getenv("ADZUNA_APP_KEY")
     if not app_id or not app_key:
@@ -64,7 +64,7 @@ def chercher_adzuna(mots_cles, lieu, type_contrat, max_offres, jours_max):
     return ro.rechercher_adzuna(config, app_id, app_key)
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=14400)  # 4 h : données rafraîchies au plus toutes les 4 h
 def chercher_jooble(mots_cles, lieu, max_offres):
     api_key = os.getenv("JOOBLE_API_KEY")
     if not api_key:
@@ -79,7 +79,7 @@ def chercher_jooble(mots_cles, lieu, max_offres):
     return ro.rechercher_jooble(config, api_key)
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=14400)  # 4 h : données rafraîchies au plus toutes les 4 h
 def chercher_jobup(mots_cles, max_offres):
     """jobup.ch — job board suisse francophone, API publique sans clé."""
     config = dict(ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres)
@@ -241,6 +241,8 @@ with st.expander("⭐ Profil Optimum — classement par adéquation"):
     depts_favoris = {d.strip().upper() for d in depts_txt.replace(";", ",").split(",") if d.strip()}
 
 go = st.button("🔎 Rechercher", type="primary")
+st.caption("🔄 Données rafraîchies automatiquement au plus toutes les 4 h "
+           "(cache). Clique « Rechercher » pour forcer une mise à jour immédiate.")
 st.divider()
 
 def _tag(offres, terme):
@@ -249,16 +251,24 @@ def _tag(offres, terme):
         o.setdefault("_variante", terme)
     return offres
 
-# Une recherche n'est lancée qu'au clic sur "Rechercher". Les offres brutes sont
-# mémorisées (session_state) pour survivre aux reruns (clic sur une annonce,
-# changement de filtre) sans tout relancer.
-if go:
+# La recherche part au clic sur "Rechercher" OU automatiquement à l'ouverture
+# (première visite, critères par défaut) : grâce au cache de 4 h sur les sources,
+# les données affichées sont rafraîchies au plus toutes les 4 h, sans rien cliquer.
+# Les offres brutes sont mémorisées (session_state) pour survivre aux reruns
+# (clic sur une annonce, changement de filtre) sans tout relancer.
+if go or not st.session_state.get("lancee"):
     if not sources:
         st.warning("Sélectionne au moins une source.")
         st.stop()
     if not variantes:
         st.warning("Indique au moins un métier à rechercher.")
         st.stop()
+
+    # Clic manuel sur « Rechercher » = forcer une actualisation (on vide le cache
+    # de 4 h pour réinterroger les API). Le lancement automatique à l'ouverture, lui,
+    # garde le cache (données ≤ 4 h) pour ne pas surconsommer les quotas.
+    if go:
+        st.cache_data.clear()
 
     # Sources : (label, fn(terme)). jobup.ch (suisse francophone) alimente
     # l'onglet 🇨🇭 ; ses offres passent les mêmes filtres que la France.

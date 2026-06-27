@@ -15,14 +15,14 @@ Optionnel : JOURS_MAX (défaut 14), MAX_OFFRES (défaut 50), MAX_MAIL (défaut 8
 import os
 import sys
 import html
-import smtplib
-import ssl
-from email.mime.text import MIMEText
 from datetime import date, timedelta
 
+import requests
 from dotenv import load_dotenv
 
 import recherche_offres as ro
+
+BREVO_URL = "https://api.brevo.com/v3/smtp/email"
 
 load_dotenv(override=True)
 
@@ -170,18 +170,26 @@ def construire_html(items, stats, erreurs):
 
 
 def envoyer(html_corps, n):
-    user, pwd = os.getenv("MAIL_USER"), os.getenv("MAIL_PASS")
-    dest = os.getenv("MAIL_TO") or user
-    if not user or not pwd:
-        print("MAIL_USER / MAIL_PASS manquants : pas d'envoi.", file=sys.stderr)
+    """Envoi via l'API transactionnelle Brevo (pas de SMTP/2FA)."""
+    api_key = os.getenv("BREVO_API_KEY")
+    sender = os.getenv("MAIL_FROM") or os.getenv("MAIL_USER")
+    dest = os.getenv("MAIL_TO") or sender
+    if not api_key or not sender:
+        print("BREVO_API_KEY / MAIL_FROM manquants : pas d'envoi.", file=sys.stderr)
         return False
-    msg = MIMEText(html_corps, "html", "utf-8")
-    msg["Subject"] = f"🔎 {n} offres — {date.today().isoformat()}"
-    msg["From"], msg["To"] = user, dest
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ssl.create_default_context()) as s:
-        s.login(user, pwd)
-        s.sendmail(user, [d.strip() for d in dest.split(",")], msg.as_string())
-    print(f"E-mail envoyé à {dest} ({n} offres).")
+    payload = {
+        "sender": {"email": sender, "name": "Recherche emploi"},
+        "to": [{"email": d.strip()} for d in dest.split(",") if d.strip()],
+        "subject": f"🔎 {n} offres — {date.today().isoformat()}",
+        "htmlContent": html_corps,
+    }
+    r = requests.post(BREVO_URL, json=payload, timeout=30,
+                      headers={"api-key": api_key, "accept": "application/json",
+                               "content-type": "application/json"})
+    if r.status_code >= 300:
+        print(f"Echec Brevo {r.status_code} : {r.text[:300]}", file=sys.stderr)
+        return False
+    print(f"E-mail envoyé à {dest} ({n} offres) via Brevo.")
     return True
 
 

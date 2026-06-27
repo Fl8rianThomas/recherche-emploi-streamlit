@@ -15,7 +15,8 @@ Optionnel : JOURS_MAX (défaut 14), MAX_OFFRES (défaut 50), MAX_MAIL (défaut 8
 import os
 import sys
 import html
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+from zoneinfo import ZoneInfo
 
 import requests
 from dotenv import load_dotenv
@@ -259,6 +260,16 @@ def envoyer(html_corps, n):
 
 
 def main():
+    # Garde-fou « 20h Paris toute l'année » : le cron GitHub est en UTC et ignore
+    # l'heure d'été, donc on programme deux crons (18:00 et 19:00 UTC) et on ne
+    # poursuit que sur celui qui correspond à 20h heure de Paris. Actif uniquement
+    # quand CHECK_20H est défini (runs planifiés) ; un lancement manuel passe outre.
+    if os.getenv("CHECK_20H"):
+        h = datetime.now(ZoneInfo("Europe/Paris")).hour
+        if h != 20:
+            print(f"Hors créneau 20h Paris (il est {h}h) — run ignoré.")
+            return
+
     brutes, erreurs = collecter_brutes()
     items, stats = decorer_france(brutes)
     print(f"{stats['brutes']} brutes -> {len(items)} offres France.")

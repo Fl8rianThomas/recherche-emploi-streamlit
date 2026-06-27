@@ -114,118 +114,164 @@ def decorer_france(brutes):
     return items, stats
 
 
-# Palette (cohérente avec l'app) : barre de couleur par métier.
-ACCENT_PO = "#8e5bd0"   # violet — Product Owner / Manager
-ACCENT_BA = "#3b7dd8"   # bleu — Business Analyst / AMOA / autre
-FONT = ("font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif")
+FONT = "font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;"
+
+# Coloriage de ligne par métier, IDENTIQUE à l'app (liste) : on lit la syntaxe
+# « mot:couleur » de INCLUSIONS_TITRE_PAR_DEFAUT (owner/PM → orange, analyst/
+# business/amoa/fonctionnel → bleu) et on colore la ligne entière comme dans la liste.
+COULEURS = {
+    "violet": "#8e5bd0", "bleu": "#3b7dd8", "blue": "#3b7dd8",
+    "vert": "#2fa564", "green": "#2fa564", "orange": "#dd7a1c",
+    "rouge": "#d24545", "red": "#d24545", "jaune": "#c29a1c", "yellow": "#c29a1c",
+    "rose": "#cc4a96", "pink": "#cc4a96", "cyan": "#1f9595",
+    "gris": "#6f6f6f", "gray": "#6f6f6f",
+}
 
 
-def _chip(txt, bg):
-    return (f'<span style="display:inline-block;padding:2px 8px;border-radius:11px;'
-            f'font-size:11px;font-weight:600;color:#fff;background:{bg};'
-            f'margin:2px 4px 2px 0">{txt}</span>')
+def _couleurs_mot():
+    m = {}
+    for ligne in ro.INCLUSIONS_TITRE_PAR_DEFAUT:
+        mot, sep, coul = ligne.rpartition(":")
+        coul = coul.strip().lower()
+        if sep and mot.strip() and coul in COULEURS:
+            m[mot.strip()] = COULEURS[coul]
+    return m
 
 
-def _carte(it):
-    """Une offre = une carte (table) avec barre de couleur, badges, score, méta."""
+COULEURS_MOT = _couleurs_mot()
+AUJ = date.today().isoformat()
+HIER = (date.today() - timedelta(days=1)).isoformat()
+
+
+def _couleur_ligne(o):
+    """1re couleur (mot:couleur) trouvée dans le titre, comme dans la liste de l'app."""
+    titre = ro.normaliser(o.get("intitule", ""))
+    for mot, hexa in COULEURS_MOT.items():
+        if ro.normaliser(mot) in titre:
+            return hexa
+    return None
+
+
+def _rang_date(o):
+    d = (o.get("dateCreation", "") or "")[:10]
+    if d == AUJ:
+        return 0
+    if d == HIER:
+        return 1
+    return 2
+
+
+def _bucket(o):
+    d = (o.get("dateCreation", "") or "")[:10]
+    if d == AUJ:
+        return "📅 Aujourd'hui"
+    if d == HIER:
+        return "📅 Hier"
+    return f"📅 {d}" if d else "📅 Date inconnue"
+
+
+def _ligne_offre(it):
+    """Une offre = une ligne pleine colorée par métier (comme la liste de l'app)."""
     o = it["o"]
     titre = html.escape(o.get("intitule", "Sans titre"))
     ent = html.escape(ro.nom_entreprise(o) or "Entreprise non précisée")
-    lieu = html.escape((o.get("lieuTravail") or {}).get("libelle", "") or "-")
+    lieu = html.escape((o.get("lieuTravail") or {}).get("libelle", "") or "")
     d = (o.get("dateCreation", "") or "")[:10]
-    url = html.escape((o.get("origineOffre") or {}).get("urlOrigine", ""))
-    src = html.escape(o.get("_source", ""))
-    accent = ACCENT_PO if it["po"] else ACCENT_BA
+    url = html.escape((o.get("origineOffre") or {}).get("urlOrigine", "") or "")
+    bg = _couleur_ligne(o)
+    fond = bg or "#eceef2"
+    txt = "#ffffff" if bg else "#1f2430"
+    sub = "rgba(255,255,255,.88)" if bg else "#5b6472"
 
-    chips = ""
-    if it["recent"]:
-        chips += _chip("🆕 Nouveau", "#2fa564")
+    bdg = "🆕 " if it["recent"] else ""
     if it["favori"]:
-        chips += _chip("🎯 Favori", "#dd7a1c")
+        bdg += "🎯 "
     if it["rh"]:
-        chips += _chip("👥 RH/SIRH", "#1f9595")
-    if it["po"]:
-        chips += _chip("Product Owner", ACCENT_PO)
-    chips_html = (f'<div style="margin:6px 0 2px">{chips}</div>' if chips else "")
-
-    score_pill = ""
+        bdg += "👥 "
     if it["score"]:
-        score_pill = (f'<span style="display:inline-block;padding:2px 10px;'
-                      f'border-radius:12px;background:#fbe7a2;color:#5a4500;'
-                      f'font-size:13px;font-weight:700;white-space:nowrap">'
-                      f'⭐ {it["score"]}</span>')
-    titre_html = (f'<a href="{url}" style="color:#13366e;text-decoration:none">{titre}</a>'
-                  if url else titre)
-    return f"""
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
- style="border-collapse:separate;margin:0 0 10px">
- <tr><td style="background:#ffffff;border:1px solid #e7e9ee;border-left:4px solid {accent};
-   border-radius:8px;padding:12px 16px">
-   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-     <td style="font-size:15px;font-weight:bold;line-height:1.35;{FONT}">{titre_html}</td>
-     <td align="right" valign="top" style="padding-left:10px">{score_pill}</td>
-   </tr></table>
-   {chips_html}
-   <div style="color:#6b7280;font-size:13px;margin-top:5px;{FONT}">
-     {ent} &middot; {lieu} &middot; {d} &middot; {src}</div>
- </td></tr>
-</table>"""
+        bdg += f"⭐{it['score']} "
+    if lieu:
+        bdg += f"📍{lieu} "
+    if d:
+        bdg += f"📅{d} "
+    titre_html = (f'<a href="{url}" style="color:{txt};font-weight:bold;'
+                  f'text-decoration:none">{titre}</a>' if url
+                  else f'<b style="color:{txt}">{titre}</b>')
+    return (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+            f'style="border-collapse:separate;margin:0 0 6px"><tr>'
+            f'<td style="background:{fond};border-radius:8px;padding:9px 13px;{FONT}'
+            f'font-size:14px;line-height:1.45;color:{txt}">'
+            f'<span style="font-size:12px;color:{sub}">{bdg}</span>· {titre_html}'
+            f'<span style="color:{sub}"> — {ent}</span></td></tr></table>')
 
 
 def _section(titre, sous_titre, items, vide):
-    corps = ("".join(_carte(it) for it in items) if items
-             else f'<p style="color:#9aa0aa;font-size:14px;{FONT}">{vide}</p>')
-    return (f'<h2 style="font-size:17px;margin:24px 0 4px;color:#111;{FONT}">{titre}</h2>'
-            f'<p style="font-size:12px;color:#9aa0aa;margin:0 0 12px;{FONT}">{sous_titre}</p>'
+    """Section avec en-têtes de jour (Aujourd'hui / Hier / date), comme la liste."""
+    if not items:
+        corps = f'<p style="color:#9aa0aa;font-size:14px;{FONT}">{vide}</p>'
+    else:
+        parts, prev = [], None
+        for it in items:
+            b = _bucket(it["o"])
+            if b != prev:
+                parts.append(f'<div style="font-size:13px;font-weight:700;color:#6b7280;'
+                             f'margin:12px 0 5px;{FONT}">{b}</div>')
+                prev = b
+            parts.append(_ligne_offre(it))
+        corps = "".join(parts)
+    return (f'<h2 style="font-size:17px;margin:22px 0 2px;color:#111;{FONT}">{titre}</h2>'
+            f'<p style="font-size:12px;color:#9aa0aa;margin:0 0 6px;{FONT}">{sous_titre}</p>'
             f'{corps}')
 
 
-def _pill_entete(txt):
-    return (f'<span style="display:inline-block;padding:3px 11px;border-radius:13px;'
-            f'background:rgba(255,255,255,.18);color:#fff;font-size:13px;'
+def _pill(txt):
+    return (f'<span style="display:inline-block;padding:2px 10px;border-radius:11px;'
+            f'background:rgba(255,255,255,.20);color:#fff;font-size:13px;'
             f'margin:3px 6px 0 0">{txt}</span>')
 
 
 def construire_html(items, stats, erreurs):
-    """Mail = 💎 Perfect + 🎯 France RÉCENTES uniquement (pas les plus anciennes)."""
+    """Mail = 💎 Perfect + 🎯 France RÉCENTES, rendu « liste de l'app » (lignes colorées)."""
     aujourd = date.today().isoformat()
-    # Perfect : score > 2 ET RH/SIRH ET département favori (cf. onglet Perfect).
     perfect = [it for it in items if it["score"] > 2 and it["rh"] and it["favori"]]
     pids = {id(it) for it in perfect}
-    # France récentes : uniquement la partie « 🆕 » (on exclut les plus anciennes),
-    # sans répéter celles déjà listées en Perfect.
     recents = [it for it in items if it["recent"] and id(it) not in pids][:MAX_MAIL]
+    # Tri identique à l'app : par tranche jour, puis 👥 RH en tête, puis score.
+    tri = lambda lst: sorted(lst, key=lambda it: (_rang_date(it["o"]),
+                                                  0 if it["rh"] else 1, -it["score"]))
+    perfect, recents = tri(perfect), tri(recents)
     n_envoye = len(perfect) + len(recents)
 
     err_html = ""
     if erreurs:
         err_html = (f'<div style="background:#fff4f4;border:1px solid #f3c2c2;'
                     f'color:#a23;border-radius:8px;padding:10px 14px;font-size:13px;'
-                    f'margin:0 0 14px;{FONT}">⚠️ Sources en erreur : '
+                    f'margin:8px 0 0;{FONT}">⚠️ Sources en erreur : '
                     + html.escape("; ".join(erreurs)) + "</div>")
 
-    entete = (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
-              f'<tr><td style="background:#1f6feb;border-radius:12px;padding:20px 22px">'
-              f'<div style="font-size:22px;font-weight:800;color:#fff;{FONT}">'
-              f'🔎 Offres du {aujourd}</div>'
-              f'<div style="margin-top:8px">'
-              + _pill_entete(f"💎 {len(perfect)} Perfect")
-              + _pill_entete(f"🆕 {len(recents)} récentes")
-              + _pill_entete(f"{stats['brutes']} analysées")
-              + '</div></td></tr></table>')
+    nfav = sum(1 for it in (perfect + recents) if it["favori"])
+    nrh = sum(1 for it in (perfect + recents) if it["rh"])
+    entete = (
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
+        '<tr><td style="background:#1f6feb;border-radius:12px;padding:18px 20px">'
+        f'<div style="font-size:21px;font-weight:800;color:#fff;{FONT}">'
+        f'🔎 Offres du {aujourd}</div><div style="margin-top:8px">'
+        + _pill(f"📋 {n_envoye} offres") + _pill(f"💎 {len(perfect)} Perfect")
+        + _pill(f"🆕 {len(recents)} récentes") + _pill(f"🎯 {nfav} favoris")
+        + _pill(f"👥 {nrh} RH/SIRH")
+        + '</div></td></tr></table>')
 
     corps = f"""<!DOCTYPE html><html><body style="margin:0;background:#eef0f4;padding:18px 10px;{FONT}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
-<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%">
+<table role="presentation" width="660" cellpadding="0" cellspacing="0" style="max-width:660px;width:100%">
 <tr><td>
 {entete}
-<div style="height:10px"></div>
 {err_html}
 {_section(f"💎 Perfect ({len(perfect)})",
           "Score &gt; 2 ⭐ · 👥 RH/SIRH · 🎯 département favori", perfect,
           "Aucune offre Perfect aujourd'hui.")}
 {_section(f"🎯 France — récentes ({len(recents)})",
-          "Offres du jour · Product Owner en violet, Business Analyst en bleu",
+          "Business Analyst en bleu · Product Owner en orange (comme la liste de l'app)",
           recents, "Aucune offre récente aujourd'hui.")}
 <p style="color:#9aa0aa;font-size:12px;text-align:center;margin:22px 0 6px;{FONT}">
 Recherche automatique quotidienne · offres récentes + Perfect</p>

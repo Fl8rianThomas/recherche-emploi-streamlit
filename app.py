@@ -508,17 +508,15 @@ def _csv_items(items):
 
 
 # Items de liste : texte aligné à gauche et limité à UNE seule ligne (… si trop long).
-# Hauteur des deux panneaux (liste & détail) calée sur la fenêtre plutôt que figée
-# à 680 px : sur un petit écran le bas n'est plus coupé (le scroll reste interne).
+# NB : les deux panneaux ont une hauteur FIXE en pixels (scroll interne géré par
+# Streamlit). Pas de hauteur en « 100vh » : la page défile naturellement quand on
+# déplie un expander, sans bloquer l'accès au bas de page.
 st.markdown(
     "<style>"
     "section.main div.stButton > button "
     "{ text-align:left; justify-content:flex-start; overflow:hidden; }"
     "section.main div.stButton > button p "
     "{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0; }"
-    "[class*='st-key-scroll_'] "
-    "{ height: calc(100vh - 360px) !important; min-height: 320px !important; "
-    "overflow-y: auto !important; }"
     "</style>",
     unsafe_allow_html=True,
 )
@@ -554,7 +552,7 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
         st.markdown("<style>" + "".join(regles) + "</style>", unsafe_allow_html=True)
     col_liste, col_detail = st.columns([2, 3], gap="medium")
     with col_liste:
-        with st.container(height=680, key=f"scroll_{cle}_l"):
+        with st.container(height=600, key=f"scroll_{cle}_l"):
             for i, it in enumerate(items):
                 if bucket_fn is not None:
                     # En-tête de tranche temporelle, inséré à chaque changement
@@ -589,7 +587,7 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
                     st.session_state[sel_key] = i
                     st.rerun()
     with col_detail:
-        with st.container(height=680, key=f"scroll_{cle}_d"):
+        with st.container(height=600, key=f"scroll_{cle}_d"):
             afficher_detail(items[sel])
 
 

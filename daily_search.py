@@ -344,17 +344,14 @@ def envoyer(html_corps, n):
 
 
 def main():
-    # Garde-fou « ~20h Paris toute l'année ». Le cron GitHub est en UTC (ignore
-    # l'heure d'été) ET souvent retardé, surtout en haut de l'heure. On planifie
-    # donc deux crons en heure creuse (17:55 et 18:55 UTC) et on n'envoie que dans
-    # une FENÊTRE bornée 19h55→20h45 Paris : un seul cron y tombe par saison, et la
-    # borne haute empêche tout envoi qui dériverait vers 21h en cas de gros retard.
-    # Actif seulement quand CHECK_20H est défini ; un lancement manuel passe outre.
+    # Garde-fou « 20h Paris toute l'année » : le cron GitHub est en UTC et ignore
+    # l'heure d'été, donc on programme deux crons (18:00 et 19:00 UTC) et on ne
+    # poursuit que sur celui qui correspond à 20h heure de Paris. Actif uniquement
+    # quand CHECK_20H est défini (runs planifiés) ; un lancement manuel passe outre.
     if os.getenv("CHECK_20H"):
-        now = datetime.now(ZoneInfo("Europe/Paris"))
-        minutes = now.hour * 60 + now.minute
-        if not (19 * 60 + 55 <= minutes < 20 * 60 + 45):   # [19h55, 20h45[
-            print(f"Hors fenêtre d'envoi (il est {now:%Hh%M} à Paris) — run ignoré.")
+        h = datetime.now(ZoneInfo("Europe/Paris")).hour
+        if h != 20:
+            print(f"Hors créneau 20h Paris (il est {h}h) — run ignoré.")
             return
 
     brutes, erreurs = collecter_brutes()

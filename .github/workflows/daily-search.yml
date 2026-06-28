@@ -1,16 +1,14 @@
 name: Recherche quotidienne (e-mail 20h Paris)
 
-# ~20h heure de Paris TOUTE L'ANNÉE. Le cron GitHub est en UTC (ignore l'heure
-# d'été) ET souvent retardé, surtout à xx:00. On planifie donc en HEURE CREUSE
-# (17:55 et 18:55 UTC, pas xx:00) et le script (garde-fou CHECK_20H) n'envoie que
-# dans la fenêtre 19h55→20h45 Paris — un seul cron y tombe par saison :
-#   - été  (CEST) : 17:55 UTC = 19h55 → envoie ; 18:55 UTC = 20h55 → ignoré
-#   - hiver (CET)  : 17:55 UTC = 18h55 → ignoré ; 18:55 UTC = 19h55 → envoie
-# La borne haute (20h45) garantit qu'un gros retard GitHub ne dérive jamais à 21h.
+# 20h heure de Paris TOUTE L'ANNÉE. Le cron GitHub est en UTC et ignore l'heure
+# d'été, donc on déclenche aux DEUX heures possibles (18:00 et 19:00 UTC) et le
+# script (garde-fou CHECK_20H) n'envoie que sur le créneau réellement à 20h Paris :
+#   - été  (CEST) : 18:00 UTC = 20h → envoie ; 19:00 UTC = 21h → ignoré
+#   - hiver (CET)  : 18:00 UTC = 19h → ignoré ; 19:00 UTC = 20h → envoie
 on:
   schedule:
-    - cron: "55 17 * * *"
-    - cron: "55 18 * * *"
+    - cron: "0 18 * * *"
+    - cron: "0 19 * * *"
   workflow_dispatch:        # bouton « Run workflow » pour tester à la demande (envoi immédiat)
 
 jobs:

@@ -16,6 +16,8 @@ import os
 import re
 import sys
 import html
+import json
+import base64
 from datetime import date, timedelta, datetime, timezone
 from zoneinfo import ZoneInfo
 
@@ -343,16 +345,77 @@ def envoyer(html_corps, n):
     return True
 
 
+# --- Verrou anti-doublon de l'e-mail quotidien -----------------------------
+# Plusieurs crons tombent dans le créneau 20h (pour résister aux runs GitHub
+# retardés ou abandonnés) ; ce verrou garantit qu'UN SEUL e-mail part par jour.
+# On mémorise la date (Paris) du dernier envoi dans un petit fichier sur la
+# branche `data`, lu/écrit via l'API GitHub avec le GITHUB_TOKEN du workflow
+# (env GH_API_TOKEN). Le snapshot (force-push sur `data`) le réinitialise chaque
+# nuit, hors du créneau d'envoi — sans impact.
+LOCK_API = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
+            "contents/mail_lock.json")
+
+
+def _lock_headers(token):
+    return {"Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"}
+
+
+def lire_verrou(token):
+    """(date du dernier envoi, sha) depuis la branche `data` ; (None, None) si absent."""
+    try:
+        r = requests.get(LOCK_API + "?ref=data", headers=_lock_headers(token), timeout=20)
+        if r.status_code != 200:                 # 404 = pas encore créé
+            return None, None
+        meta = r.json()
+        contenu = base64.b64decode(meta.get("content", "")).decode("utf-8")
+        d = json.loads(contenu) if contenu.strip() else {}
+        return d.get("dernier_envoi"), meta.get("sha")
+    except Exception as e:  # noqa: BLE001
+        print("[!] lecture verrou :", e)
+        return None, None
+
+
+def poser_verrou(token, jour, sha):
+    """Écrit la date d'envoi sur `data`. -> True si OK."""
+    body = {"message": f"mail envoye {jour}", "branch": "data",
+            "content": base64.b64encode(
+                json.dumps({"dernier_envoi": jour}).encode("utf-8")).decode("ascii")}
+    if sha:
+        body["sha"] = sha
+    try:
+        r = requests.put(LOCK_API, headers=_lock_headers(token), json=body, timeout=25)
+        if r.status_code in (200, 201):
+            return True
+        print(f"[!] pose verrou : HTTP {r.status_code} {r.text[:150]}")
+        return False
+    except Exception as e:  # noqa: BLE001
+        print("[!] pose verrou :", e)
+        return False
+
+
 def main():
-    # Garde-fou « 20h Paris toute l'année » : le cron GitHub est en UTC et ignore
-    # l'heure d'été, donc on programme deux crons (18:00 et 19:00 UTC) et on ne
-    # poursuit que sur celui qui correspond à 20h heure de Paris. Actif uniquement
-    # quand CHECK_20H est défini (runs planifiés) ; un lancement manuel passe outre.
+    # Garde-fou « 20h Paris toute l'année ». Le cron GitHub est en UTC (ignore
+    # l'heure d'été) et souvent retardé/abandonné : on déclenche donc plusieurs
+    # fois dans le créneau et on n'envoie que si l'heure de Paris est 20h ET que
+    # l'e-mail du jour n'est pas déjà parti (verrou). Actif seulement si CHECK_20H
+    # est défini (runs planifiés) ; un lancement manuel passe outre (envoi immédiat).
+    token = os.getenv("GH_API_TOKEN")
+    jour = sha = None
     if os.getenv("CHECK_20H"):
-        h = datetime.now(ZoneInfo("Europe/Paris")).hour
-        if h != 20:
-            print(f"Hors créneau 20h Paris (il est {h}h) — run ignoré.")
+        now = datetime.now(ZoneInfo("Europe/Paris"))
+        if now.hour != 20:
+            print(f"Hors créneau 20h Paris (il est {now.hour}h) — run ignoré.")
             return
+        jour = now.date().isoformat()
+        if token:
+            dernier, sha = lire_verrou(token)
+            if dernier == jour:
+                print(f"E-mail déjà envoyé aujourd'hui ({jour}) — run ignoré.")
+                return
+        else:
+            print("[!] GH_API_TOKEN absent : envoi sans verrou anti-doublon.")
 
     brutes, erreurs = collecter_brutes()
     items, stats = decorer_france(brutes)
@@ -361,7 +424,11 @@ def main():
         print(" [!]", e)
     corps, n_envoye = construire_html(items, stats, erreurs)
     print(f"E-mail : {n_envoye} offres (Perfect + recentes).")
-    envoyer(corps, n_envoye)
+    ok = envoyer(corps, n_envoye)
+    # Verrou posé UNIQUEMENT après un envoi réussi : si l'envoi échoue, un cron
+    # suivant du même créneau réessaiera (et ne posera pas de faux verrou).
+    if ok and jour and token:
+        poser_verrou(token, jour, sha)
 
 
 if __name__ == "__main__":

@@ -346,14 +346,15 @@ def envoyer(html_corps, n):
 
 
 # --- Verrou anti-doublon de l'e-mail quotidien -----------------------------
-# Plusieurs crons tombent dans le créneau 20h (pour résister aux runs GitHub
-# retardés ou abandonnés) ; ce verrou garantit qu'UN SEUL e-mail part par jour.
-# On mémorise la date (Paris) du dernier envoi dans un petit fichier sur la
-# branche `data`, lu/écrit via l'API GitHub avec le GITHUB_TOKEN du workflow
-# (env GH_API_TOKEN). Le snapshot (force-push sur `data`) le réinitialise chaque
-# nuit, hors du créneau d'envoi — sans impact.
-LOCK_API = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
-            "contents/mail_lock.json")
+# La fenêtre d'envoi est large (20h→22h Paris, voir main) pour résister aux runs
+# GitHub retardés ; ce verrou garantit qu'UN SEUL e-mail part par jour. On mémorise
+# la date (Paris) du dernier envoi dans un petit fichier, lu/écrit via l'API GitHub
+# avec le GITHUB_TOKEN du workflow (env GH_API_TOKEN). Stocké sur une branche
+# DÉDIÉE `mail-state` (créée au besoin) — surtout PAS `data`, que le snapshot
+# force-push et écraserait toutes les 4 h.
+REPO_API = "https://api.github.com/repos/dylanhatte/recherche-emploi"
+LOCK_BRANCH = "mail-state"
+LOCK_API = f"{REPO_API}/contents/mail_lock.json"
 
 
 def _lock_headers(token):
@@ -363,10 +364,11 @@ def _lock_headers(token):
 
 
 def lire_verrou(token):
-    """(date du dernier envoi, sha) depuis la branche `data` ; (None, None) si absent."""
+    """(date du dernier envoi, sha) depuis `mail-state` ; (None, None) si absent."""
     try:
-        r = requests.get(LOCK_API + "?ref=data", headers=_lock_headers(token), timeout=20)
-        if r.status_code != 200:                 # 404 = pas encore créé
+        r = requests.get(LOCK_API + f"?ref={LOCK_BRANCH}",
+                         headers=_lock_headers(token), timeout=20)
+        if r.status_code != 200:                 # 404 = branche/fichier pas encore créés
             return None, None
         meta = r.json()
         contenu = base64.b64decode(meta.get("content", "")).decode("utf-8")
@@ -377,9 +379,34 @@ def lire_verrou(token):
         return None, None
 
 
+def _assurer_branche(token):
+    """Crée la branche `mail-state` si elle n'existe pas (depuis la branche par défaut)."""
+    try:
+        r = requests.get(f"{REPO_API}/git/refs/heads/{LOCK_BRANCH}",
+                         headers=_lock_headers(token), timeout=20)
+        if r.status_code == 200:
+            return True
+        repo = requests.get(REPO_API, headers=_lock_headers(token), timeout=20).json()
+        base = repo.get("default_branch", "main")
+        rb = requests.get(f"{REPO_API}/git/refs/heads/{base}",
+                         headers=_lock_headers(token), timeout=20)
+        if rb.status_code != 200:
+            return False
+        cr = requests.post(f"{REPO_API}/git/refs", headers=_lock_headers(token), timeout=20,
+                          json={"ref": f"refs/heads/{LOCK_BRANCH}",
+                                "sha": rb.json()["object"]["sha"]})
+        return cr.status_code in (200, 201)
+    except Exception as e:  # noqa: BLE001
+        print("[!] creation branche verrou :", e)
+        return False
+
+
 def poser_verrou(token, jour, sha):
-    """Écrit la date d'envoi sur `data`. -> True si OK."""
-    body = {"message": f"mail envoye {jour}", "branch": "data",
+    """Écrit la date d'envoi sur `mail-state`. -> True si OK."""
+    if not _assurer_branche(token):
+        print("[!] branche verrou indisponible — verrou non posé.")
+        return False
+    body = {"message": f"mail envoye {jour}", "branch": LOCK_BRANCH,
             "content": base64.b64encode(
                 json.dumps({"dernier_envoi": jour}).encode("utf-8")).decode("ascii")}
     if sha:
@@ -396,17 +423,18 @@ def poser_verrou(token, jour, sha):
 
 
 def main():
-    # Garde-fou « 20h Paris toute l'année ». Le cron GitHub est en UTC (ignore
-    # l'heure d'été) et souvent retardé/abandonné : on déclenche donc plusieurs
-    # fois dans le créneau et on n'envoie que si l'heure de Paris est 20h ET que
-    # l'e-mail du jour n'est pas déjà parti (verrou). Actif seulement si CHECK_20H
-    # est défini (runs planifiés) ; un lancement manuel passe outre (envoi immédiat).
+    # Garde-fou « ~20h Paris toute l'année », robuste aux retards GitHub. Les runs
+    # planifiés peuvent arriver avec 1-2 h de retard : un créneau strict « == 20h »
+    # les rejetait tous (aucun mail). On accepte donc une FENÊTRE LARGE 20h→22h
+    # Paris et on envoie dès qu'un run y tombe ; le verrou garantit UN SEUL envoi
+    # par jour. Le mail part donc au plus tôt vers 20h, au pire vers 22h, mais part.
+    # Actif seulement si CHECK_20H est défini ; un lancement manuel passe outre.
     token = os.getenv("GH_API_TOKEN")
     jour = sha = None
     if os.getenv("CHECK_20H"):
         now = datetime.now(ZoneInfo("Europe/Paris"))
-        if now.hour != 20:
-            print(f"Hors créneau 20h Paris (il est {now.hour}h) — run ignoré.")
+        if not (20 <= now.hour <= 22):           # fenêtre [20h00, 23h00[ Paris
+            print(f"Hors fenêtre d'envoi (il est {now.hour}h à Paris) — run ignoré.")
             return
         jour = now.date().isoformat()
         if token:

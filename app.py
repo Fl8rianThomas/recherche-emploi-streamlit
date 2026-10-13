@@ -111,13 +111,15 @@ def chercher_jobup(mots_cles, max_offres):
 
 
 @st.cache_data(show_spinner=False, ttl=14400)  # 4 h : données rafraîchies au plus toutes les 4 h
-def chercher_workday(mots_cles, nom, url_site, max_offres, jours_max,
-                     inclure_titres, exclure_titres):
-    """Site carrière Workday d'un grand groupe (API publique, sans clé), offres France."""
-    config = dict(ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres,
-                  jours_max=jours_max or None, inclure_titres=list(inclure_titres),
-                  exclure_titres=list(exclure_titres))
-    return ro.rechercher_workday(config, nom, url_site)
+def chercher_sites_carrieres(mots_cles, max_offres, jours_max, inclure_titres,
+                             exclure_titres):
+    """Sites carrières des grands groupes (Workday, LVMH, BPCE), en parallèle.
+
+    API publiques sans clé, offres France. -> (offres, erreurs par site).
+    """
+    config = dict(ro.CONFIG, max_offres=max_offres, jours_max=jours_max or None,
+                  inclure_titres=list(inclure_titres), exclure_titres=list(exclure_titres))
+    return ro.rechercher_sites_carrieres(config, [mots_cles])
 
 
 @st.cache_data(show_spinner=False, ttl=600)  # relit l'instantané au plus toutes les 10 min
@@ -313,7 +315,7 @@ st.markdown(
 st.title("🔎 Recherche d'offres")
 st.caption("Recherche multi-variantes, filtrée des ESN, cabinets et doublons.")
 
-TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble", "🏢 Workday", "🚩 jobup.ch"]
+TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble", "🏢 Sites carrières", "🚩 jobup.ch"]
 contrats = ["", "CDI", "CDD", "MIS"]
 
 # Couleurs de ligne : tons medium-fonces saturés (texte blanc cote CSS) pour
@@ -424,8 +426,9 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
         help="Une offre France dont l'entreprise contient un de ces noms (mot entier, "
              "accents/casse ignorés) apparaît dans l'onglet 🏢 Grands groupes. "
              "« ^Nom » = le nom d'entreprise doit COMMENCER par Nom (évite « Sup de "
-             "Vinci », « Nihon Kohden Orange »). Airbus, Thales, Sanofi et Chanel sont en plus interrogés directement "
-             "sur leur site carrière (source 🏢 Workday).",
+             "Vinci », « Nihon Kohden Orange »). ~30 groupes (Airbus, LVMH, BPCE…) "
+             "sont en plus interrogés directement sur leur site carrière "
+             "(source 🏢 Sites carrières).",
     )
     lib_groupes, rx_groupes = ro.regex_groupes(groupes_txt.splitlines())
 
@@ -490,12 +493,10 @@ if go or actu:
             t, lieu_nom or "", type_contrat, max_offres, jours_max)))
     if "Jooble" in sources:
         fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
-    if "🏢 Workday" in sources:
-        # Un fetcher par groupe (Airbus, Thales…) : erreurs et volumes visibles par groupe.
-        for nom_wd, url_wd in ro.WORKDAY_GROUPES:
-            fetchers.append((f"🏢 {nom_wd}", lambda t, n=nom_wd, u=url_wd: chercher_workday(
-                t, n, u, max_offres, jours_max, tuple(inclure_titres or ()),
-                tuple(exclure_titres))))
+    if "🏢 Sites carrières" in sources:
+        # ~30 sites interrogés en parallèle ; renvoie (offres, erreurs par site).
+        fetchers.append(("🏢 Sites carrières", lambda t: chercher_sites_carrieres(
+            t, max_offres, jours_max, tuple(inclure_titres or ()), tuple(exclure_titres))))
     if "🚩 jobup.ch" in sources:
         fetchers.append(("🚩 jobup.ch", lambda t: chercher_jobup(t, max_offres)))
 
@@ -510,7 +511,11 @@ if go or actu:
                 fait += 1
                 barre.progress(fait / total, text=f"({fait}/{total}) {nom_src} — « {terme} »")
                 try:
-                    res = _tag(fn(terme), terme)
+                    res = fn(terme)
+                    if isinstance(res, tuple):        # (offres, erreurs) : sites carrières
+                        res, errs_src = res
+                        erreurs += errs_src
+                    res = _tag(res, terme)
                     brutes += res
                     lignes.append(f"✅ **{nom_src}** · « {terme} » → {len(res)} offres "
                                   f"_(cumul brut : {len(brutes)})_")
@@ -936,10 +941,14 @@ perfect_items = sorted(
 )
 
 # Onglet « Grands groupes » : offres France publiées par un groupe de la liste
-# éditable (banques, luxe, aéro…) — mêmes filtres, score et ordre que France.
+# éditable (banques, luxe, aéro…) — mêmes filtres et tranches que France. Dans
+# chaque tranche : 👥 RH/SIRH d'abord, puis 🎯 départements favoris (classement
+# seulement, aucune offre écartée), puis score ⭐. Tri stable -> date conservée.
 for it in france_items:
     it["groupe"] = ro.groupe_offre(it["o"], lib_groupes, rx_groupes)
 groupes_items = [it for it in france_items if it["groupe"]]
+groupes_items.sort(key=lambda it: (_rang_jour4(it), 0 if it.get("rh") else 1,
+                                   0 if it.get("favori") else 1, -it["score"]))
 
 # Offres sauvegardées (★) — chargées une fois par session depuis la branche `data`,
 # puis maintenues en session_state (la liste fait foi pendant toute la visite).
@@ -996,8 +1005,9 @@ with onglet_gg:
     st.markdown(_legende(groupes_items), unsafe_allow_html=True)
     par_groupe = Counter(it["groupe"] for it in groupes_items)
     st.caption("Offres France publiées par une **banque ou un grand groupe** (liste "
-               "éditable dans 🧹 Filtres) — mêmes filtres, score ⭐ et tri que l'onglet "
-               "France." + ("  \n" + " · ".join(f"**{g}** {n}"
+               "éditable dans 🧹 Filtres), mêmes filtres que France. Dans chaque "
+               "tranche : **👥 RH/SIRH** en tête, puis **🎯 départements favoris** "
+               "(aucune offre écartée), puis score ⭐." + ("  \n" + " · ".join(f"**{g}** {n}"
                                                  for g, n in par_groupe.most_common())
                             if par_groupe else ""))
     if not groupes_items:

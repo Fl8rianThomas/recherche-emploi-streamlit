@@ -8,7 +8,10 @@ import sys
 import time
 import html
 import unicodedata
-from datetime import date, timedelta
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, timedelta, timezone
+from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 
 import requests
 from dotenv import load_dotenv
@@ -120,6 +123,10 @@ GRANDS_GROUPES_PAR_DEFAUT = [
     "^Vinci", "Bouygues", "^Orange", "SNCF", "RATP", "La Poste",
     # Santé / grande conso / distribution
     "Sanofi", "Servier", "Danone", "Pernod Ricard", "Carrefour", "Decathlon", "Accor",
+    # Autres groupes interroges directement sur leur site carriere (section 9)
+    "Richemont", "Valeo", "Eiffage", "Pierre Fabre", "Havas", "LFB", "Ipsen",
+    "Rothschild", "Ayvens", "Ardian", "Marsh McLennan", "Citi", "Pluxee",
+    "Maisons du Monde", "Unibail-Rodamco-Westfield", "Imerys", "Cultura", "Criteo", "PVH",
 ]
 
 # Competences relevant du domaine RH -> declenchent l'icone 👥 dans l'interface.
@@ -907,16 +914,45 @@ def rechercher_jobup(config):
 # === 9. SOURCE WORKDAY (sites carrieres des grands groupes) =================
 # Beaucoup de grands groupes publient leurs offres sur Workday, qui expose une API
 # JSON publique (celle du site carriere) : recherche par mots-cles + filtre pays.
-# Ajouter un groupe = ajouter (nom, URL publique de son site carriere Workday).
+# Ajouter un groupe = ajouter (nom, URL publique du site carriere Workday[, facette]).
+# Facette pays : le NOM du filtre varie selon le tenant (defaut « locationCountry ») ;
+# None = pas de filtre (site 100 % France ; le filtre y renverrait une erreur 400).
+# Astuce : https://{tenant}.wdN.myworkdayjobs.com/robots.txt liste les sites d'un tenant.
 WORKDAY_GROUPES = [
     ("Airbus", "https://ag.wd3.myworkdayjobs.com/Airbus"),
     ("Thales", "https://thales.wd3.myworkdayjobs.com/Careers"),
     ("Sanofi", "https://sanofi.wd3.myworkdayjobs.com/SanofiCareers"),
     ("Chanel", "https://cc.wd3.myworkdayjobs.com/ChanelCareers"),
+    ("Renault", "https://alliancewd.wd3.myworkdayjobs.com/renault-group-careers"),
+    ("Richemont", "https://richemont.wd3.myworkdayjobs.com/Richemont"),
+    ("Air Liquide", "https://airliquidehr.wd3.myworkdayjobs.com/AirLiquideExternalCareer"),
+    ("Michelin", "https://michelinhr.wd3.myworkdayjobs.com/Michelin", "Location_Country"),
+    ("Pernod Ricard", "https://pernodricard.wd3.myworkdayjobs.com/pernod-ricard"),
+    ("Pierre Fabre", "https://pierrefabre.wd3.myworkdayjobs.com/External_Career_Site"),
+    ("Valeo", "https://valeo.wd3.myworkdayjobs.com/valeo_jobs"),
+    ("Eiffage", "https://eiffage.wd3.myworkdayjobs.com/Eiffage_Careers"),
+    ("RATP", "https://ratp.wd3.myworkdayjobs.com/RATP_Externe", None),
+    ("ArianeGroup", "https://arianegroup.wd3.myworkdayjobs.com/EXTERNALALL"),
+    ("Havas", "https://havas.wd3.myworkdayjobs.com/GroupExternalCareerSite", "Country"),
+    ("LFB", "https://lfb.wd3.myworkdayjobs.com/LFB_External_Careers"),
+    ("Ipsen", "https://ipsen.wd103.myworkdayjobs.com/Ipsen_Careers"),
+    ("AG2R La Mondiale", "https://ag2rlamondiale.wd3.myworkdayjobs.com/Candidats", None),
+    ("Rothschild & Co", "https://rothschildandco.wd3.myworkdayjobs.com/Rothschildandco_Lateral"),
+    ("Ayvens", "https://ayvens.wd3.myworkdayjobs.com/AyvensCareers"),
+    ("Ardian", "https://ardian.wd103.myworkdayjobs.com/ArdianCareers"),
+    ("Marsh McLennan", "https://mmc.wd1.myworkdayjobs.com/MMC", "Location_Country"),
+    ("Citi", "https://citi.wd5.myworkdayjobs.com/2", "Country_and_Jurisdiction"),
+    ("Pluxee", "https://pluxee.wd3.myworkdayjobs.com/Pluxee_Career_Site"),
+    ("Maisons du Monde", "https://maisonsdumonde.wd3.myworkdayjobs.com/Site_carriere"),
+    ("Unibail-Rodamco-Westfield", "https://urw.wd3.myworkdayjobs.com/urw_career_site"),
+    ("Imerys", "https://imerys.wd3.myworkdayjobs.com/IMERYS-Careers", "Country"),
+    ("Cultura", "https://cultura.wd3.myworkdayjobs.com/Cultura", None),
+    ("Criteo", "https://criteo.wd3.myworkdayjobs.com/Criteo_Career_Site", "Country"),
+    ("PVH", "https://pvh.wd1.myworkdayjobs.com/PVH_Careers", "Location_Country"),
 ]
 WORKDAY_FRANCE = "54c5b6971ffb4bf0b116fe7651ec789a"   # id pays « France » (commun aux tenants)
 # Stages / alternances / VIE : ecartes (on vise des CDI, comme les autres sources).
-_RE_WORKDAY_HORS_CDI = re.compile(
+_RE_HORS_CDI = re.compile(
     r"\b(stage|stagiaire|intern|internship|alternance|alternant|apprenti|apprentie"
     r"|apprentissage|work[- ]study|v\.?i\.?e)\b")
 
@@ -976,22 +1012,39 @@ def _post_workday(url, corps, nom, tentatives=3):
             time.sleep(1.5 * (n + 1))
     raise RuntimeError(f"Workday {nom} : {derniere}")
 
-def rechercher_workday(config, nom, url_site):
+def _prefiltre_titres(config):
+    """(inclus, exclus) normalises depuis config["inclure_titres" / "exclure_titres"].
+
+    Pre-filtre des sites carrieres : les memes regles sont de toute facon
+    re-appliquees ensuite par filtrer() ; ici elles evitent des requetes inutiles.
+    """
+    return ([normaliser(t) for t in config.get("inclure_titres") or [] if t.strip()],
+            [normaliser(t) for t in config.get("exclure_titres") or [] if t.strip()])
+
+def _titre_ok(titre, inclus, exclus, contrat=""):
+    """Titre pertinent, non exclu, et pas un stage/alternance (titre ou contrat)."""
+    tn = normaliser(titre)
+    if inclus and not any(t in tn for t in inclus):
+        return False
+    if _RE_HORS_CDI.search(tn + " " + normaliser(contrat)):
+        return False
+    return not any(t in tn for t in exclus)
+
+def rechercher_workday(config, nom, url_site, facette="locationCountry"):
     """Offres France d'un site carriere Workday (format interne, entreprise = nom).
 
+    facette : nom du filtre pays de ce tenant (None = aucun filtre, site 100 % France).
     config["inclure_titres"] / ["exclure_titres"] (optionnels) : pre-filtre sur le
     titre AVANT d'ouvrir la fiche detaillee (1 requete par offre) -> ~5x plus rapide.
-    Les memes filtres sont de toute facon re-appliques ensuite par filtrer().
     """
     api = _workday_api(url_site)
     jours_max = config.get("jours_max")
-    inclus = [normaliser(t) for t in config.get("inclure_titres") or [] if t.strip()]
-    exclus = [normaliser(t) for t in config.get("exclure_titres") or [] if t.strip()]
+    inclus, exclus = _prefiltre_titres(config)
     offres, offset, par_page = [], 0, 20          # l'API plafonne limit a 20
     total = None                                  # renvoye seulement en page 1
     pages_vides = 0                               # pages consecutives sans titre pertinent
     while len(offres) < config["max_offres"]:
-        corps = {"appliedFacets": {"locationCountry": [WORKDAY_FRANCE]},
+        corps = {"appliedFacets": {facette: [WORKDAY_FRANCE]} if facette else {},
                  "limit": par_page, "offset": offset,
                  "searchText": mots_cles_recherche(config["mots_cles"])}
         data = _post_workday(api + "/jobs", corps, nom)
@@ -1001,14 +1054,11 @@ def rechercher_workday(config, nom, url_site):
         pertinents = 0
         for j in lot:
             titre = j.get("title", "") or ""
-            tn = normaliser(titre)
             age = _workday_age_jours(j.get("postedOn"))
-            if inclus and not any(t in tn for t in inclus):
+            if inclus and not any(t in normaliser(titre) for t in inclus):
                 continue
             pertinents += 1
-            if _RE_WORKDAY_HORS_CDI.search(tn):
-                continue
-            if any(t in tn for t in exclus):
+            if not _titre_ok(titre, (), exclus):
                 continue
             if jours_max and age is not None and age > jours_max:
                 continue
@@ -1037,6 +1087,143 @@ def rechercher_workday(config, nom, url_site):
             break
         time.sleep(0.3)
     return offres[: config["max_offres"]]
+
+# === 10. SOURCE LVMH (Dior, Louis Vuitton, Sephora, Moet Hennessy...) =======
+# Le site lvmh.com interroge un index Algolia PUBLIC (cle de recherche presente dans
+# son JavaScript) : toutes les Maisons, filtre pays France, fiche complete d'un coup.
+LVMH_ALGOLIA_URL = "https://SDMQTD2J9T-dsn.algolia.net/1/indexes/PRD-fr-fr/query"
+LVMH_ALGOLIA_HEADERS = {"X-Algolia-Application-Id": "SDMQTD2J9T",
+                        "X-Algolia-API-Key": "a5c6f4c87dea9aac0732631cd87583b2"}
+
+def rechercher_lvmh(config):
+    """Offres France de toutes les Maisons LVMH (entreprise = « Maison (LVMH) »)."""
+    inclus, exclus = _prefiltre_titres(config)
+    jours_max = config.get("jours_max")
+    limite = (datetime.now(timezone.utc) - timedelta(days=jours_max)).timestamp() \
+        if jours_max else None
+    offres, page = [], 0
+    while len(offres) < config["max_offres"]:
+        params = urlencode({"query": mots_cles_recherche(config["mots_cles"]),
+                            "filters": 'category:job AND countryRegion:"France"',
+                            "hitsPerPage": 100, "page": page})
+        r = requests.post(LVMH_ALGOLIA_URL, headers=LVMH_ALGOLIA_HEADERS,
+                          json={"params": params}, timeout=20)
+        if r.status_code != 200:
+            raise RuntimeError(f"LVMH {r.status_code}")
+        data = r.json()
+        for h in data.get("hits") or []:
+            ts = int(h.get("publicationTimestamp") or 0)
+            if limite and ts and ts < limite:
+                continue
+            if not _titre_ok(h.get("name", ""), inclus, exclus, h.get("contract", "")):
+                continue
+            maison = h.get("maison") or "LVMH"
+            offres.append({
+                "intitule": h.get("name", ""),
+                "entreprise": {"nom": maison if "lvmh" in normaliser(maison)
+                               else f"{maison} (LVMH)"},
+                "lieuTravail": {"libelle": ", ".join(
+                    x for x in (h.get("city"), h.get("regionState")) if x) or "France"},
+                "typeContratLibelle": h.get("contract", "") or "",
+                "typeContrat": "CDI" if h.get("contract") == "CDI" else "",
+                # Horodatage = minuit heure de Paris -> date de Paris (pas UTC, J-1).
+                "dateCreation": datetime.fromtimestamp(ts, ZoneInfo("Europe/Paris"))
+                                .date().isoformat() if ts else "",
+                "description": _html_vers_texte("\n".join(
+                    h.get(k) or "" for k in ("description", "jobResponsabilities", "profile"))),
+                "origineOffre": {"urlOrigine": h.get("link", "") or ""},
+                "salaire": {"libelle": ""},
+                "_source": "LVMH",
+            })
+        page += 1
+        if page >= (data.get("nbPages") or 0):
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 11. SOURCE BPCE (Natixis, Banque Populaire, Caisse d'Epargne...) =======
+# Site recrutement.bpce.fr (WordPress) : endpoint REST JSON public de sa recherche.
+BPCE_URL = "https://recrutement.bpce.fr/app/wp-json/bpce/v1/search/jobs"
+
+def rechercher_bpce(config):
+    """Offres France du Groupe BPCE (entreprise = « Marque (BPCE) »)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = (date.today() - timedelta(days=config["jours_max"])).isoformat() \
+        if config.get("jours_max") else None
+    offres, depart, taille = [], 0, 100
+    while len(offres) < config["max_offres"]:
+        corps = {"lang": "fr", "keyword": mots_cles_recherche(config["mots_cles"]),
+                 "tax_country": "france", "external": False, "from": depart, "size": taille}
+        r = requests.post(BPCE_URL, json=corps, timeout=30,
+                          headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+        if r.status_code != 200:
+            raise RuntimeError(f"BPCE {r.status_code}")
+        data = r.json().get("data") or {}
+        lot = data.get("items") or []
+        for it in lot:
+            titre = it.get("title", "") or ""
+            contrat = ", ".join(it.get("contract") or [])
+            jour = it.get("date") or ""
+            if limite and jour and jour < limite:
+                continue
+            if not _titre_ok(titre, inclus, exclus, contrat):
+                continue
+            marque = (it.get("brand") or ["BPCE"])[0]
+            loc = (it.get("localisations") or [{}])[0] or {}
+            lieu = it.get("localisation") or loc.get("city") or ""
+            if loc.get("zipcode"):
+                lieu += f" ({loc['zipcode']})"
+            if loc.get("region"):
+                lieu += f", {loc['region']}"
+            lien = (it.get("link") or {}).get("url") or ""
+            offres.append({
+                "intitule": titre,
+                "entreprise": {"nom": marque if "bpce" in normaliser(marque)
+                               else f"{marque} (BPCE)"},
+                "lieuTravail": {"libelle": lieu or "France"},
+                "typeContratLibelle": contrat,
+                "typeContrat": "CDI" if contrat == "CDI" else "",
+                "dateCreation": jour,
+                "description": _html_vers_texte(it.get("description")),
+                "origineOffre": {"urlOrigine": "https://recrutement.bpce.fr" + lien
+                                 if lien.startswith("/") else lien},
+                "salaire": {"libelle": ""},
+                "_source": "BPCE",
+            })
+        depart += taille
+        if not lot or depart >= (data.get("total") or 0):
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 12. SITES CARRIERES : toutes sources, en parallele ======================
+def sites_carrieres():
+    """[(libelle, fonction(config) -> offres)] : Workday + LVMH + BPCE."""
+    sites = [(f"Workday {g[0]}",
+              lambda cfg, g=g: rechercher_workday(
+                  cfg, g[0], g[1], g[2] if len(g) > 2 else "locationCountry"))
+             for g in WORKDAY_GROUPES]
+    return sites + [("LVMH", rechercher_lvmh), ("BPCE", rechercher_bpce)]
+
+def rechercher_sites_carrieres(config, variantes, workers=12):
+    """Interroge chaque site carriere pour chaque variante, EN PARALLELE.
+
+    Sequentiel, ~30 sites x 7 variantes prendrait ~15 min (minutes GitHub Actions
+    comptees, depot prive) ; en parallele ~1-2 min. -> (offres, erreurs), chaque
+    offre marquee _variante. Une erreur sur un site n'arrete pas les autres.
+    """
+    taches = [(v, nom, fn) for v in variantes for nom, fn in sites_carrieres()]
+    offres, erreurs = [], []
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futurs = [ex.submit(fn, dict(config, mots_cles=v)) for v, _nom, fn in taches]
+        for (v, nom, _fn), fut in zip(taches, futurs):
+            try:
+                for o in fut.result():
+                    o["_variante"] = v
+                    offres.append(o)
+            except Exception as e:  # noqa: BLE001
+                erreurs.append(f"{nom} « {v} » : {e}")
+    return offres, erreurs
 
 def main():
     load_dotenv(override=True)

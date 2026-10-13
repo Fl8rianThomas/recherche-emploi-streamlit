@@ -46,7 +46,7 @@ def _inclusions_mots():
 
 
 def collecter_brutes():
-    """Lance toutes les variantes sur FT + Adzuna + Jooble + Workday. -> (offres, erreurs)."""
+    """Toutes les variantes : FT + Adzuna + Jooble + sites carrières. -> (offres, erreurs)."""
     cid, secret = os.getenv("FT_CLIENT_ID"), os.getenv("FT_CLIENT_SECRET")
     app_id, app_key = os.getenv("ADZUNA_APP_ID"), os.getenv("ADZUNA_APP_KEY")
     jooble_key = os.getenv("JOOBLE_API_KEY")
@@ -88,17 +88,14 @@ def collecter_brutes():
                     brutes.append(o)
             except Exception as e:  # noqa: BLE001
                 erreurs.append(f"Jooble « {variante} » : {e}")
-        # Sites carrières Workday des grands groupes (API publique, sans clé).
-        for nom, url in ro.WORKDAY_GROUPES:
-            try:
-                cfg = dict(ro.CONFIG, mots_cles=variante, max_offres=MAX_OFFRES,
-                           jours_max=JOURS_MAX, inclure_titres=_inclusions_mots(),
-                           exclure_titres=ro.EXCLUSIONS_TITRE_PAR_DEFAUT)
-                for o in ro.rechercher_workday(cfg, nom, url):
-                    o["_variante"] = variante
-                    brutes.append(o)
-            except Exception as e:  # noqa: BLE001
-                erreurs.append(f"Workday {nom} « {variante} » : {e}")
+    # Sites carrières des grands groupes (Workday, LVMH, BPCE) : API publiques sans
+    # clé, toutes les variantes interrogées EN PARALLÈLE (minutes Actions comptées).
+    cfg = dict(ro.CONFIG, max_offres=MAX_OFFRES, jours_max=JOURS_MAX,
+               inclure_titres=_inclusions_mots(),
+               exclure_titres=ro.EXCLUSIONS_TITRE_PAR_DEFAUT)
+    offres, errs = ro.rechercher_sites_carrieres(cfg, ro.SYNONYMES_PAR_DEFAUT)
+    brutes += offres
+    erreurs += errs
     return brutes, erreurs
 
 

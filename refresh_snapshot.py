@@ -7,7 +7,7 @@ les données affichées sont donc rafraîchies toutes les 4 h en arrière-plan,
 sans consommer de quota à l'ouverture du site.
 
 Réutilise `daily_search.collecter_brutes` (France Travail + Adzuna + Jooble +
-Workday des grands groupes) et
+sites carrières des grands groupes : Workday, LVMH, BPCE) et
 ajoute jobup.ch (Suisse) pour alimenter aussi l'onglet 🇨🇭.
 
 Variables d'environnement : FT_CLIENT_ID/SECRET, ADZUNA_APP_ID/KEY, JOOBLE_API_KEY.
@@ -27,7 +27,7 @@ FICHIER = "offres_snapshot.json"
 
 
 def main():
-    brutes, erreurs = ds.collecter_brutes()  # FT + Adzuna + Jooble + Workday (variantes)
+    brutes, erreurs = ds.collecter_brutes()  # FT + Adzuna + Jooble + sites carrières
     # jobup.ch (Suisse romande) pour l'onglet 🇨🇭 — _source = "jobup.ch" déjà posé.
     for variante in ro.SYNONYMES_PAR_DEFAUT:
         try:

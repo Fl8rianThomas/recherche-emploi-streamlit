@@ -5,6 +5,7 @@ Lancement :  streamlit run app.py
 """
 import io
 import re
+import importlib
 import csv
 import os
 import json
@@ -19,6 +20,15 @@ import streamlit as st
 from dotenv import load_dotenv
 
 import recherche_offres as ro
+
+# Après un push, Streamlit Cloud ré-exécute le NOUVEL app.py mais peut garder
+# l'ANCIEN module recherche_offres en mémoire -> AttributeError (vu le 2026-10-13 :
+# « no attribute GRANDS_GROUPES_PAR_DEFAUT » pendant ~50 min). On le recharge dès
+# que son fichier a changé (comparaison de date de modification, coût négligeable).
+_mtime_ro = os.path.getmtime(ro.__file__)
+if getattr(ro, "_mtime_charge", None) != _mtime_ro:
+    ro = importlib.reload(ro)
+    ro._mtime_charge = _mtime_ro
 
 # Instantané publié toutes les 4 h par GitHub Actions (branche `data`). L'app le
 # lit à l'ouverture → données rafraîchies en arrière-plan, sans interroger les API.

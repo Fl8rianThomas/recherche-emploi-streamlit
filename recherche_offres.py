@@ -1423,14 +1423,13 @@ def rechercher_smartrecruiters(config, nom, ident):
         time.sleep(0.2)
     return offres[: config["max_offres"]]
 
-# === 14. SOURCE PHENOM (Allianz, Siemens Healthineers, Merck) ================
+# === 14. SOURCE PHENOM (Allianz, Siemens Healthineers) =======================
 # Sites carrieres Phenom : widget JSON « refineSearch » public. Pas de description
 # complete dans la liste -> accroche + competences detectees (ml_skills).
 PHENOM_GROUPES = [   # (nom, base, refNum, lang, pays du site, valeur filtre France)
     ("Allianz", "https://careers.allianz.com", "AISAIPGB", "en_global", "global", "France"),
     ("Siemens Healthineers", "https://careers.siemens-healthineers.com", "SHDSHWUS",
      "en_global", "global", "France"),                  # Tours, Bourges
-    ("Merck", "https://careers.merckgroup.com", "MQAMKDGLOBAL", "en_global", "global", "France"),
 ]
 
 def rechercher_phenom(config, nom, base, ref, lang, pays, valeur_france):

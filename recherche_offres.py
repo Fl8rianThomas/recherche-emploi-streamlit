@@ -562,9 +562,9 @@ def _cle_commune(nom):
 def _charger_communes():
     try:
         with open(_FICHIER_COMMUNES, encoding="utf-8") as f:
-            paires = (l.rstrip("\n").partition("\t") for l in f
+            paires = (l.rstrip("\r\n").partition("\t") for l in f   # CRLF sous Windows
                       if l.strip() and not l.startswith("#"))
-            return {k: v for k, _, v in paires}
+            return {k: v.strip() for k, _, v in paires}
     except OSError:
         return {}
 

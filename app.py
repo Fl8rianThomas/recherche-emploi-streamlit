@@ -110,6 +110,16 @@ def chercher_jobup(mots_cles, max_offres):
     return ro.rechercher_jobup(config)
 
 
+@st.cache_data(show_spinner=False, ttl=14400)  # 4 h : données rafraîchies au plus toutes les 4 h
+def chercher_workday(mots_cles, nom, url_site, max_offres, jours_max,
+                     inclure_titres, exclure_titres):
+    """Site carrière Workday d'un grand groupe (API publique, sans clé), offres France."""
+    config = dict(ro.CONFIG, mots_cles=mots_cles, max_offres=max_offres,
+                  jours_max=jours_max or None, inclure_titres=list(inclure_titres),
+                  exclure_titres=list(exclure_titres))
+    return ro.rechercher_workday(config, nom, url_site)
+
+
 @st.cache_data(show_spinner=False, ttl=600)  # relit l'instantané au plus toutes les 10 min
 def charger_snapshot():
     """Lit l'instantané JSON publié toutes les 4 h (branche `data`).
@@ -303,7 +313,7 @@ st.markdown(
 st.title("🔎 Recherche d'offres")
 st.caption("Recherche multi-variantes, filtrée des ESN, cabinets et doublons.")
 
-TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble", "🚩 jobup.ch"]
+TOUTES_SOURCES = ["France Travail", "Adzuna", "Jooble", "🏢 Workday", "🚩 jobup.ch"]
 contrats = ["", "CDI", "CDD", "MIS"]
 
 # Couleurs de ligne : tons medium-fonces saturés (texte blanc cote CSS) pour
@@ -408,6 +418,16 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
                  "(accents/casse ignorés).",
         )
         exclure_titres = [x.strip() for x in exclusions_txt.splitlines() if x.strip()]
+    groupes_txt = st.text_area(
+        "🏢 Grands groupes (onglet dédié) — un nom par ligne",
+        value="\n".join(ro.GRANDS_GROUPES_PAR_DEFAUT), height=140,
+        help="Une offre France dont l'entreprise contient un de ces noms (mot entier, "
+             "accents/casse ignorés) apparaît dans l'onglet 🏢 Grands groupes. "
+             "« ^Nom » = le nom d'entreprise doit COMMENCER par Nom (évite « Sup de "
+             "Vinci », « Nihon Kohden Orange »). Airbus, Thales, Sanofi et Chanel sont en plus interrogés directement "
+             "sur leur site carrière (source 🏢 Workday).",
+    )
+    lib_groupes, rx_groupes = ro.regex_groupes(groupes_txt.splitlines())
 
 # 3) Profil Optimum (classement par adéquation)
 with st.expander("⭐ Profil Optimum — classement par adéquation"):
@@ -470,6 +490,12 @@ if go or actu:
             t, lieu_nom or "", type_contrat, max_offres, jours_max)))
     if "Jooble" in sources:
         fetchers.append(("Jooble", lambda t: chercher_jooble(t, lieu_nom or "", max_offres)))
+    if "🏢 Workday" in sources:
+        # Un fetcher par groupe (Airbus, Thales…) : erreurs et volumes visibles par groupe.
+        for nom_wd, url_wd in ro.WORKDAY_GROUPES:
+            fetchers.append((f"🏢 {nom_wd}", lambda t, n=nom_wd, u=url_wd: chercher_workday(
+                t, n, u, max_offres, jours_max, tuple(inclure_titres or ()),
+                tuple(exclure_titres))))
     if "🚩 jobup.ch" in sources:
         fetchers.append(("🚩 jobup.ch", lambda t: chercher_jobup(t, max_offres)))
 
@@ -909,6 +935,12 @@ perfect_items = sorted(
     key=lambda it: (it["o"].get("dateCreation", "") or ""), reverse=True,
 )
 
+# Onglet « Grands groupes » : offres France publiées par un groupe de la liste
+# éditable (banques, luxe, aéro…) — mêmes filtres, score et ordre que France.
+for it in france_items:
+    it["groupe"] = ro.groupe_offre(it["o"], lib_groupes, rx_groupes)
+groupes_items = [it for it in france_items if it["groupe"]]
+
 # Offres sauvegardées (★) — chargées une fois par session depuis la branche `data`,
 # puis maintenues en session_state (la liste fait foi pendant toute la visite).
 if "favoris" not in st.session_state:
@@ -924,10 +956,11 @@ if st.session_state.get("_fav_err"):
 if st.session_state.get("_fav_msg"):
     st.toast(st.session_state.pop("_fav_msg"))
 
-(onglet_perfect, onglet_fr, onglet_ch, onglet_fav,
+(onglet_perfect, onglet_fr, onglet_gg, onglet_ch, onglet_fav,
  onglet_excl, onglet_dash) = st.tabs([
     f"💎 Perfect ({len(perfect_items)})",
     f"🎯 France ({len(france_items)})",
+    f"🏢 Grands groupes ({len(groupes_items)})",
     f"🚩 Suisse ({len(suisse_items)})",
     f"💾 Sauvegardées ({len(favoris_items)})",
     f"🗑️ Exclues ({len(exclues)})",
@@ -958,6 +991,20 @@ with onglet_fr:
                    "anciennes** ; dans chaque tranche, 👥 RH/SIRH en tête puis score ⭐. "
                    "Couleur de ligne = métier (configurable « mot:couleur » dans les Filtres).")
     vue_liste_detail(france_affiche, "fr", "offres_france.csv", bucket_fn=_bucket_jour4)
+
+with onglet_gg:
+    st.markdown(_legende(groupes_items), unsafe_allow_html=True)
+    par_groupe = Counter(it["groupe"] for it in groupes_items)
+    st.caption("Offres France publiées par une **banque ou un grand groupe** (liste "
+               "éditable dans 🧹 Filtres) — mêmes filtres, score ⭐ et tri que l'onglet "
+               "France." + ("  \n" + " · ".join(f"**{g}** {n}"
+                                                 for g, n in par_groupe.most_common())
+                            if par_groupe else ""))
+    if not groupes_items:
+        st.info("Aucune offre de grand groupe avec ces critères.")
+    else:
+        vue_liste_detail(groupes_items, "gg", "offres_grands_groupes.csv",
+                         bucket_fn=_bucket_jour4)
 
 with onglet_ch:
     st.markdown(_legende(suisse_items), unsafe_allow_html=True)

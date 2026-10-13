@@ -99,6 +99,29 @@ PROFIL_OPTIMUM = [
 # 74 Haute-Savoie (Annecy), 75 Paris.
 DEPTS_FAVORIS_PAR_DEFAUT = ["37", "41", "45", "74", "75"]
 
+# Grands groupes (onglet 🏢) : une offre France dont l'ENTREPRISE contient un de
+# ces noms (mot entier, accents/casse ignores) y est rangee. Editable dans l'interface.
+GRANDS_GROUPES_PAR_DEFAUT = [
+    # Banques
+    "BNP Paribas", "Société Générale", "Crédit Agricole", "LCL", "Natixis", "BPCE",
+    "Caisse d'Épargne", "Banque Populaire", "Crédit Mutuel", "CIC",
+    "La Banque Postale", "HSBC", "Amundi", "CACEIS",
+    # Assurance / mutuelles
+    "AXA", "Allianz", "Generali", "CNP Assurances", "Groupama", "Malakoff Humanis",
+    "AG2R", "MAIF", "MACIF", "Covéa",
+    # Luxe / beauté
+    "LVMH", "Louis Vuitton", "Dior", "Sephora", "Moët Hennessy", "Givenchy",
+    "Kering", "Saint Laurent", "Chanel", "Hermès", "L'Oréal", "Loreal", "Cartier",
+    # Aéronautique / défense
+    "Airbus", "Safran", "Thales", "Dassault", "MBDA", "Naval Group", "ArianeGroup",
+    # Énergie / industrie / services
+    "TotalEnergies", "EDF", "Engie", "Schneider Electric", "Air Liquide",
+    "Saint-Gobain", "Michelin", "Renault", "Stellantis", "Alstom", "Veolia",
+    "^Vinci", "Bouygues", "^Orange", "SNCF", "RATP", "La Poste",
+    # Santé / grande conso / distribution
+    "Sanofi", "Servier", "Danone", "Pernod Ricard", "Carrefour", "Decathlon", "Accor",
+]
+
 # Competences relevant du domaine RH -> declenchent l'icone 👥 dans l'interface.
 COMPETENCES_RH = {
     "ressources humaines", "rh", "sirh", "human resources", "hris", "hcm",
@@ -225,6 +248,31 @@ REGEX_AGREGATEURS = construire_regex(AGREGATEURS)
 def nom_entreprise(o):
     return o.get("entreprise", {}).get("nom", "").strip()
 
+def regex_groupes(groupes):
+    """Compile la liste des grands groupes -> (libelles, regex).
+
+    « Nom » = mot entier n'importe ou dans le nom d'entreprise ; « ^Nom » = le nom
+    d'entreprise COMMENCE par Nom (evite « Sup de Vinci », « Nihon Kohden Orange »).
+    """
+    entrees = [g.strip() for g in groupes if g and g.strip().lstrip("^").strip()]
+    entrees.sort(key=lambda g: -len(g))              # le plus specifique d'abord
+    libelles, motifs = {}, []
+    for i, g in enumerate(entrees):
+        debut = g.startswith("^")
+        nom = g.lstrip("^").strip()
+        libelles[f"g{i}"] = nom
+        motifs.append(f"(?P<g{i}>{'^' if debut else r'\b'}{re.escape(normaliser(nom))}\\b)")
+    return libelles, re.compile("|".join(motifs)) if motifs else None
+
+def groupe_offre(o, libelles, rx):
+    """Libelle du grand groupe qui publie l'offre (via regex_groupes), ou ""."""
+    if rx is None:
+        return ""
+    m = rx.search(normaliser(nom_entreprise(o)))
+    return libelles.get(m.lastgroup, "") if m else ""
+
+_LIB_GROUPES, _REGEX_GROUPES = regex_groupes(GRANDS_GROUPES_PAR_DEFAUT)
+
 def classer(o):
     ent = normaliser(nom_entreprise(o))
     txt = normaliser(o.get("intitule", "") + " " + o.get("description", ""))
@@ -249,6 +297,10 @@ def classer(o):
     else:
         if REGEX_ESN.search(ent):
             return False, "ESN (nom)"
+        if _REGEX_GROUPES and _REGEX_GROUPES.search(ent):
+            # Grand groupe = employeur direct : « nos clients », « cabinet de conseil »
+            # dans sa description ne trahissent pas une ESN -> pas de test texte.
+            return True, ""
     if EXCLURE_PAR_TEXTE and REGEX_SIGNAUX.search(txt):
         return False, "indice ESN dans le texte"
     return True, ""
@@ -849,6 +901,140 @@ def rechercher_jobup(config):
         if page >= (data.get("num_pages") or 1):
             break
         page += 1
+        time.sleep(0.3)
+    return offres[: config["max_offres"]]
+
+# === 9. SOURCE WORKDAY (sites carrieres des grands groupes) =================
+# Beaucoup de grands groupes publient leurs offres sur Workday, qui expose une API
+# JSON publique (celle du site carriere) : recherche par mots-cles + filtre pays.
+# Ajouter un groupe = ajouter (nom, URL publique de son site carriere Workday).
+WORKDAY_GROUPES = [
+    ("Airbus", "https://ag.wd3.myworkdayjobs.com/Airbus"),
+    ("Thales", "https://thales.wd3.myworkdayjobs.com/Careers"),
+    ("Sanofi", "https://sanofi.wd3.myworkdayjobs.com/SanofiCareers"),
+    ("Chanel", "https://cc.wd3.myworkdayjobs.com/ChanelCareers"),
+]
+WORKDAY_FRANCE = "54c5b6971ffb4bf0b116fe7651ec789a"   # id pays « France » (commun aux tenants)
+# Stages / alternances / VIE : ecartes (on vise des CDI, comme les autres sources).
+_RE_WORKDAY_HORS_CDI = re.compile(
+    r"\b(stage|stagiaire|intern|internship|alternance|alternant|apprenti|apprentie"
+    r"|apprentissage|work[- ]study|v\.?i\.?e)\b")
+
+def _workday_api(url_site):
+    """« https://ag.wd3.myworkdayjobs.com/fr-FR/Airbus » -> base de l'API cxs."""
+    m = re.match(r"(https://([^./]+)\.[^/]+)/(?:[a-z]{2}-[A-Z]{2}/)?([^/?#]+)", url_site)
+    if not m:
+        raise ValueError(f"URL Workday non reconnue : {url_site}")
+    return f"{m.group(1)}/wday/cxs/{m.group(2)}/{m.group(3)}"
+
+def _workday_age_jours(posted_on):
+    """« Posted Today » -> 0, « Posted 3 Days Ago » -> 3, « 30+ Days » -> 30."""
+    t = (posted_on or "").lower()
+    if "today" in t or "aujourd" in t:
+        return 0
+    if "yesterday" in t or "hier" in t:
+        return 1
+    m = re.search(r"(\d+)", t)
+    return int(m.group(1)) if m else None
+
+def _html_vers_texte(h):
+    """Description HTML Workday -> texte brut (sauts de ligne conserves)."""
+    t = re.sub(r"(?i)<br\s*/?>|</(p|li|div|h\d)>", "\n", h or "")
+    t = html.unescape(re.sub(r"<[^>]+>", " ", t))
+    t = re.sub(r"[ \t\xa0]+", " ", t)
+    return re.sub(r"\s*\n\s*", "\n", t).strip()
+
+_workday_details = {}   # cache par process : une offre trouvee par plusieurs variantes
+
+def _workday_detail(api, chemin):
+    """Fiche detaillee (description, date, URL). {} si indisponible : l'offre reste."""
+    if chemin not in _workday_details:
+        try:
+            r = _get_avec_retries(api + chemin, None, timeout=20)
+            info = r.json().get("jobPostingInfo") if r.status_code == 200 else None
+        except (RuntimeError, ValueError):
+            info = None
+        if info is None:
+            return {}                             # pas mis en cache : retente plus tard
+        _workday_details[chemin] = info
+    return _workday_details[chemin]
+
+def _post_workday(url, corps, nom, tentatives=3):
+    """POST de recherche Workday avec reessais (reseau, 5xx/429, reponse non JSON)."""
+    derniere = None
+    for n in range(tentatives):
+        try:
+            r = requests.post(url, json=corps, timeout=20)
+            if r.status_code == 200:
+                return r.json()
+            derniere = f"HTTP {r.status_code}"
+            if r.status_code not in TRANSITOIRES:
+                break
+        except (requests.exceptions.RequestException, ValueError) as e:
+            derniere = str(e)[:80]
+        if n < tentatives - 1:
+            time.sleep(1.5 * (n + 1))
+    raise RuntimeError(f"Workday {nom} : {derniere}")
+
+def rechercher_workday(config, nom, url_site):
+    """Offres France d'un site carriere Workday (format interne, entreprise = nom).
+
+    config["inclure_titres"] / ["exclure_titres"] (optionnels) : pre-filtre sur le
+    titre AVANT d'ouvrir la fiche detaillee (1 requete par offre) -> ~5x plus rapide.
+    Les memes filtres sont de toute facon re-appliques ensuite par filtrer().
+    """
+    api = _workday_api(url_site)
+    jours_max = config.get("jours_max")
+    inclus = [normaliser(t) for t in config.get("inclure_titres") or [] if t.strip()]
+    exclus = [normaliser(t) for t in config.get("exclure_titres") or [] if t.strip()]
+    offres, offset, par_page = [], 0, 20          # l'API plafonne limit a 20
+    total = None                                  # renvoye seulement en page 1
+    pages_vides = 0                               # pages consecutives sans titre pertinent
+    while len(offres) < config["max_offres"]:
+        corps = {"appliedFacets": {"locationCountry": [WORKDAY_FRANCE]},
+                 "limit": par_page, "offset": offset,
+                 "searchText": mots_cles_recherche(config["mots_cles"])}
+        data = _post_workday(api + "/jobs", corps, nom)
+        if total is None:
+            total = data.get("total") or 0
+        lot = data.get("jobPostings") or []
+        pertinents = 0
+        for j in lot:
+            titre = j.get("title", "") or ""
+            tn = normaliser(titre)
+            age = _workday_age_jours(j.get("postedOn"))
+            if inclus and not any(t in tn for t in inclus):
+                continue
+            pertinents += 1
+            if _RE_WORKDAY_HORS_CDI.search(tn):
+                continue
+            if any(t in tn for t in exclus):
+                continue
+            if jours_max and age is not None and age > jours_max:
+                continue
+            d = _workday_detail(api, j.get("externalPath", ""))
+            lieu = d.get("location") or j.get("locationsText") or ""
+            offres.append({
+                "intitule": d.get("title") or titre,
+                "entreprise": {"nom": nom},
+                "lieuTravail": {"libelle": f"{lieu}, France" if lieu else "France"},
+                "typeContratLibelle": d.get("timeType", "") or "",
+                "typeContrat": "",
+                "dateCreation": d.get("startDate") or (
+                    (date.today() - timedelta(days=age)).isoformat() if age is not None else ""),
+                "description": _html_vers_texte(d.get("jobDescription")),
+                "origineOffre": {"urlOrigine": d.get("externalUrl")
+                                 or url_site.rstrip("/") + (j.get("externalPath") or "")},
+                "salaire": {"libelle": ""},
+                "_source": "Workday",
+            })
+        offset += par_page
+        # Tri par PERTINENCE et recherche « OU » sur les mots (« product manager »
+        # -> 872 offres chez Thales) : 2 pages de suite sans aucun titre pertinent
+        # signalent la fin du signal utile. Plafond 10 pages (200 offres).
+        pages_vides = 0 if pertinents else pages_vides + 1
+        if not lot or offset >= total or offset >= 200 or (inclus and pages_vides >= 2):
+            break
         time.sleep(0.3)
     return offres[: config["max_offres"]]
 

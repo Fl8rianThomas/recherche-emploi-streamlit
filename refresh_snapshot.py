@@ -24,6 +24,23 @@ import daily_search as ds
 load_dotenv(override=True)
 
 FICHIER = "offres_snapshot.json"
+PRECEDENT = "precedent.json"   # instantané précédent (récupéré par le workflow)
+HISTORIQUE = 12                # passages conservés : 2 jours à raison de 6 par jour
+SOURCES_API = ("France Travail", "Adzuna", "Jooble", "jobup.ch")
+SEUIL_MUETTE = 5               # volume « normal » minimal avant la chute (évite les
+                               # fausses alertes des petits sites qui oscillent 0-2)
+
+
+def sources_muettes(historique):
+    """Sources à 0 offre brute sur les 3 derniers passages alors qu'elles en
+    renvoyaient au moins SEUIL_MUETTE avant : panne silencieuse probable."""
+    if len(historique) < 4:
+        return []
+    recents, anciens = historique[-3:], historique[:-3]
+    sources = set().union(*historique)
+    return sorted(s for s in sources
+                  if all(h.get(s, 0) == 0 for h in recents)
+                  and any(h.get(s, 0) >= SEUIL_MUETTE for h in anciens))
 
 
 def main():
@@ -38,14 +55,31 @@ def main():
         except Exception as e:  # noqa: BLE001
             erreurs.append(f"jobup « {variante} » : {e}")
 
+    # Volumes bruts par source (sites carrières : avant tout filtre) + historique
+    # des passages précédents -> détection des sources devenues muettes.
+    volumes = ro.volumes_bruts()
+    for src in SOURCES_API:
+        volumes[src] = sum(1 for o in brutes if o.get("_source") == src)
+    try:
+        with open(PRECEDENT, encoding="utf-8") as f:
+            precedent = json.load(f)
+    except (OSError, ValueError):
+        precedent = {}
+    historique = (precedent.get("historique_sources") or [])[-(HISTORIQUE - 1):] + [volumes]
+    muettes = sources_muettes(historique)
+    erreurs += [f"{s} : aucune offre sur les 3 derniers passages alors qu'elle en "
+                "renvoyait avant — site modifié ?" for s in muettes]
+
     snap = {
         "genere_le": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "offres": brutes,
         "erreurs": erreurs,
+        "historique_sources": historique,
+        "sources_muettes": muettes,
     }
     with open(FICHIER, "w", encoding="utf-8") as f:
         json.dump(snap, f, ensure_ascii=False)
-    print(f"{len(brutes)} offres -> {FICHIER}")
+    print(f"{len(brutes)} offres -> {FICHIER} | sources muettes : {muettes or 'aucune'}")
     for e in erreurs:
         print(" [!]", e)
 

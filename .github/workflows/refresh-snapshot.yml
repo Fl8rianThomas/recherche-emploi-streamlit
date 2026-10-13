@@ -25,6 +25,12 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      # Instantané précédent : sert à l'historique des volumes par source (détection
+      # des sources devenues muettes). Absent au tout premier passage -> « {} ».
+      - name: Récupérer l'instantané précédent
+        run: |
+          git fetch -q --depth=1 origin data && git show FETCH_HEAD:offres_snapshot.json > precedent.json || echo '{}' > precedent.json
+
       - name: Générer le snapshot
         env:
           FT_CLIENT_ID: ${{ secrets.FT_CLIENT_ID }}

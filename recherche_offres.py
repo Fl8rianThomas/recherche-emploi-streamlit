@@ -6,6 +6,7 @@ import re
 import csv
 import sys
 import time
+import threading
 import html
 import json
 import unicodedata
@@ -74,6 +75,14 @@ EXCLUSIONS_TITRE_PAR_DEFAUT = [
     "reseaux humides",
     "affaires reglementaires",
     "chef de rayon",        # responsable de rayon (supermarche), hors sujet
+    # Hors CDI vise : stages, alternances (deja ecartes cote sites carrieres)
+    "stage", "stagiaire", "alternance", "alternant", "apprenti",
+    # Data Analyst : metier voisin, non vise (demande de l'utilisateur) ; on garde
+    # les postes mixtes (« Business Data Analyst », « Data Analyst / Business Analyst »).
+    "data analyst sauf business, fonctionnel, product owner",
+    "data analyste sauf business, fonctionnel, product owner",
+    "analyste data sauf business, fonctionnel, product owner",
+    "analyste de donnees sauf business, fonctionnel, product owner",
 ]
 
 # Profil "Optimum" : competences / domaines servant a classer les offres par
@@ -526,7 +535,8 @@ def region_offre(o):
         code = _NOM_VERS_CODE.get(normaliser(part))
         if code:
             return DEPT_REGION.get(code, "Autre")
-    return "Autre"
+    code = departement_offre(o)                            # commune, code postal, ville
+    return DEPT_REGION.get(code, "Autre") if code else "Autre"
 
 # Noms de chefs-lieux -> on les detecte aussi au milieu d'un libelle (« Paris 8e »,
 # « Tours Centre »). Tries du plus long au plus court pour matcher en priorite les
@@ -536,12 +546,37 @@ _REGEX_VILLES_DEPT = re.compile(
              for v in sorted(_NOM_VERS_CODE, key=len, reverse=True))
 )
 
+# Communes de France (>= 1000 hab.) + noms de departements -> code departement,
+# pour les villes qui ne sont pas des chefs-lieux (Joue-les-Tours, Olivet, Puteaux…)
+# et les libelles « Haute-Garonne, Occitanie ». Fichier genere depuis geo.api.gouv.fr
+# (voir son en-tete) ; homonymes -> la commune la plus peuplee.
+_FICHIER_COMMUNES = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "communes_departements.tsv")
+
+def _cle_commune(nom):
+    """« St-Jean-de-Braye » -> « saint jean de braye » (cle du fichier des communes)."""
+    n = normaliser(nom).replace("-", " ").replace("'", " ").strip()
+    n = re.sub(r"^st(e?)\s", lambda m: "saint" + m.group(1) + " ", n)
+    return re.sub(r"\s+", " ", n)
+
+def _charger_communes():
+    try:
+        with open(_FICHIER_COMMUNES, encoding="utf-8") as f:
+            paires = (l.rstrip("\n").partition("\t") for l in f
+                      if l.strip() and not l.startswith("#"))
+            return {k: v for k, _, v in paires}
+    except OSError:
+        return {}
+
+_COMMUNES = _charger_communes()
+
 def departement_offre(o):
     """Devine le code departement (« 37 », « 75 »…) d'une offre, ou None.
 
     Gere : prefixe numerique (« 37 - Tours », FT), code postal complet
-    (« 75008 », « 75008 Paris »), et nom de ville chef-lieu present n'importe ou
-    dans le libelle (« Paris 8e », « Paris (75) », « Paris, Ile-de-France »).
+    (« 75008 », « 75008 Paris »), nom de commune (« Puteaux, Ile-de-France »,
+    « Joue-les-Tours ») et nom de ville chef-lieu present n'importe ou dans le
+    libelle (« Paris 8e », « Paris (75) », « Toulouse Area »).
     """
     lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
     if not lieu.strip():
@@ -554,6 +589,10 @@ def departement_offre(o):
     if mcp:
         cp = mcp.group(1)
         return cp[:3] if cp.startswith("97") else cp[:2]  # DOM 97x sinon 2 chiffres
+    for part in re.split(r"[,(/;]| - ", lieu):            # « Puteaux, Ile-de-France »
+        code = _COMMUNES.get(_cle_commune(part))
+        if code:
+            return code
     mv = _REGEX_VILLES_DEPT.search(norm)                  # « Paris 8e » -> Paris
     if mv:
         return _NOM_VERS_CODE.get(mv.group(0))
@@ -671,6 +710,27 @@ def score_optimum(o, profil):
             score += poids
     return score, trouves
 
+def regles_exclusion(termes):
+    """Lignes d'exclusion -> [(mot, [exceptions])] normalises.
+
+    « mot » exclut tout titre contenant mot ; « mot sauf a, b » l'exclut SAUF si le
+    titre contient aussi a ou b (ex. « data analyst sauf business » ecarte
+    « Data Analyst » mais garde « Business Data Analyst », poste mixte BA).
+    """
+    regles = []
+    for t in termes or []:
+        mot, _, sauf = normaliser(t).partition(" sauf ")
+        if mot.strip():
+            regles.append((mot.strip(), [s.strip() for s in sauf.split(",") if s.strip()]))
+    return regles
+
+def terme_exclu(titre_norm, regles):
+    """Premier mot d'exclusion present dans le titre (hors exceptions), ou None."""
+    for mot, sauf in regles:
+        if mot in titre_norm and not any(s in titre_norm for s in sauf):
+            return mot
+    return None
+
 def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
             ignorer_esn=False):
     """Filtrage ESN + titre + ancienneté + dedoublonnage sur une liste d'offres.
@@ -679,7 +739,8 @@ def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
                     limite). Les offres sans date exploitable sont conservees.
     inclure_titres: si non vide, ne garde que les offres dont le titre contient
                     au moins un de ces mots (filtre de pertinence).
-    exclure_titres: liste de mots qui, presents dans le titre, excluent l'offre.
+    exclure_titres: liste de mots qui, presents dans le titre, excluent l'offre
+                    (syntaxe « mot sauf a, b » : voir regles_exclusion).
     ignorer_esn   : si True, on saute la classification ESN/cabinet/anonyme
                     (classer) ; les autres filtres (titre, ancienneté, doublons)
                     s'appliquent toujours. Utile pour l'onglet Asie, ou une ESN
@@ -691,7 +752,7 @@ def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
       - stats   : dict {brutes, gardees, exclues, doublons, compte}
     """
     limite = date.today() - timedelta(days=jours_max) if jours_max else None
-    exclus = [normaliser(t) for t in (exclure_titres or []) if t.strip()]
+    exclus = regles_exclusion(exclure_titres)
     inclus = [normaliser(t) for t in (inclure_titres or []) if t.strip()]
     gardees, exclues, vues, compte, doublons = [], [], set(), {}, 0
     for o in brutes:
@@ -700,10 +761,9 @@ def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
         if garder and inclus and not any(t in titre for t in inclus):
             garder, raison = False, "hors périmètre (titre)"
         if garder and exclus:
-            for term in exclus:
-                if term in titre:
-                    garder, raison = False, f"titre exclu ({term})"
-                    break
+            term = terme_exclu(titre, exclus)
+            if term:
+                garder, raison = False, f"titre exclu ({term})"
         if garder and limite is not None:
             d = date_offre(o)
             if d is not None and d < limite:
@@ -1122,6 +1182,22 @@ def _post_workday(url, corps, nom, tentatives=3):
             time.sleep(1.5 * (n + 1))
     raise RuntimeError(f"Workday {nom} : {derniere}")
 
+# Volume BRUT renvoye par chaque site (avant tout filtre) au dernier passage de
+# rechercher_sites_carrieres : un site qui tombe a 0 plusieurs passages de suite
+# alors qu'il renvoyait des offres a probablement change -> refresh_snapshot.py.
+_volumes = {}
+_volumes_verrou = threading.Lock()
+_SITES_SANS_DESCRIPTION = {"Crédit Agricole"}   # liste sans description, par conception
+
+def _compter_brut(site, n):
+    with _volumes_verrou:
+        _volumes[site] = _volumes.get(site, 0) + n
+
+def volumes_bruts():
+    """{site: nombre d'offres brutes} du dernier passage de rechercher_sites_carrieres."""
+    with _volumes_verrou:
+        return dict(_volumes)
+
 def _prefiltre_titres(config):
     """(inclus, exclus) normalises depuis config["inclure_titres" / "exclure_titres"].
 
@@ -1129,16 +1205,18 @@ def _prefiltre_titres(config):
     re-appliquees ensuite par filtrer() ; ici elles evitent des requetes inutiles.
     """
     return ([normaliser(t) for t in config.get("inclure_titres") or [] if t.strip()],
-            [normaliser(t) for t in config.get("exclure_titres") or [] if t.strip()])
+            regles_exclusion(config.get("exclure_titres")))
 
 def _titre_ok(titre, inclus, exclus, contrat=""):
-    """Titre pertinent, non exclu, et pas un stage/alternance (titre ou contrat)."""
+    """Titre pertinent, non exclu, et pas un stage/alternance (titre ou contrat).
+
+    exclus : regles issues de regles_exclusion (via _prefiltre_titres)."""
     tn = normaliser(titre)
     if inclus and not any(t in tn for t in inclus):
         return False
     if _RE_HORS_CDI.search(tn + " " + normaliser(contrat)):
         return False
-    return not any(t in tn for t in exclus)
+    return not terme_exclu(tn, exclus)
 
 def rechercher_workday(config, nom, url_site, facette="locationCountry"):
     """Offres France d'un site carriere Workday (format interne, entreprise = nom).
@@ -1161,6 +1239,10 @@ def rechercher_workday(config, nom, url_site, facette="locationCountry"):
         if total is None:
             total = data.get("total") or 0
         lot = data.get("jobPostings") or []
+        _compter_brut(nom, len(lot))
+        if offset == 0 and total and not lot:      # total annonce mais liste vide
+            raise RuntimeError(f"Workday {nom} : {total} offres annoncées mais liste "
+                               "vide (API modifiée ?)")
         pertinents = 0
         for j in lot:
             titre = j.get("title", "") or ""
@@ -1221,6 +1303,7 @@ def rechercher_lvmh(config):
         if r.status_code != 200:
             raise RuntimeError(f"LVMH {r.status_code}")
         data = r.json()
+        _compter_brut("LVMH", len(data.get("hits") or []))
         for h in data.get("hits") or []:
             ts = int(h.get("publicationTimestamp") or 0)
             if limite and ts and ts < limite:
@@ -1269,6 +1352,7 @@ def rechercher_bpce(config):
             raise RuntimeError(f"BPCE {r.status_code}")
         data = r.json().get("data") or {}
         lot = data.get("items") or []
+        _compter_brut("BPCE", len(lot))
         for it in lot:
             titre = it.get("title", "") or ""
             contrat = ", ".join(it.get("contract") or [])
@@ -1331,6 +1415,7 @@ def rechercher_jibe(config, nom, base):
             raise RuntimeError(f"{nom} {r.status_code}")
         data = r.json()
         lot = data.get("jobs") or []
+        _compter_brut(nom, len(lot))
         for x in lot:
             d = x.get("data") or {}
             contrat = " ".join((d.get("tags1") or []) + (d.get("tags2") or []))
@@ -1385,6 +1470,7 @@ def rechercher_smartrecruiters(config, nom, ident):
             raise RuntimeError(f"SmartRecruiters {ident} {r.status_code}")
         data = r.json()
         lot = data.get("content") or []
+        _compter_brut(nom, len(lot))
         for p in lot:
             contrat = " ".join(filter(None, [
                 (p.get("typeOfEmployment") or {}).get("label"),
@@ -1453,6 +1539,7 @@ def rechercher_phenom(config, nom, base, ref, lang, pays, valeur_france):
             raise RuntimeError(f"{nom} {r.status_code}")
         res = r.json().get("refineSearch") or {}
         lot = (res.get("data") or {}).get("jobs") or []
+        _compter_brut(nom, len(lot))
         for j in lot:
             contrat = " ".join(filter(None, [j.get("contractType"), j.get("type")]))
             publie = _iso(j.get("postedDate"))
@@ -1513,6 +1600,7 @@ def rechercher_credit_agricole(config):
             raise RuntimeError(f"Crédit Agricole {r.status_code}")
         data = r.json()
         lot = data.get("elements") or []
+        _compter_brut("Crédit Agricole", len(lot))
         for e in lot:
             contrat = (e.get("contract") or {}).get("label", "") or ""
             publie = (e.get("date") or "")[:10]
@@ -1664,6 +1752,7 @@ def rechercher_engie(config):
             raise RuntimeError(f"Engie {r.status_code}")
         data = r.json()
         lot = data.get("jobSearchResult") or []
+        _compter_brut("Engie", len(lot))
         pertinents = 0
         for x in lot:
             j = x.get("response") or {}
@@ -1739,7 +1828,13 @@ def rechercher_radancy(config, nom, base):
         res = r.json().get("results") or ""
         pages = re.search(r'data-total-pages="(\d+)"', res)
         pertinents, nouveaux = 0, 0
-        for chemin, ident, interieur in _RE_RADANCY_LIEN.findall(res):
+        liens = _RE_RADANCY_LIEN.findall(res)
+        _compter_brut(nom, len(liens))
+        annonce = re.search(r'data-total-job-results="(\d+)"', res)
+        if page == 1 and not liens and annonce and int(annonce.group(1)) > 0:
+            raise RuntimeError(f"{nom} : {annonce.group(1)} offres annoncées mais "
+                               "illisibles (structure HTML modifiée ?)")
+        for chemin, ident, interieur in liens:
             if ident in vus:                       # meme offre : plusieurs liens
                 continue
             vus.add(ident)
@@ -1804,6 +1899,7 @@ def rechercher_digitalrecruiters(config, nom, domaine):
             raise RuntimeError(f"{nom} {r.status_code}")
         data = r.json()
         lot = data.get("items") or []
+        _compter_brut(nom, len(lot))
         pertinents = 0
         for it in lot:
             titre = it.get("title", "") or ""
@@ -1874,6 +1970,10 @@ def rechercher_successfactors_html(config, nom, base):
             raise RuntimeError(f"{nom} {r.status_code}")
         t = r.text
         blocs = _RE_RMK_LIGNE.findall(t) or re.split(r'<li class="job-tile ', t)[1:]
+        _compter_brut(nom, len(blocs))
+        if not blocs and "jobTitle-link" in t:      # offres presentes mais illisibles
+            raise RuntimeError(f"{nom} : offres annoncées mais illisibles "
+                               "(structure HTML modifiée ?)")
         nouveaux = 0
         for bloc in blocs:
             lien = _RE_RMK_LIEN.search(bloc)
@@ -1943,6 +2043,7 @@ def rechercher_ashby(config, nom, org):
                             for s in x.get("secondaryLocations") or []])
         if not re.search(r"\bfrance\b|\bparis\b", normaliser(lieux)):
             continue
+        _compter_brut(nom, 1)
         publie = (x.get("publishedAt") or "")[:10]
         if limite and publie and publie < limite:
             continue
@@ -1967,14 +2068,16 @@ def rechercher_ashby(config, nom, org):
 
 # === 21. SITES CARRIERES : toutes sources, en parallele ======================
 def sites_carrieres():
-    """[(libelle, fonction(config) -> offres)] : toutes les sources « sites carrieres »."""
-    sites = [(f"Workday {g[0]}",
+    """[(nom, fonction(config) -> offres)] : toutes les sources « sites carrieres ».
+
+    nom = nom d'entreprise, le meme que celui passe a _compter_brut par le connecteur."""
+    sites = [(g[0],
               lambda cfg, g=g: rechercher_workday(
                   cfg, g[0], g[1], g[2] if len(g) > 2 else "locationCountry"))
              for g in WORKDAY_GROUPES]
     sites += [(nom, lambda cfg, n=nom, b=base: rechercher_jibe(cfg, n, b))
               for nom, base in JIBE_GROUPES]
-    sites += [(f"SmartRecruiters {i}", lambda cfg, n=nom, i=i: rechercher_smartrecruiters(cfg, n, i))
+    sites += [(nom, lambda cfg, n=nom, i=i: rechercher_smartrecruiters(cfg, n, i))
               for nom, i in SMARTRECRUITERS_GROUPES]
     sites += [(g[0], lambda cfg, g=g: rechercher_phenom(cfg, *g)) for g in PHENOM_GROUPES]
     sites += [(nom, lambda cfg, n=nom, b=base: rechercher_radancy(cfg, n, b))
@@ -1996,17 +2099,30 @@ def rechercher_sites_carrieres(config, variantes, workers=16):
     comptees, depot prive) ; en parallele ~1-2 min. -> (offres, erreurs), chaque
     offre marquee _variante. Une erreur sur un site n'arrete pas les autres.
     """
-    taches = [(v, nom, fn) for v in variantes for nom, fn in sites_carrieres()]
+    sites = sites_carrieres()
+    with _volumes_verrou:                    # volumes bruts de CE passage (voir volumes_bruts)
+        _volumes.clear()
+        _volumes.update({nom: 0 for nom, _fn in sites})
+    taches = [(v, nom, fn) for v in variantes for nom, fn in sites]
     offres, erreurs = [], []
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futurs = [ex.submit(fn, dict(config, mots_cles=v)) for v, _nom, fn in taches]
         for (v, nom, _fn), fut in zip(taches, futurs):
             try:
                 for o in fut.result():
-                    o["_variante"] = v
+                    o["_variante"], o["_site"] = v, nom
                     offres.append(o)
             except Exception as e:  # noqa: BLE001
                 erreurs.append(f"{nom} « {v} » : {e}")
+    # Fiches d'offres toutes vides sur un site : page d'offre modifiee (JSON-LD,
+    # microdonnees…) -> alerte plutot qu'une perte silencieuse de description.
+    par_site = {}
+    for o in offres:
+        par_site.setdefault(o["_site"], []).append(bool(o.get("description")))
+    for nom, descs in par_site.items():
+        if nom not in _SITES_SANS_DESCRIPTION and len(descs) >= 3 and not any(descs):
+            erreurs.append(f"{nom} : fiches d'offres illisibles (description vide) — "
+                           "structure modifiée ?")
     return offres, erreurs
 
 def main():

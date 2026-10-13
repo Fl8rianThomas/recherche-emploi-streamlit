@@ -30,14 +30,15 @@ SNAPSHOT_URL = ("https://raw.githubusercontent.com/dylanhatte/"
 SNAPSHOT_API_URL = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
                     "contents/offres_snapshot.json?ref=data")
 
-# Offres sauvegardées (★) : petit fichier favoris.json sur la branche `data`,
-# lu ET écrit via l'API GitHub. Nécessite un jeton GH_TOKEN avec le droit
-# « Contents : Read and Write ». Chaque offre est stockée EN ENTIER pour rester
-# affichable même après sa sortie du flux des snapshots (renouvelés toutes les 4 h).
-FAVORIS_API_URL = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
-                   "contents/favoris.json?ref=data")
-FAVORIS_PUT_URL = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
-                   "contents/favoris.json")
+# Offres sauvegardées (★) : petit fichier favoris.json sur une branche DÉDIÉE
+# `favoris` (créée au besoin), lu ET écrit via l'API GitHub. Surtout PAS `data` :
+# le snapshot la force-push toutes les 4 h et effaçait les sauvegardes. Nécessite
+# un jeton GH_TOKEN avec le droit « Contents : Read and Write ». Chaque offre est
+# stockée EN ENTIER pour rester affichable après sa sortie du flux des snapshots.
+REPO_API = "https://api.github.com/repos/dylanhatte/recherche-emploi"
+FAVORIS_BRANCHE = "favoris"
+FAVORIS_API_URL = f"{REPO_API}/contents/favoris.json?ref={FAVORIS_BRANCHE}"
+FAVORIS_PUT_URL = f"{REPO_API}/contents/favoris.json"
 
 st.set_page_config(page_title="Recherche d'offres", page_icon="🔎", layout="wide")
 load_dotenv(override=True)
@@ -150,7 +151,7 @@ def charger_snapshot():
 
 @st.cache_data(show_spinner=False, ttl=120)
 def charger_favoris():
-    """Lit favoris.json (branche `data`) → (liste d'offres, sha).
+    """Lit favoris.json (branche `favoris`) → (liste d'offres, sha).
 
     Renvoie ([], None) si le fichier n'existe pas encore (404) ou si GH_TOKEN est
     absent. Le `sha` est requis pour une écriture ultérieure (API Contents GitHub).
@@ -174,8 +175,25 @@ def charger_favoris():
         return [], None
 
 
+def _assurer_branche_favoris(entetes):
+    """Crée la branche `favoris` (depuis la branche par défaut) si elle n'existe pas."""
+    r = requests.get(f"{REPO_API}/git/refs/heads/{FAVORIS_BRANCHE}", headers=entetes,
+                     timeout=20)
+    if r.status_code == 200:
+        return True
+    base = requests.get(REPO_API, headers=entetes, timeout=20).json().get(
+        "default_branch", "main")
+    rb = requests.get(f"{REPO_API}/git/refs/heads/{base}", headers=entetes, timeout=20)
+    if rb.status_code != 200:
+        return False
+    cr = requests.post(f"{REPO_API}/git/refs", headers=entetes, timeout=20,
+                       json={"ref": f"refs/heads/{FAVORIS_BRANCHE}",
+                             "sha": rb.json()["object"]["sha"]})
+    return cr.status_code in (200, 201)
+
+
 def _ecrire_favoris(offres, sha):
-    """Écrit favoris.json sur la branche `data` via l'API GitHub. → (ok, err, sha)."""
+    """Écrit favoris.json sur la branche `favoris` via l'API GitHub. → (ok, err, sha)."""
     token = os.getenv("GH_TOKEN")
     if not token:
         return False, "Jeton GH_TOKEN absent — impossible de sauvegarder.", sha
@@ -183,15 +201,16 @@ def _ecrire_favoris(offres, sha):
                "offres": offres}
     contenu = base64.b64encode(
         json.dumps(payload, ensure_ascii=False).encode("utf-8")).decode("ascii")
-    body = {"message": "maj favoris", "content": contenu, "branch": "data"}
+    body = {"message": "maj favoris", "content": contenu, "branch": FAVORIS_BRANCHE}
     if sha:
         body["sha"] = sha
+    entetes = {"Authorization": f"Bearer {token}",
+               "Accept": "application/vnd.github+json",
+               "X-GitHub-Api-Version": "2022-11-28"}
     try:
-        r = requests.put(
-            FAVORIS_PUT_URL, timeout=25, json=body,
-            headers={"Authorization": f"Bearer {token}",
-                     "Accept": "application/vnd.github+json",
-                     "X-GitHub-Api-Version": "2022-11-28"})
+        if not sha and not _assurer_branche_favoris(entetes):   # 1re sauvegarde
+            return False, f"Branche « {FAVORIS_BRANCHE} » impossible à créer.", sha
+        r = requests.put(FAVORIS_PUT_URL, timeout=25, json=body, headers=entetes)
         if r.status_code in (200, 201):
             return True, None, (r.json().get("content") or {}).get("sha")
         try:
@@ -417,7 +436,9 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
             "🚫 Exclure si le titre contient un de ces mots",
             value="\n".join(ro.EXCLUSIONS_TITRE_PAR_DEFAUT), height=140,
             help="Offre écartée si son titre contient un de ces mots "
-                 "(accents/casse ignorés).",
+                 "(accents/casse ignorés). « mot sauf a, b » : exception si le "
+                 "titre contient aussi a ou b (ex. « data analyst sauf business » "
+                 "garde « Business Data Analyst »).",
         )
         exclure_titres = [x.strip() for x in exclusions_txt.splitlines() if x.strip()]
     groupes_txt = st.text_area(
@@ -451,9 +472,9 @@ with st.expander("⭐ Profil Optimum — classement par adéquation"):
     depts_favoris = {d.strip().upper() for d in depts_txt.replace(";", ",").split(",") if d.strip()}
 
 col_go, col_actu = st.columns(2)
-go = col_go.button("🔎 Rechercher", type="primary", use_container_width=True,
+go = col_go.button("🔎 Rechercher", type="primary", width="stretch",
                    help="Recherche EN DIRECT avec les critères ci-dessus.")
-actu = col_actu.button("🔄 Actualiser", use_container_width=True,
+actu = col_actu.button("🔄 Actualiser", width="stretch",
                        help="Force une récupération EN DIRECT maintenant.")
 st.caption("À l'ouverture, les offres viennent d'un **instantané rafraîchi toutes "
            "les 4 h** (aucune API appelée). **🔄 Actualiser** force du frais "
@@ -716,10 +737,10 @@ def afficher_detail(it, cle=""):
     c_lien, c_fav = st.columns(2)
     if url:
         c_lien.link_button("➡️ Voir / postuler", url, type="primary",
-                           use_container_width=True)
+                           width="stretch")
     if os.getenv("GH_TOKEN"):
         if c_fav.button("★ Retirer des sauvegardées" if deja else "☆ Sauvegarder",
-                        key=f"fav_{cle}", use_container_width=True):
+                        key=f"fav_{cle}", width="stretch"):
             basculer_favori(o)
     st.divider()
     if desc:
@@ -833,7 +854,7 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
                 if d:
                     bdg += f"📅{d} "
                 label = f"{bdg}· {titre} — {ent}"
-                if st.button(label, key=f"{cle}_{i}", use_container_width=True,
+                if st.button(label, key=f"{cle}_{i}", width="stretch",
                              type="primary" if i == sel else "secondary"):
                     st.session_state[sel_key] = i
                     st.rerun()
@@ -950,7 +971,7 @@ groupes_items = [it for it in france_items if it["groupe"]]
 groupes_items.sort(key=lambda it: (_rang_jour4(it), 0 if it.get("rh") else 1,
                                    0 if it.get("favori") else 1, -it["score"]))
 
-# Offres sauvegardées (★) — chargées une fois par session depuis la branche `data`,
+# Offres sauvegardées (★) — chargées une fois par session depuis la branche `favoris`,
 # puis maintenues en session_state (la liste fait foi pendant toute la visite).
 if "favoris" not in st.session_state:
     _favs, _sha = charger_favoris()
@@ -1029,7 +1050,7 @@ with onglet_fav:
                    "Ajoute-le dans les Secrets (droit « Contents : Read and Write »).")
     st.markdown(_legende(favoris_items), unsafe_allow_html=True)
     st.caption("Offres mises de côté via le bouton **☆ Sauvegarder** du détail. "
-               "Stockées sur GitHub (branche `data`) → conservées entre les sessions "
+               "Stockées sur GitHub (branche `favoris`) → conservées entre les sessions "
                "et accessibles depuis tous tes appareils. ★ Retirer pour les enlever.")
     if not favoris_items:
         st.info("Aucune offre sauvegardée. Ouvre une offre puis clique **☆ Sauvegarder**.")
@@ -1071,7 +1092,7 @@ with onglet_excl:
         ]
         st.caption(f"{len(table)} ligne(s) — clique un en-tête de colonne pour trier.")
         st.dataframe(
-            table, use_container_width=True, hide_index=True,
+            table, width="stretch", hide_index=True,
             column_order=["statut", "motif", "intitule", "entreprise", "lieu",
                           "contrat", "date", "source", "url"],
             column_config={

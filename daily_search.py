@@ -430,6 +430,24 @@ def poser_verrou(token, jour, sha):
         return False
 
 
+def alertes_snapshot(token):
+    """Sources devenues muettes d'après le dernier instantané (branche `data`).
+
+    L'historique des volumes par source n'existe que dans le snapshot (toutes les
+    4 h) ; on le relaie ici pour que l'alerte arrive aussi dans l'e-mail. [] sinon.
+    """
+    try:
+        r = requests.get(f"{REPO_API}/contents/offres_snapshot.json?ref=data", timeout=60,
+                         headers={**_lock_headers(token), "Accept": "application/vnd.github.raw"})
+        if r.status_code != 200:
+            return []
+        return [f"{s} : muette depuis 3 passages du snapshot (site modifié ?)"
+                for s in r.json().get("sources_muettes") or []]
+    except Exception as e:  # noqa: BLE001
+        print("[!] lecture alertes snapshot :", e)
+        return []
+
+
 def main():
     # Garde-fou « dès 20h Paris toute l'année », robuste aux retards GitHub. Les runs
     # planifiés arrivent souvent avec 2 à 5 h de retard (constaté : 23h-02h Paris) :
@@ -455,6 +473,8 @@ def main():
             print("[!] GH_API_TOKEN absent : envoi sans verrou anti-doublon.")
 
     brutes, erreurs = collecter_brutes()
+    if token:
+        erreurs += alertes_snapshot(token)
     items, stats = decorer_france(brutes)
     print(f"{stats['brutes']} brutes -> {len(items)} offres France.")
     for e in erreurs:

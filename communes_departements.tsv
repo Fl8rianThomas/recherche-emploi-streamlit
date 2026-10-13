@@ -1,0 +1,10022 @@
+# Commune (nom normalise : minuscules, sans accents, tirets/apostrophes -> espaces)	departement
+# Source : geo.api.gouv.fr/communes (oct. 2026), communes >= 1000 habitants ; homonymes -> la plus peuplee. + noms des 101 departements (« indre » -> 36, « aube » -> 10).
+abbaretz	44
+abbeville	80
+abbevillers	25
+abeilhan	34
+abilly	37
+ablain saint nazaire	62
+ableiges	95
+ablis	78
+ablon	14
+ablon sur seine	94
+abondance	74
+abondant	28
+abreschviller	57
+abrest	03
+abscon	59
+abzac	33
+achenheim	67
+acheres	78
+acheres la foret	77
+achicourt	62
+acigne	35
+acoua	976
+acquigny	27
+acy	02
+adissan	34
+afa	2A
+agde	34
+agen	47
+agen d aveyron	12
+agneaux	50
+agnetz	60
+agnin	38
+agnos	64
+agny	62
+agon coutainville	50
+agonac	24
+ahetze	64
+ahuille	53
+ahun	23
+ahuy	21
+aiffres	79
+aiglemont	08
+aiglun	04
+aigne	72
+aigondigne	79
+aigre	16
+aigrefeuille	31
+aigrefeuille d aunis	17
+aigrefeuille sur maine	44
+aigremont	78
+aiguefonde	81
+aigueperse	63
+aigues mortes	30
+aigues vives	30
+aiguilhe	43
+aiguillon	47
+aigurande	36
+aillevillers et lyaumont	70
+ailly	27
+ailly le haut clocher	80
+ailly sur noye	80
+ailly sur somme	80
+aimargues	30
+aime la plagne	73
+ain	01
+airaines	80
+aire sur l adour	40
+aire sur la lys	62
+airvault	79
+aiserey	21
+aisne	02
+aiton	73
+aix en pevele	59
+aix en provence	13
+aix les bains	73
+aix noulette	62
+aix villemaur palis	10
+aixe sur vienne	87
+aizenay	85
+ajaccio	2A
+ajain	23
+alairac	11
+alata	2A
+alba la romaine	07
+albert	80
+albertville	73
+albi	81
+albias	82
+albigny sur saone	69
+albitreccia	2A
+albon	26
+alboussiere	07
+alby sur cheran	74
+alencon	61
+alenya	66
+aleria	2B
+ales	30
+alex	74
+alfortville	94
+algolsheim	68
+algrange	57
+alignan du vent	34
+alissas	07
+alixan	26
+alizay	27
+allaire	56
+allan	26
+allassac	19
+allauch	13
+allegre les fumades	30
+alleins	13
+allennes les marais	59
+alleriot	71
+allevard	38
+allex	26
+allier	03
+allinges	74
+allogny	18
+allonne	60
+allonnes	72
+allonzier la caille	74
+allouagne	62
+allouis	18
+allouville bellefosse	76
+alo	986
+alpes de haute provence	04
+alpes maritimes	06
+alsting	57
+althen des paluds	84
+altkirch	68
+altorf	67
+alzonne	11
+amancy	74
+amanlis	35
+amanvillers	57
+amaye sur orne	14
+ambares et lagrave	33
+ambazac	87
+amberieu en bugey	01
+amberieux en dombes	01
+ambert	63
+ambes	33
+ambierle	42
+ambillou	37
+ambilly	74
+amblainville	60
+ambleny	02
+ambleteuse	62
+amboise	37
+ambon	56
+ambres	81
+ambrieres les vallees	53
+ambronay	01
+amelie les bains palalda	66
+amfreville	14
+amfreville la mi voie	76
+amfreville saint amand	27
+amiens	80
+amilly	45
+ammerschwihr	68
+amneville	57
+amou	40
+amplepuis	69
+ampuis	69
+ancelle	05
+ancenis saint gereon	44
+ancerville	55
+ancone	26
+ancy dornot	57
+andance	07
+andancette	26
+ande	27
+andel	22
+andelnans	90
+andernos les bains	33
+andeville	60
+andilly	95
+andlau	67
+andolsheim	68
+andouille	53
+andouille neuville	35
+andres	62
+andrest	65
+andresy	78
+andrezieux boutheon	42
+anduze	30
+anet	28
+angers	49
+angerville	91
+angerville l orcher	76
+angerville la campagne	27
+angerville la martel	76
+angervilliers	91
+angevillers	57
+angicourt	60
+anglefort	01
+angles	85
+anglet	64
+angliers	17
+angouleme	16
+angoulins	17
+angres	62
+angresse	40
+angy	60
+aniane	34
+aniche	59
+anizy le grand	02
+anjou	38
+annay	62
+annecy	74
+annemasse	74
+annequin	62
+annesse et beaulieu	24
+annet sur marne	77
+anneville ambourville	76
+anneyron	26
+annezin	62
+annonay	07
+annot	04
+annœullin	59
+anor	59
+anould	88
+ansauvillers	60
+anse	69
+anse bertrand	971
+ansouis	84
+anstaing	59
+anthon	38
+anthy sur leman	74
+antibes	06
+antigny	85
+antonne et trigonant	24
+antony	92
+antran	86
+anzin	59
+anzin saint aubin	62
+aoste	38
+aouste sur sye	26
+apach	57
+apatou	973
+appeville annebault	27
+appietto	2A
+appoigny	89
+apprieu	38
+apremont	85
+apt	84
+araches la frasse	74
+aramon	30
+arandon passins	38
+arbanats	33
+arbent	01
+arbois	39
+arbonne	64
+arbonne la foret	77
+arbus	64
+arbusigny	74
+arc et senans	25
+arc les gray	70
+arc sur tille	21
+arcachon	33
+arcambal	46
+arcangues	64
+arcey	25
+archamps	74
+arches	88
+archettes	88
+archigny	86
+arcis sur aube	10
+arcisses	28
+arconnay	72
+arcueil	94
+ardeche	07
+ardennes	08
+ardentes	36
+ardin	79
+ardoix	07
+ardon	45
+ardres	62
+arelaune en seine	76
+arenthon	74
+ares	33
+arette	64
+argancy	57
+argeles gazost	65
+argeles sur mer	66
+argeliers	11
+argelliers	34
+argences	14
+argences en aubrac	12
+argent sur sauldre	18
+argentan	61
+argentat sur dordogne	19
+argenteuil	95
+argenton sur creuse	36
+argentonnay	79
+argentre	53
+argentre du plessis	35
+argol	29
+argonay	74
+ariege	09
+arinthod	39
+arlanc	63
+arlay	39
+arles	13
+arles sur tech	66
+arleux	59
+armbouts cappel	59
+armentieres	59
+armentieres en brie	77
+armissan	11
+armoy	74
+arnac pompadour	19
+arnage	72
+arnas	69
+arnay le duc	21
+arneke	59
+arnieres sur iton	27
+arnouville	95
+aron	53
+arpaillargues et aureillac	30
+arpajon	91
+arpajon sur cere	15
+arques	62
+arques la bataille	76
+arradon	56
+arras	62
+ars en re	17
+ars sur formans	01
+ars sur moselle	57
+arsac	33
+arsac en velay	43
+art sur meurthe	54
+artannes sur indre	37
+artas	38
+artemare	01
+artenay	45
+arthaz pont notre dame	74
+arthes	81
+arthez de bearn	64
+arthon	36
+artigueloutan	64
+artiguelouve	64
+artigues pres bordeaux	33
+artix	64
+artolsheim	67
+artres	59
+arudy	64
+arue	987
+arutua	987
+arvert	17
+arveyres	33
+arzacq arraziguet	64
+arzal	56
+arzano	29
+arzens	11
+arzon	56
+ascain	64
+ascheres le marche	45
+ascoux	45
+asfeld	08
+aslonnes	86
+asnieres les dijon	21
+asnieres sur nouere	16
+asnieres sur oise	95
+asnieres sur seine	92
+aspach	68
+aspach le bas	68
+aspach michelbach	68
+aspiran	34
+aspremont	06
+assas	34
+assat	64
+asserac	44
+assevent	59
+assieu	38
+asson	64
+astaffort	47
+athee sur cher	37
+athies	62
+athies sous laon	02
+athis mons	91
+athis val de rouvre	61
+attainville	95
+attiches	59
+attichy	60
+attignat	01
+attigny	08
+aubagne	13
+aubais	30
+aube	10
+aubenas	07
+auberchicourt	59
+aubergenville	78
+auberives sur vareze	38
+aubers	59
+aubervilliers	93
+aubiac	47
+aubiat	63
+aubiere	63
+aubiet	32
+aubignan	84
+aubigne racan	72
+aubigny au bac	59
+aubigny en artois	62
+aubigny les clouzeaux	85
+aubigny sur nere	18
+aubin	12
+aubord	30
+auboue	54
+aubry du hainaut	59
+aubusson	23
+auby	59
+aucamville	31
+auch	32
+auchay sur vendee	85
+auchel	62
+auchy les hesdin	62
+auchy les mines	62
+auchy lez orchies	59
+aude	11
+audenge	33
+audierne	29
+audincourt	25
+audrieu	14
+audruicq	62
+audun le roman	54
+audun le tiche	57
+auffargis	78
+augan	56
+augny	57
+aulnat	63
+aulnay	17
+aulnay sous bois	93
+aulnay sur mauldre	78
+aulnois sous laon	02
+aulnoy lez valenciennes	59
+aulnoye aymeries	59
+ault	80
+aumale	76
+aumenancourt	51
+aumetz	57
+aunay sous auneau	28
+auneau bleury saint symphorien	28
+auneuil	60
+aups	83
+auray	56
+aurec sur loire	43
+aureil	87
+aureilhan	65
+aureille	13
+aureville	31
+auriac sur vendinelle	31
+auribeau sur siagne	06
+aurignac	31
+aurillac	15
+auriol	13
+auros	33
+aurseulles	14
+aussillon	81
+aussonne	31
+auterive	31
+auteuil	78
+authie	14
+authon du perche	28
+autrans meaudre en vercors	38
+autun	71
+auvers le hamon	72
+auvers saint georges	91
+auvers sur oise	95
+auxerre	89
+auxi le chateau	62
+auxonne	21
+auzances	23
+auzat la combelle	63
+auzebosc	76
+auzeville tolosane	31
+auzielle	31
+auzouer en touraine	37
+availles en chatellerault	86
+availles limouzine	86
+avallon	89
+avanne aveney	25
+avanton	86
+aveize	69
+aveizieux	42
+avelin	59
+avensan	33
+avermes	03
+avesnelles	59
+avesnes le comte	62
+avesnes le sec	59
+avesnes les aubert	59
+avesnes sur helpe	59
+avessac	44
+aveyron	12
+aveze	30
+avignon	84
+avignonet lauragais	31
+avion	62
+aviron	27
+avize	51
+avoine	37
+avon	77
+avord	18
+avrainville	91
+avranches	50
+avrechy	60
+avril	54
+avrille	49
+awala yalimapo	973
+ax les thermes	09
+ay champagne	51
+ay sur moselle	57
+aydat	63
+aydoilles	88
+ayguemorte les graves	33
+ayguesvives	31
+ayherre	64
+ayron	86
+ayse	74
+aytre	17
+azay le brule	79
+azay le rideau	37
+azay sur cher	37
+azay sur thouet	79
+aze	71
+azille	11
+baccarat	54
+bachant	59
+bachy	59
+bacqueville en caux	76
+baden	56
+badonviller	54
+bagard	30
+bage dommartin	01
+bages	66
+bagnac sur cele	46
+bagneaux sur loing	77
+bagneres de bigorre	65
+bagneres de luchon	31
+bagneux	92
+bagnoles de l orne normandie	61
+bagnolet	93
+bagnols en foret	83
+bagnols sur ceze	30
+baguer morvan	35
+baguer pican	35
+baho	66
+baie mahault	971
+baignes sainte radegonde	16
+baillargues	34
+bailleau armenonville	28
+bailleau l eveque	28
+bailleau le pin	28
+baillet en france	95
+bailleul	59
+bailleul sir berthoult	62
+bailleul sur therain	60
+bailleval	60
+baillif	971
+bailly	78
+bailly romainvilliers	77
+bain de bretagne	35
+baincthun	62
+bains	43
+bains sur oust	35
+bainville sur madon	54
+bairon et ses environs	08
+bais	35
+baisieux	59
+baix	07
+baixas	66
+bajamont	47
+balagny sur therain	60
+balan	01
+balaruc le vieux	34
+balaruc les bains	34
+balaze	35
+balbigny	42
+baldenheim	67
+baldersheim	68
+balinghem	62
+ballainvilliers	91
+ballaison	74
+ballan mire	37
+ballancourt sur essonne	91
+balleroy sur drome	14
+ballon saint mars	72
+ballots	53
+balma	31
+balzac	16
+bambiderstroff	57
+ban de laveline	88
+banassac canilhac	48
+bandol	83
+bandraboua	976
+bandrele	976
+bannalec	29
+banon	04
+bantzenheim	68
+banyuls dels aspres	66
+banyuls sur mer	66
+bapaume	62
+bar le duc	55
+bar sur aube	10
+bar sur seine	10
+baraqueville	12
+barbaste	47
+barbatre	85
+barbazan debat	65
+barbentane	13
+barberaz	73
+barberey saint sulpice	10
+barbezieux saint hilaire	16
+barbieres	26
+barbizon	77
+barby	73
+barc	27
+barcelonne du gers	32
+barcelonnette	04
+bardos	64
+barentin	76
+barenton	50
+bargemon	83
+barjac	30
+barjols	83
+barjouville	28
+barlin	62
+barneville carteret	50
+baron	33
+baron sur odon	14
+barr	67
+barraux	38
+barret	16
+barsac	33
+bart	25
+bartenheim	68
+bas en basset	43
+bas rhin	67
+basly	14
+bassan	34
+basse goulaine	44
+basse ham	57
+basse pointe	972
+basse terre	971
+bassens	33
+bassillac et auberoche	24
+bassussarry	64
+bastelicaccia	2A
+bastia	2B
+batilly	54
+battenheim	68
+batz sur mer	44
+baud	56
+baudrieres	71
+bauge en anjou	49
+baugy	18
+baule	45
+baulne	91
+baulon	35
+baume les dames	25
+bauvin	59
+bavans	25
+bavay	59
+bavent	14
+bavilliers	90
+bavinchove	59
+bayard sur marne	52
+baye	29
+bayenghem les eperlecques	62
+bayeux	14
+bayon	54
+bayonne	64
+bazainville	78
+bazancourt	51
+bazas	33
+bazeilles	08
+bazemont	78
+bazet	65
+baziege	31
+bazoches les gallerandes	45
+bazoges en paillers	85
+bazoges en pareds	85
+bazougers	53
+bazouges cre sur loir	72
+bazouges la perouse	35
+beard geovreissiat	01
+beaucaire	30
+beaucamps le vieux	80
+beauce	35
+beauce la romaine	41
+beauchamp	95
+beauchastel	07
+beaucourt	90
+beaucouze	49
+beaucroissant	38
+beaufay	72
+beaufort	73
+beaufort en anjou	49
+beaufort orbagna	39
+beaufou	85
+beaugency	45
+beaujeu	69
+beaulieu	34
+beaulieu les loches	37
+beaulieu sous la roche	85
+beaulieu sur dordogne	19
+beaulieu sur layon	49
+beaulieu sur loire	45
+beaulieu sur mer	06
+beaulon	03
+beaumes de venise	84
+beaumetz les loges	62
+beaumont	63
+beaumont de lomagne	82
+beaumont de pertuis	84
+beaumont du gatinais	77
+beaumont en veron	37
+beaumont le roger	27
+beaumont les valence	26
+beaumont louestault	37
+beaumont monteux	26
+beaumont saint cyr	86
+beaumont sur leze	31
+beaumont sur oise	95
+beaumont sur sarthe	72
+beaumontois en perigord	24
+beaune	21
+beaune la rolande	45
+beaupreau en mauges	49
+beaupuy	47
+beauquesne	80
+beaurains	62
+beaurainville	62
+beauregard l eveque	63
+beauregard vendon	63
+beaurepaire	38
+beaurevoir	02
+beausemblant	26
+beausoleil	06
+beaussais sur mer	22
+beautheil saints	77
+beautiran	33
+beautor	02
+beauvais	60
+beauval	80
+beauvallon	69
+beauvoir de marc	38
+beauvoir sur mer	85
+beauvoir sur niort	79
+beauvois en cambresis	59
+beauvoisin	30
+beauzac	43
+beauzelle	31
+becon les granits	49
+bedarieux	34
+bedarrides	84
+bedee	35
+bedoin	84
+begaar	40
+beganne	56
+begard	22
+begles	33
+begrolles en mauges	49
+beguey	33
+behren les forbach	57
+beignon	56
+beine nauroy	51
+beinheim	67
+belberaud	31
+belbeuf	76
+belcodene	13
+belesta	09
+belforet en perche	61
+belfort	90
+belgentier	83
+beligneux	01
+belin beliet	33
+bellac	87
+bellaing	59
+belle isle en terre	22
+bellefont la rauze	46
+bellefontaine	972
+bellegarde	30
+bellegarde en forez	42
+bellegarde poussieu	38
+belleme	61
+belleneuve	21
+bellengreville	14
+bellerive sur allier	03
+belleu	02
+bellevaux	74
+bellevigne	16
+bellevigne en layon	49
+bellevigne les chateaux	49
+bellevigny	85
+belleville	54
+belleville en beaujolais	69
+belleville sur meuse	55
+belley	01
+bellignat	01
+bellinghem	62
+bellou en houlme	61
+belloy en france	95
+belmont de la loire	42
+belmont sur rance	12
+belpech	11
+belz	56
+benejacq	64
+benesse maremne	40
+benet	85
+benfeld	67
+bening les saint avold	57
+bennecourt	78
+bennwihr	68
+benodet	29
+benon	17
+benouville	14
+benquet	40
+berat	31
+bercheres les pierres	28
+berck	62
+berd huis	61
+bergerac	24
+bergheim	68
+bergholtz	68
+bergues	59
+berlaimont	59
+bernardswiller	67
+bernaville	80
+bernay	27
+bernay vilbert	77
+berne	56
+bernes sur oise	95
+berneuil	17
+bernex	74
+bernieres sur mer	14
+bernin	38
+bernis	30
+bernos beaulac	33
+bernwiller	68
+berre l etang	13
+berre les alpes	06
+berric	56
+berrwiller	68
+berry bouy	18
+bersee	59
+berson	33
+berstett	67
+berteaucourt les dames	80
+berthecourt	60
+bertholene	12
+bertrange	57
+bertrichamps	54
+bertry	59
+beruges	86
+besancon	25
+besayes	26
+besne	44
+bessan	34
+bessancourt	95
+bessay sur allier	03
+besse et saint anastaise	63
+besse sur braye	72
+besse sur issole	83
+besseges	30
+bessenay	69
+bessens	82
+bessieres	31
+bessines	79
+bessines sur gartempe	87
+bessoncourt	90
+betaille	46
+betheniville	51
+betheny	51
+bethisy saint pierre	60
+bethoncourt	25
+bethune	62
+betschdorf	67
+bettancourt la ferree	52
+betton	35
+betz	60
+beure	25
+beuvillers	14
+beuvrages	59
+beuvry	62
+beuvry la foret	59
+beuzec cap sizun	29
+beuzeville	27
+beuzeville la grenier	76
+bevenais	38
+beville le comte	28
+beychac et caillau	33
+beynat	19
+beynes	78
+beynost	01
+bezannes	51
+beziers	34
+bezons	95
+bezouce	30
+bezu saint eloi	27
+biache saint vaast	62
+biard	86
+biarritz	64
+biars sur cere	46
+bias	47
+biaudos	40
+bidache	64
+bidart	64
+bidos	64
+bierne	59
+bierne les villages	53
+biesheim	68
+biesles	52
+bieville beuville	14
+bievres	91
+biganos	33
+bignan	56
+bignoux	86
+biguglia	2B
+bihorel	76
+bilieu	38
+bille	35
+billere	64
+billiers	56
+billom	63
+billy	41
+billy berclau	62
+billy montigny	62
+billy sur aisne	02
+bindernheim	67
+binic etables sur mer	22
+bining	57
+biol	38
+biot	06
+bioule	82
+biriatou	64
+biscarrosse	40
+bischheim	67
+bischoffsheim	67
+bischwihr	68
+bischwiller	67
+bitche	57
+bitschwiller les thann	68
+biviers	38
+bizanet	11
+bizanos	64
+bize minervois	11
+bizonnes	38
+blace	69
+blaesheim	67
+blagnac	31
+blagny	08
+blain	44
+blaincourt les precy	60
+blainville crevon	76
+blainville sur l eau	54
+blainville sur mer	50
+blainville sur orne	14
+blaison saint sulpice	49
+blamont	25
+blan	81
+blancs coteaux	51
+blangy sur bresle	76
+blanquefort	33
+blanzat	63
+blanzy	71
+blaringhem	59
+blausasc	06
+blauzac	30
+blavozy	43
+blaye	33
+blaye les mines	81
+blendecques	62
+bleneau	89
+blenod les pont a mousson	54
+blenod les toul	54
+blerancourt	02
+blere	37
+bletterans	39
+bligny les beaune	21
+blodelsheim	68
+blois	41
+blonville sur mer	14
+blotzheim	68
+blyes	01
+bobigny	93
+bobital	22
+bodilis	29
+boe	47
+boege	74
+boeil bezing	64
+boen sur lignon	42
+boeschepe	59
+bogeve	74
+bogny sur meuse	08
+bohain en vermandois	02
+bohars	29
+boigny sur bionne	45
+bois colombes	92
+bois d amont	39
+bois d arcy	78
+bois de cene	85
+bois de haye	54
+bois grenier	59
+bois guillaume	76
+bois le roi	77
+boischampre	61
+boiscommun	45
+boisgervilly	35
+boisme	79
+boisseron	34
+boisset et gaujac	30
+boisset les montrond	42
+boisset saint priest	42
+boisseuil	87
+boissise la bertrand	77
+boissise le roi	77
+boissy l aillerie	95
+boissy le chatel	77
+boissy le cutte	91
+boissy saint leger	94
+boissy sous saint yon	91
+boivre la vallee	86
+bolbec	76
+bollene	84
+bollezeele	59
+bollwiller	68
+bologne	52
+bompas	66
+bon encontre	47
+bon repos sur blavet	22
+bonchamp les laval	53
+bondoufle	91
+bondues	59
+bondy	93
+bonifacio	2A
+bonnac la cote	87
+bonnat	23
+bonne	74
+bonnefamille	38
+bonnelles	78
+bonnemain	35
+bonnes	86
+bonnetable	72
+bonnetan	33
+bonneuil en france	95
+bonneuil matours	86
+bonneuil sur marne	94
+bonneval	28
+bonneville	74
+bonnieres sur seine	78
+bonnieux	84
+bonny sur loire	45
+bonrepos sur aussonnelle	31
+bons en chablais	74
+bonsecours	76
+bonson	42
+boofzheim	67
+boos	76
+boqueho	22
+bora bora	987
+boran sur oise	60
+bordeaux	33
+borderes sur l echez	65
+bordes	64
+bords	17
+borgo	2B
+bormes les mimosas	83
+bornel	60
+bort les orgues	19
+bosc guerard saint adrien	76
+bosc le hard	76
+bosmie l aiguille	87
+bosroumois	27
+bou	45
+bouafle	78
+bouaye	44
+bouc bel air	13
+boucau	64
+bouchain	59
+bouchemaine	49
+bouches du rhone	13
+bouchet	26
+bouclans	25
+boue	02
+bouee	44
+boueni	976
+bouere	53
+bouffemont	95
+bouge chambalud	38
+bougival	78
+bouguenais	44
+bouillante	971
+bouillargues	30
+bouilly	10
+bouin	85
+boujan sur libron	34
+boulange	57
+boulay les barres	45
+boulay moselle	57
+boulazac isle manoire	24
+boulbon	13
+bouleurs	77
+bouliac	33
+boulieu les annonay	07
+bouligny	55
+boulleret	18
+boulleville	27
+bouloc	31
+boulogne billancourt	92
+boulogne sur gesse	31
+boulogne sur mer	62
+bouloire	72
+bouloupari	988
+boult sur suippe	51
+bouquetot	27
+bourail	988
+bouray sur juine	91
+bourbon l archambault	03
+bourbon lancy	71
+bourbonne les bains	52
+bourbourg	59
+bourbriac	22
+bourcefranc le chapus	17
+bourg	33
+bourg achard	27
+bourg argental	42
+bourg blanc	29
+bourg de peage	26
+bourg des comptes	35
+bourg en bresse	01
+bourg la reine	92
+bourg les valence	26
+bourg madame	66
+bourg saint andeol	07
+bourg saint bernard	31
+bourg saint christophe	01
+bourg saint maurice	73
+bourganeuf	23
+bourgbarre	35
+bourges	18
+bourghelles	59
+bourgneuf	17
+bourgogne fresne	51
+bourgoin jallieu	38
+bourgs sur colagne	48
+bourguebus	14
+bourgueil	37
+bourgvallees	50
+bourlon	62
+bourneville sainte croix	27
+bournezeau	85
+bournoncle saint pierre	43
+bourogne	90
+bourron marlotte	77
+bourseul	22
+bourth	27
+bousbach	57
+bousbecque	59
+bousies	59
+boussac	23
+boussay	44
+bousse	57
+boussens	31
+boussieres	25
+boussois	59
+boussy saint antoine	91
+boust	57
+bout du pont de larn	81
+boutiers saint trojan	16
+boutigny prouais	28
+boutigny sur essonne	91
+bouvesse quirieu	38
+bouvignies	59
+bouvigny boyeffles	62
+bouville	76
+bouvron	44
+bouxieres aux chenes	54
+bouxieres aux dames	54
+bouxwiller	67
+bouzigues	34
+bouzonville	57
+bouzy la foret	45
+boves	80
+boynes	45
+bozel	73
+bozouls	12
+bracieux	41
+brain sur allonnes	49
+braine	02
+brains	44
+bram	11
+branderion	56
+brandivy	56
+brando	2B
+branges	71
+branne	33
+branoux les taillades	30
+brantome en perigord	24
+bras	83
+bras panon	974
+brasles	02
+brasparts	29
+brassac	81
+brassac les mines	63
+braud et saint louis	33
+brax	31
+bray dunes	59
+bray saint aignan	45
+bray sur seine	77
+bray sur somme	80
+brazey en plaine	21
+breal sous montfort	35
+breaute	76
+brebieres	62
+brece	35
+brecey	50
+brech	56
+brehal	50
+brehan	56
+brehand	22
+breil sur roya	06
+brem sur mer	85
+bremes	62
+brenouille	60
+brens	81
+brenthonne	74
+bresles	60
+bresse vallons	01
+bressey sur tille	21
+bressolles	03
+bressols	82
+bressuire	79
+brest	29
+bretagne de marsan	40
+breteil	35
+bretenoux	46
+breteuil	27
+bretignolles sur mer	85
+bretigny sur orge	91
+bretoncelles	61
+brette les pins	72
+bretteville	50
+bretteville du grand caux	76
+bretteville sur laize	14
+bretteville sur odon	14
+breuil le sec	60
+breuil le vert	60
+breuil magne	17
+breuillet	91
+breuilpont	27
+breuschwickersheim	67
+breux jouy	91
+breval	78
+breviandes	10
+brezins	38
+brezolles	28
+briancon	05
+briare	45
+briatexte	81
+bricquebec en cotentin	50
+bricqueville sur mer	50
+brie	16
+brie comte robert	77
+brie et angonnes	38
+briec	29
+brienne le chateau	10
+briennon	42
+brienon sur armancon	89
+brieres les scelles	91
+brignais	69
+brignoles	83
+brigueuil	16
+briis sous forges	91
+brindas	69
+briollay	49
+brionne	27
+briord	01
+brioude	43
+brioux sur boutonne	79
+briouze	61
+briscous	64
+brison saint innocent	73
+brissac loire aubance	49
+brive la gaillarde	19
+brives charensac	43
+brix	50
+broglie	27
+bromont lamothe	63
+bron	69
+broons	22
+brou	28
+brou sur chantereine	77
+brouckerque	59
+brouilla	66
+brout vernet	03
+bruay la buissiere	62
+bruay sur l escaut	59
+brue auriac	83
+bruebach	68
+bruges	33
+brugheas	03
+bruguieres	31
+bruille lez marchiennes	59
+bruille saint amand	59
+brulon	72
+brumath	67
+brunoy	91
+brunstatt didenheim	68
+brussieu	69
+brusvily	22
+bruyeres	88
+bruyeres et montberault	02
+bruyeres le chatel	91
+bruyeres sur oise	95
+bruz	35
+bry sur marne	94
+bu	28
+bubry	56
+buc	78
+buchelay	78
+bucheres	10
+buchy	76
+bucquoy	62
+bucy le long	02
+bueil	27
+buellas	01
+bugnicourt	59
+buhl	68
+buhl lorraine	57
+buironfosse	02
+buis les baronnies	26
+bulgneville	88
+bullion	78
+bully	69
+bully les mines	62
+burbure	62
+bures sur yvette	91
+burie	17
+burlats	81
+burnhaupt le bas	68
+burnhaupt le haut	68
+buros	64
+bury	60
+buschwiller	68
+busigny	59
+busnes	62
+bussac foret	17
+bussac sur charente	17
+bussang	88
+bussiere dunoise	23
+bussiere galant	87
+bussieres	42
+bussy saint georges	77
+butry sur oise	95
+buxerolles	86
+buxy	71
+buzancais	36
+buzet sur baise	47
+buzet sur tarn	31
+buzy	64
+bœrsch	67
+cabanac et villagrains	33
+cabannes	13
+cabariot	17
+cabasse	83
+cabestany	66
+cabourg	14
+cabrieres	30
+cabrieres d avignon	84
+cabries	13
+cabris	06
+cachan	94
+cadalen	81
+cadaujac	33
+caden	56
+cadenet	84
+caderousse	84
+cadillac en fronsadais	33
+cadillac sur garonne	33
+cadolive	13
+cadours	31
+caen	14
+caestre	59
+cagnac les mines	81
+cagnes sur mer	06
+cagny	14
+cahagnes	14
+cahors	46
+cahuzac sur vere	81
+cailloux sur fontaines	69
+cairanne	84
+cairon	14
+caissargues	30
+cajarc	46
+calais	62
+calan	56
+calenzana	2B
+callac	22
+callas	83
+callian	83
+calmont	31
+calonne ricouart	62
+calonne sur la lys	62
+caluire et cuire	69
+calvados	14
+calvi	2B
+calvisson	30
+camares	12
+camaret sur aigues	84
+camaret sur mer	29
+camarsac	33
+cambes	33
+cambes en plaine	14
+camblain chatelain	62
+camblanes et meynac	33
+cambo les bains	64
+cambon	81
+cambrai	59
+cambremer	14
+cambrin	62
+cambronne les clermont	60
+cambronne les ribecourt	60
+came	64
+camiers	62
+camoel	56
+camon	80
+camopi	973
+camors	56
+campagne	40
+campagne les hesdin	62
+campagne les wardrecques	62
+campan	65
+campbon	44
+campeneac	56
+camphin en carembault	59
+camphin en pevele	59
+campigny	27
+camps la source	83
+campsas	82
+canala	988
+cancale	35
+cancon	47
+candas	80
+cande	49
+cande sur beuvron	41
+candillargues	34
+canejan	33
+canet	34
+canet en roussillon	66
+cangey	37
+canisy	50
+cannes	06
+cannes ecluse	77
+canohes	66
+cantal	15
+cantaron	06
+canteleu	76
+cantenay epinard	49
+cantin	59
+cany barville	76
+cap d ail	06
+capbreton	40
+capdenac	46
+capdenac gare	12
+capendu	11
+capestang	34
+capesterre belle eau	971
+capesterre de marie galante	971
+capinghem	59
+cappelle brouck	59
+cappelle en pevele	59
+cappelle la grande	59
+captieux	33
+capvern	65
+caraman	31
+carantec	29
+carbon blanc	33
+carbonne	31
+carcans	33
+carcassonne	11
+carces	83
+carentan les marais	50
+carentoir	56
+cargese	2A
+carhaix plouguer	29
+carignan	08
+carignan de bordeaux	33
+carlepont	60
+carling	57
+carmaux	81
+carnac	56
+carnin	59
+carnoules	83
+carnoux en provence	13
+caro	56
+caromb	84
+carpentras	84
+carpiquet	14
+carquefou	44
+carqueiranne	83
+carrieres sous poissy	78
+carrieres sur seine	78
+carros	06
+carry le rouet	13
+cars	33
+carsac aillac	24
+carspach	68
+cartelegue	33
+cartignies	59
+carvin	62
+case pilote	972
+cassel	59
+casseneuil	47
+cassis	13
+casson	44
+cast	29
+castagniers	06
+castanet tolosan	31
+castelculier	47
+castelginest	31
+casteljaloux	47
+castellane	04
+castelmaurou	31
+castelmayran	82
+castelmoron sur lot	47
+castelnau d auzan labarrere	32
+castelnau d estretefonds	31
+castelnau de guers	34
+castelnau de levis	81
+castelnau de medoc	33
+castelnau de montmiral	81
+castelnau le lez	34
+castelnau montratier	46
+castelnaudary	11
+castelsarrasin	82
+castera verduzan	32
+castets	40
+castets et castillon	33
+castillon du gard	30
+castillon la bataille	33
+castillonnes	47
+castine en plaine	14
+castres	81
+castres gironde	33
+castries	34
+catenoy	60
+cattenom	57
+cauchy a la tour	62
+caudan	56
+caudebec les elbeuf	76
+caudecoste	47
+caudrot	33
+caudry	59
+cauffry	60
+caulnes	22
+caumont	27
+caumont sur aure	14
+caumont sur durance	84
+caunes minervois	11
+cauro	2A
+caussade	82
+cauvigny	60
+cauville sur mer	76
+caux	34
+caux et sauzens	11
+cavaillon	84
+cavalaire sur mer	83
+cavan	22
+cavanac	11
+caveirac	30
+cavignac	33
+cayenne	973
+cayeux sur mer	80
+caylus	82
+cazaubon	32
+cazeres	31
+cazeres sur l adour	40
+cazes mondenard	82
+cazilhac	11
+cazouls les beziers	34
+ceauce	61
+cebazat	63
+celle levescault	86
+celles sur belle	79
+celles sur durolle	63
+cellettes	41
+cellieu	42
+cely	77
+cenac	33
+cenac et saint julien	24
+cendras	30
+cenon	33
+cenon sur vienne	86
+cepet	31
+cepoy	45
+cerans foulletourte	72
+cerbere	66
+cercie	69
+cercottes	45
+cercoux	17
+cercy la tour	58
+cerelles	37
+cerences	50
+cereste en luberon	04
+ceret	66
+cergy	95
+cerilly	03
+cerisy la foret	50
+cerisy la salle	50
+cerizay	79
+cernay	68
+cernay la ville	78
+cernay les reims	51
+cernex	74
+cerny	91
+cerons	33
+cers	34
+certines	01
+cervens	74
+cervione	2B
+cesny les sources	14
+cessenon sur orb	34
+cessieu	38
+cesson	77
+cesson sevigne	35
+cessy	01
+cestas	33
+ceton	61
+ceyras	34
+ceyrat	63
+ceyreste	13
+ceyzeriat	01
+ceyzerieu	01
+cezac	33
+cezy	89
+chabanais	16
+chabaniere	69
+chabeuil	26
+chablis	89
+chabons	38
+chabournay	86
+chabreloche	63
+chabris	36
+chadrac	43
+chaffois	25
+chagny	71
+chaillac	36
+chaillac sur vienne	87
+chailland	53
+chaille les marais	85
+chailles	41
+chaillevette	17
+chailly en biere	77
+chailly en brie	77
+chaingy	45
+chalabre	11
+chalais	16
+chalamont	01
+chaleins	01
+chalette sur loing	45
+chalezeule	25
+chalifert	77
+chaligny	54
+chalindrey	52
+challans	85
+challes	72
+challes les eaux	73
+challex	01
+challuy	58
+chalo saint mars	91
+chalon sur saone	71
+chalonnes sur loire	49
+chalons en champagne	51
+chalonvillars	70
+chalus	87
+chamagnieu	38
+chamalieres	63
+chamant	60
+chamarande	91
+chamarandes choignes	52
+chambaron sur morge	63
+chamberet	19
+chambery	73
+chambles	42
+chamblet	03
+chambly	60
+chambois	27
+chamboulive	19
+chambourcy	78
+chambourg sur indre	37
+chambray les tours	37
+chambry	77
+chambœuf	42
+chameyrat	19
+chamigny	77
+chamonix mont blanc	74
+champ sur drac	38
+champagnac	15
+champagne	72
+champagne au mont d or	69
+champagne les marais	85
+champagne sur oise	95
+champagne sur seine	77
+champagney	70
+champagnier	38
+champagnole	39
+champanges	74
+champcevinel	24
+champcueil	91
+champdeniers	79
+champdieu	42
+champeix	63
+champenoux	54
+champfleur	72
+champforgeuil	71
+champhol	28
+champier	38
+champigneulles	54
+champigny	89
+champigny en rochereau	86
+champigny sur marne	94
+champlan	91
+champlitte	70
+champniers	16
+champs sur marne	77
+champs sur tarentaine marchal	15
+champs sur yonne	89
+champtoce sur loire	49
+champvans	39
+chanac	48
+chanas	38
+chancay	37
+chanceaux sur choisille	37
+chancelade	24
+chancenay	52
+chandon	42
+chaneins	01
+change	72
+changis sur marne	77
+chaniers	17
+chanonat	63
+chanos curson	26
+chanteau	45
+chanteheux	54
+chantelle	03
+chanteloup	35
+chanteloup en brie	77
+chanteloup les vignes	78
+chantemerle les bles	26
+chantenay saint imbert	58
+chantepie	35
+chantilly	60
+chantonnay	85
+chantraine	88
+chanu	61
+chanverrie	85
+chaource	10
+chapareillan	38
+chapdes beaufort	63
+chapet	78
+chaponnay	69
+chaponost	69
+chappes	63
+chaptelat	87
+charantonnay	38
+charavines	38
+charbonnieres les bains	69
+charbonnieres les varennes	63
+charbonnieres les vieilles	63
+charbuy	89
+charentay	69
+charente	16
+charente maritime	17
+charentilly	37
+charenton le pont	94
+charge	37
+charleval	13
+charleville mezieres	08
+charlieu	42
+charly	69
+charly sur marne	02
+charmes	88
+charmes sur rhone	07
+charmont sous barbuise	10
+charmoy	89
+charnay	69
+charnay les macon	71
+charnecles	38
+charny	77
+charny oree de puisaye	89
+charolles	71
+charpey	26
+charquemont	25
+charron	17
+charroux	86
+chars	95
+chartres	28
+chartres de bretagne	35
+chartrettes	77
+charvieu chavagneux	38
+charvonnex	74
+chasne sur illet	35
+chassal molinges	39
+chasse sur rhone	38
+chasselay	69
+chassenard	03
+chasseneuil du poitou	86
+chasseneuil sur bonnieure	16
+chassieu	69
+chassors	16
+chateau arnoux saint auban	04
+chateau chinon (ville)	58
+chateau gaillard	01
+chateau gontier sur mayenne	53
+chateau guibert	85
+chateau l eveque	24
+chateau la valliere	37
+chateau landon	77
+chateau larcher	86
+chateau porcien	08
+chateau renard	45
+chateau renault	37
+chateau salins	57
+chateau thebaud	44
+chateau thierry	02
+chateaubernard	16
+chateaubourg	35
+chateaubriant	44
+chateaudun	28
+chateaufort	78
+chateaugay	63
+chateaugiron	35
+chateaulin	29
+chateaumeillant	18
+chateauneuf	42
+chateauneuf d ille et vilaine	35
+chateauneuf de gadagne	84
+chateauneuf de galaure	26
+chateauneuf du faou	29
+chateauneuf du pape	84
+chateauneuf du rhone	26
+chateauneuf en thymerais	28
+chateauneuf grasse	06
+chateauneuf la foret	87
+chateauneuf le rouge	13
+chateauneuf les martigues	13
+chateauneuf sur charente	16
+chateauneuf sur cher	18
+chateauneuf sur isere	26
+chateauneuf sur loire	45
+chateauponsac	87
+chateaurenard	13
+chateauroux	36
+chateauroux les alpes	05
+chateauvillain	52
+chatel	74
+chatel guyon	63
+chatel saint germain	57
+chatel sur moselle	88
+chatelaillon plage	17
+chatelaudren plouagat	22
+chatellerault	86
+chatenay malabry	92
+chatenay sur seine	77
+chatenois	67
+chatenois les forges	90
+chatenoy en bresse	71
+chatenoy le royal	71
+chatillon	92
+chatillon coligny	45
+chatillon en vendelais	35
+chatillon la palud	01
+chatillon le duc	25
+chatillon saint jean	26
+chatillon sur chalaronne	01
+chatillon sur cher	41
+chatillon sur cluses	74
+chatillon sur indre	36
+chatillon sur loire	45
+chatillon sur seine	21
+chatillon sur thouet	79
+chatonnay	38
+chatou	78
+chatres sur cher	41
+chatte	38
+chatuzange le goubet	26
+chauche	85
+chauconin neufmontiers	77
+chaudenay	71
+chaudon	28
+chauffailles	71
+chaufour notre dame	72
+chaulgnes	58
+chaulnes	80
+chaumes en brie	77
+chaumes en retz	44
+chaumont	52
+chaumont en vexin	60
+chaumont sur loire	41
+chaumont sur tharonne	41
+chaumontel	95
+chaunay	86
+chauny	02
+chauray	79
+chauriat	63
+chaussan	69
+chaussin	39
+chauve	44
+chauvigny	86
+chaux	90
+chavagne	35
+chavagnes en paillers	85
+chavanay	42
+chavanod	74
+chavanoz	38
+chavelot	88
+chavenay	78
+chaveyriat	01
+chavigny	54
+chaville	92
+chazay d azergues	69
+chaze sur argos	49
+chazelles	16
+chazelles sur lyon	42
+chazey bons	01
+chazey sur ain	01
+checy	45
+chef boutonne	79
+cheffes	49
+cheffois	85
+cheille	37
+cheix en retz	44
+chelles	77
+chemaudin et vaux	25
+chemaze	53
+chemille en anjou	49
+chenimenil	88
+chennevieres sur marne	94
+chenoise cucharmoy	77
+chenove	21
+chens sur leman	74
+cheny	89
+cheptainville	91
+chepy	80
+cher	18
+cherac	17
+cheraute	64
+cherbourg en cotentin	50
+chereng	59
+cherisy	28
+chermignac	17
+cheroy	89
+cherre au	72
+cherrueix	35
+cherveux	79
+chessy	77
+chevaigne	35
+cheval blanc	84
+chevanceaux	17
+chevannes	89
+chevigny saint sauveur	21
+chevillon	52
+chevillon sur huillard	45
+chevilly	45
+chevilly larue	94
+chevremont	90
+chevreuse	78
+chevrieres	60
+chevru	77
+chevry	01
+chevry cossigny	77
+cheyssieu	38
+chezy sur marne	02
+chiche	79
+chiconi	976
+chierry	02
+chilleurs aux bois	45
+chilly	74
+chilly mazarin	91
+chimilin	38
+chindrieux	73
+chinon	37
+chirens	38
+chirongui	976
+chiry ourscamp	60
+chissay en touraine	41
+chitenay	41
+chocques	62
+choisey	39
+choisy	74
+choisy au bac	60
+choisy en brie	77
+choisy le roi	94
+cholet	49
+chomerac	07
+chonas l amballan	38
+chorges	05
+chouilly	51
+chouze sur loire	37
+chuelles	45
+chuisnes	28
+chuzelles	38
+ciboure	64
+cieux	87
+cilaos	974
+cinq mars la pile	37
+cinqueux	60
+cintegabelle	31
+cintre	35
+cire d aunis	17
+cires les mello	60
+cirey sur vezouze	54
+ciry le noble	71
+cissac medoc	33
+cisse	86
+civaux	86
+civens	42
+civray	86
+civray de touraine	37
+civrieux	01
+civrieux d azergues	69
+claira	66
+clairac	47
+clairoix	60
+clairvaux d aveyron	12
+clairvaux les lacs	39
+claix	38
+clamart	92
+clamecy	58
+clapiers	34
+clarafond arcine	74
+clarensac	30
+claret	34
+clary	59
+clavette	17
+claville	27
+claye souilly	77
+clecy	14
+cleden poher	29
+cleder	29
+clef vallee d eure	27
+cleguer	56
+cleguerec	56
+cleon	76
+cleon d andran	26
+clerac	17
+clere les pins	37
+cleres	76
+clerey	10
+clerieux	26
+clermont	60
+clermont creans	72
+clermont en argonne	55
+clermont ferrand	63
+clermont l herault	34
+clery saint andre	45
+clichy	92
+clichy sous bois	93
+clion	36
+clisson	44
+clohars carnoet	29
+clohars fouesnant	29
+clonas sur vareze	38
+clouange	57
+cloyes les trois rivieres	28
+cluny	71
+cluses	74
+coarraze	64
+coat meal	29
+cocheren	57
+cocumont	47
+codognan	30
+coesmes	35
+coetmieux	22
+coex	85
+cognac	16
+cognac la foret	87
+cognin	73
+cogny	69
+cogolin	83
+coignieres	78
+coimeres	33
+coincy	02
+coise saint jean pied gauthier	73
+colayrac saint cirq	47
+coligny	01
+collegien	77
+colleret	59
+colleville montgomery	14
+collias	30
+collioure	66
+collobrieres	83
+collonges	01
+collonges au mont d or	69
+collonges et premieres	21
+collonges sous saleve	74
+colmar	68
+colomars	06
+colombe	38
+colombelles	14
+colombes	92
+colombey les belles	54
+colombier fontaine	25
+colombier saugnieu	69
+colombiers	34
+colomby anguerny	14
+colomiers	31
+colpo	56
+combaillaux	34
+combloux	74
+combourg	35
+combrand	79
+combrit	29
+combronde	63
+combs la ville	77
+comines	59
+commelle vernay	42
+commentry	03
+commequiers	85
+commer	53
+commercy	55
+communay	69
+compertrix	51
+compiegne	60
+compreignac	87
+comps	30
+conca	2A
+concarneau	29
+conches en ouche	27
+conches sur gondoire	77
+conchil le temple	62
+condat sur vienne	87
+conde en normandie	14
+conde sainte libiaire	77
+conde sur l escaut	59
+conde sur sarthe	61
+conde sur vesgre	78
+conde sur vire	50
+condette	62
+condom	32
+condrieu	69
+conflans en jarnisy	54
+conflans sainte honorine	78
+confolens	16
+confrancon	01
+congenies	30
+congis sur therouanne	77
+conlie	72
+connantre	51
+connaux	30
+connerre	72
+conquereuil	44
+conques en rouergue	12
+conques sur orbiel	11
+contamine sur arve	74
+contes	06
+conteville	27
+contrexeville	88
+conty	80
+copponex	74
+coquelles	62
+coray	29
+corbarieu	82
+corbas	69
+corbehem	62
+corbeil essonnes	91
+corbeilles	45
+corbelin	38
+corbenay	70
+corbere les cabanes	66
+corbie	80
+corbieres en provence	04
+corbigny	58
+corbonod	01
+corbreuse	91
+corcelles en beaujolais	69
+corcieux	88
+corcoue sur logne	44
+cordemais	44
+corenc	38
+corme ecluse	17
+corme royal	17
+cormeilles	27
+cormeilles en parisis	95
+cormeilles en vexin	95
+cormelles le royal	14
+cormeray	41
+cormery	37
+cormicy	51
+cormontreuil	51
+cormoranche sur saone	01
+cornas	07
+cornebarrieu	31
+corneilhan	34
+corneilla del vercol	66
+corneilla la riviere	66
+corneville sur risle	27
+cornier	74
+cornil	19
+cornillon confoux	13
+cornimont	88
+corny sur moselle	57
+coron	49
+corpe	85
+corps nuds	35
+corquilleroy	45
+correze	19
+corse du sud	2A
+corsept	44
+corseul	22
+corte	2B
+corze	49
+cosnac	19
+cosne cours sur loire	58
+cosne d allier	03
+cosnes et romain	54
+cosse le vivien	53
+cote d or	21
+coteaux du blanzacais	16
+coteaux du lizon	39
+coteaux sur loire	37
+cotes d armor	22
+cotignac	83
+coubert	77
+coublevie	38
+coubon	43
+coubron	93
+couches	71
+couchey	21
+coudekerque branche	59
+coudes	63
+coudoux	13
+coudun	60
+coueron	44
+couetron au perche	41
+couffe	44
+coufouleux	81
+couilly pont aux dames	77
+couiza	11
+coulaines	72
+coulanges les nevers	58
+coulans sur gee	72
+coullons	45
+coulogne	62
+coulombiers	86
+coulombs	28
+coulommiers	77
+coulon	79
+coulonges sur l autize	79
+coulounieix chamiers	24
+coupvray	77
+cour cheverny	41
+courbevoie	92
+courcelles chaussy	57
+courcelles les lens	62
+courcelles les montbeliard	25
+courcelles sur nied	57
+courcelles sur seine	27
+courchelettes	59
+courchevel	73
+courcon	17
+courcy	51
+courdimanche	95
+courlaoux	39
+courlay	79
+courlon sur yonne	89
+courmelles	02
+cournon d auvergne	63
+cournonsec	34
+cournonterral	34
+courpalay	77
+courpiere	63
+courrieres	62
+cours	69
+cours de pile	24
+cours les barres	18
+coursac	24
+coursan	11
+courseulles sur mer	14
+courtenay	45
+courthezon	84
+courtisols	51
+courtry	77
+courville sur eure	28
+courzieu	69
+cousance	39
+cousances les forges	55
+cousolre	59
+coussac bonneval	87
+coutances	50
+couternon	21
+coutevroult	77
+coutiches	59
+coutouvre	42
+coutras	33
+couville	50
+coux	07
+coux et bigaroque mouzens	24
+couzeix	87
+couzon au mont d or	69
+coye la foret	60
+cozes	17
+crach	56
+craintilleux	42
+cransac les thermes	12
+cranves sales	74
+craon	53
+craponne	69
+craponne sur arzon	43
+cravanche	90
+creances	50
+creches sur saone	71
+crecy en ponthieu	80
+crecy la chapelle	77
+crecy sur serre	02
+credin	56
+cregy les meaux	77
+crehange	57
+crehen	22
+creil	60
+creissan	34
+creissels	12
+cremieu	38
+creney pres troyes	10
+creon	33
+crepy	02
+crepy en valois	60
+crespieres	78
+crespin	59
+cressensac sarrazac	46
+cresserons	14
+crest	26
+creteil	94
+crets en belledonne	38
+creully sur seulles	14
+creuse	23
+creutzwald	57
+creuzier le neuf	03
+creuzier le vieux	03
+crevecœur le grand	60
+crevin	35
+creys mepieu	38
+creysse	24
+crezancy	02
+criel sur mer	76
+criquebeuf sur seine	27
+criquetot l esneval	76
+crissey	71
+croisilles	62
+croissy beaubourg	77
+croissy sur seine	78
+croix	59
+croix chapeau	17
+crolles	38
+crosne	91
+crossac	44
+croth	27
+crots	05
+crottet	01
+crouy	02
+crouy en thelle	60
+crouy sur ourcq	77
+crozet	01
+crozon	29
+cruas	07
+cruet	73
+cruseilles	74
+crusnes	54
+cubjac auvezere val d ans	24
+cublac	19
+cublize	69
+cubnezais	33
+cubzac les ponts	33
+cucq	62
+cucuron	84
+cuers	83
+cuffies	02
+cuffy	18
+cugand la bernardiere	85
+cuges les pins	13
+cugnaux	31
+cuinchy	62
+cuincy	59
+cuise la motte	60
+cuiseaux	71
+cuisery	71
+culhat	63
+culoz beon	01
+cunac	81
+cunlhat	63
+curgies	59
+curgy	71
+curis au mont d or	69
+cussac	87
+cussac fort medoc	33
+cussac sur loire	43
+cusset	03
+cussey sur l ognon	25
+custines	54
+cusy	74
+cutry	54
+cuttoli corticchiato	2A
+cuvat	74
+cuverville	14
+cuvry	57
+cuxac d aude	11
+cuzieu	42
+cysoing	59
+d huison longueville	91
+dabo	57
+dachstein	67
+dadonville	45
+dagneux	01
+dainville	62
+daix	21
+dalhunden	67
+damazan	47
+dambach la ville	67
+damelevieres	54
+damery	51
+damgan	56
+damiatte	81
+damigny	61
+dammarie	28
+dammarie les lys	77
+dammartin en goele	77
+dammartin en serve	78
+dammartin sur tigeaux	77
+damparis	39
+dampierre	39
+dampierre en burly	45
+dampierre en yvelines	78
+dampierre les bois	25
+dampierre sur salon	70
+dampmart	77
+damprichard	25
+dange saint romain	86
+dangeau	28
+danjoutin	90
+dannemarie	68
+dannemarie sur crete	25
+dannes	62
+daoulas	29
+dardilly	69
+dargnies	80
+darnetal	76
+darney	88
+darnieulles	88
+darvoy	45
+dasle	25
+dauendorf	67
+daux	31
+davezieux	07
+dax	40
+deauville	14
+decazeville	12
+dechy	59
+decines charpieu	69
+decize	58
+delettes	62
+delle	90
+delme	57
+dembeni	976
+demigny	71
+demouville	14
+denain	59
+denee	49
+denguin	64
+denice	69
+deols	36
+derval	44
+desaignes	07
+descartes	37
+desertines	03
+deshaies	971
+dessenheim	68
+desvres	62
+dettwiller	67
+deuil la barre	95
+deulemont	59
+deux grosnes	69
+deux rivieres	89
+deux sevres	79
+devecey	25
+deville les rouen	76
+deyme	31
+deyvillers	88
+dhuizon	41
+dialan sur chaine	14
+die	26
+diebling	57
+diemeringen	67
+diemoz	38
+dieppe	76
+diesen	57
+dietwiller	68
+dieue sur meuse	55
+dieulefit	26
+dieulouard	54
+dieupentale	82
+dieuze	57
+diges	89
+dignac	16
+digne les bains	04
+digny	28
+digoin	71
+digosville	50
+dijon	21
+dinan	22
+dinard	35
+dineault	29
+dinge	35
+dingsheim	67
+dingy saint clair	74
+dinsheim sur bruche	67
+diou	03
+dirac	16
+dirinon	29
+dissay	86
+distre	49
+distroff	57
+divatte sur loire	44
+dives sur mer	14
+divion	62
+divonne les bains	01
+dizy	51
+dogneville	88
+doingt	80
+doix les fontaines	85
+dol de bretagne	35
+dole	39
+dollon	72
+dolomieu	38
+dolus d oleron	17
+dom le mesnil	08
+domagne	35
+domalain	35
+domancy	74
+domarin	38
+domart en ponthieu	80
+dombasle sur meurthe	54
+domblans	39
+domene	38
+domerat	03
+domessin	73
+domfront en champagne	72
+domfront en poiraie	61
+domgermain	54
+domloup	35
+dommartin	69
+dommartin les remiremont	88
+dommartin les toul	54
+domont	95
+dompaire	88
+dompierre sur besbre	03
+dompierre sur mer	17
+dompierre sur veyle	01
+dompierre sur yon	85
+don	59
+donchery	08
+doncourt les conflans	54
+donges	44
+donnemarie dontilly	77
+donnery	45
+donneville	31
+donville les bains	50
+donzac	82
+donzenac	19
+donzere	26
+donzy	58
+dordives	45
+dordogne	24
+dorlisheim	67
+dormans	51
+dornes	58
+dortan	01
+dossenheim sur zinsel	67
+douai	59
+douarnenez	29
+doubs	25
+douchy les mines	59
+douchy montcorbon	45
+doudeville	76
+doue	77
+doue en anjou	49
+doullens	80
+dourdain	35
+dourdan	91
+dourges	62
+dourgne	81
+doussard	74
+douvaine	74
+douvres	01
+douvres la delivrande	14
+douvrin	62
+douzy	08
+doyet	03
+dozule	14
+drace	69
+dracy le fort	71
+draguignan	83
+drancy	93
+drap	06
+draveil	91
+dreffeac	44
+dremil lafage	31
+dreuil les amiens	80
+dreux	28
+drocourt	62
+drome	26
+droue sur drouette	28
+druelle balsac	12
+druillat	01
+drulingen	67
+drumettaz clarafond	73
+drusenheim	67
+druye	37
+dry	45
+ducey les cheris	50
+duclair	76
+ducos	972
+dugny	93
+dugny sur meuse	55
+duingt	74
+duisans	62
+dumbea	988
+dun le palestel	23
+dun sur auron	18
+duneau	72
+dunes	82
+dunieres	43
+dunkerque	59
+duppigheim	67
+duras	47
+durdat larequille	03
+durrenbach	67
+durrenentzen	68
+durtal	49
+durtol	63
+dury	80
+duttlenheim	67
+dzaoudzi	976
+eaubonne	95
+eaunes	31
+eauze	32
+ebersheim	67
+ebreuil	03
+ecaillon	59
+eccica suarella	2A
+echalas	69
+echenevex	01
+echenoz la meline	70
+echillais	17
+echire	79
+echirolles	38
+eckbolsheim	67
+eckwersheim	67
+eclaron braucourt sainte liviere	52
+eclassan	07
+eclose badinieres	38
+ecole valentin	25
+ecommoy	72
+ecotay l olme	42
+ecouche les vallees	61
+ecouen	95
+ecouflant	49
+ecourt saint quentin	62
+ecouves	61
+ecoyeux	17
+ecques	62
+ecquevilly	78
+ecrainville	76
+ecrouves	54
+ecueille	36
+ecuisses	71
+ecully	69
+edern	29
+eecke	59
+effiat	63
+egletons	19
+egly	91
+egreville	77
+egriselles le bocage	89
+eguilles	13
+eguisheim	68
+eguzon chantome	36
+einville au jard	54
+elancourt	78
+elbeuf	76
+elesmes	59
+eleu dit leauwette	62
+elliant	29
+elne	66
+eloyes	88
+elven	56
+embrun	05
+emerainville	77
+emmerin	59
+enchenberg	57
+enghien les bains	95
+englefontaine	59
+ennery	57
+ennetieres en weppes	59
+ennevelin	59
+ennezat	63
+enquin lez guinegatte	62
+ensisheim	68
+ensues la redonne	13
+entraigues sur la sorgue	84
+entrammes	53
+entrange	57
+entre deux	974
+entre deux guiers	38
+entre vignes	34
+entrecasteaux	83
+entrechaux	84
+entrelacs	73
+entzheim	67
+enval	63
+envermeu	76
+eole en beauce	28
+epagny metz tessy	74
+epaignes	27
+epehy	80
+eperlecques	62
+epernay	51
+epernon	28
+epervans	71
+epfig	67
+epieds en beauce	45
+epinac	71
+epinal	88
+epinay sous senart	91
+epinay sur orge	91
+epinay sur seine	93
+epiniac	35
+epinouze	26
+epone	78
+epouville	76
+eppeville	80
+epreville	76
+epron	14
+equemauville	14
+equihen plage	62
+eragny sur oise	95
+erbray	44
+erbree	35
+erce en lamee	35
+erce pres liffre	35
+ercuis	60
+erdeven	56
+erdre en anjou	49
+ergersheim	67
+ergue gaberic	29
+ermont	95
+ernee	53
+ernolsheim bruche	67
+erquinghem lys	59
+erquy	22
+erre	59
+erstein	67
+ervy le chatel	10
+esbly	77
+escalquens	31
+escatalens	82
+escaudain	59
+escaudœuvres	59
+escautpont	59
+eschau	67
+eschentzwiller	68
+esches	60
+escoutoux	63
+eslettes	76
+esnandes	17
+espalion	12
+espaly saint marcel	43
+espelette	64
+espeluche	26
+esperaza	11
+espira de l agly	66
+espoey	64
+espondeilhan	34
+esquay notre dame	14
+esquelbecq	59
+esquerdes	62
+essars	62
+essarts en bocage	85
+esse	35
+essert	90
+essey les nancy	54
+essigny le grand	02
+essomes sur marne	02
+essonne	91
+essouvert	17
+estagel	66
+estaires	59
+esternay	51
+estevelles	62
+estillac	47
+estissac	10
+estivareilles	03
+estrablin	38
+estrees	59
+estrees saint denis	60
+esvres	37
+etables	07
+etain	55
+etainhus	76
+etalans	25
+etalondes	76
+etampes	91
+etampes sur marne	02
+etang sur arroux	71
+etaples	62
+etaules	17
+etauliers	33
+eteaux	74
+etel	56
+eterville	14
+etiolles	91
+etival clairefontaine	88
+etival les le mans	72
+etoile sur rhone	26
+etrechy	91
+etreillers	02
+etrelles	35
+etrembieres	74
+etrepagny	27
+etretat	76
+etreux	02
+etriche	49
+etrœungt	59
+etueffont	90
+etupes	25
+etzling	57
+eu	76
+eulmont	54
+eure	27
+eure et loir	28
+eurre	26
+eurville bienville	52
+euville	55
+evaux les bains	23
+evellys	56
+evenos	83
+evette salbert	90
+eveux	69
+evian les bains	74
+evin malmaison	62
+evran	22
+evrecy	14
+evreux	27
+evron	53
+evry courcouronnes	91
+evry gregy sur yerre	77
+excenevex	74
+excideuil	24
+exideuil sur vienne	16
+exincourt	25
+exireuil	79
+eybens	38
+eygalieres	13
+eyguieres	13
+eyjeaux	87
+eymet	24
+eymeux	26
+eymoutiers	87
+eyragues	13
+eyraud crempse maurens	24
+eysines	33
+eyzin pinet	38
+ezanville	95
+eze	06
+ezy sur eure	27
+faaa	987
+fabregues	34
+fabrezan	11
+faches thumesnil	59
+fagnieres	51
+fains veel	55
+fakarava	987
+falaise	14
+falck	57
+falicon	06
+falleron	85
+famars	59
+fameck	57
+fampoux	62
+faramans	38
+farebersviller	57
+fareins	01
+faremoutiers	77
+farges	01
+farges en septaine	18
+fargues	33
+fargues saint hilaire	33
+farnay	42
+farschviller	57
+faulquemont	57
+faulx	54
+faumont	59
+favars	19
+faverges de la tour	38
+faverges seythenex	74
+faverolles sur cher	41
+favieres	77
+fay aux loges	45
+fay de bretagne	44
+faye l abbesse	79
+fayence	83
+fayl billot	52
+fecamp	76
+fechain	59
+fegersheim	67
+fegreac	44
+feigeres	74
+feignies	59
+feillens	01
+feins	35
+feldkirch	68
+felines	07
+felleries	59
+fellering	68
+felletin	23
+fenain	59
+fenay	21
+feneu	49
+fenouillet	31
+fere champenoise	51
+fere en tardenois	02
+ferel	56
+ferin	59
+fermanville	50
+ferney voltaire	01
+ferolles	45
+ferolles attilly	77
+ferques	62
+ferrals les corbieres	11
+ferriere la grande	59
+ferriere la petite	59
+ferrieres	17
+ferrieres en bray	76
+ferrieres en brie	77
+ferrieres en gatinais	45
+ferrieres haut clocher	27
+fesches le chatel	25
+fessenheim	68
+fessy	74
+festubert	62
+feternes	74
+feucherolles	78
+feugarolles	47
+feuguerolles bully	14
+feuquieres	60
+feuquieres en vimeu	80
+feurs	42
+feves	57
+feytiat	87
+feyzin	69
+figanieres	83
+figari	2A
+figeac	46
+fille	72
+filliere	74
+fillinges	74
+finhan	82
+finistere	29
+firmi	12
+firminy	42
+fismes	51
+fitou	11
+fitz james	60
+flagnac	12
+flamanville	50
+flancourt crescy en roumois	27
+flassans sur issole	83
+flaviac	07
+flavignac	87
+flavigny sur moselle	54
+flavin	12
+flavy le martel	02
+flaxlanden	68
+flayosc	83
+fleac	16
+flers	61
+flers en escrebieux	59
+flesselles	80
+fleurance	32
+fleurbaix	62
+fleure	86
+fleurey sur ouche	21
+fleurie	69
+fleurieu sur saone	69
+fleurieux sur l arbresle	69
+fleurines	60
+fleury	11
+fleury la vallee	89
+fleury les aubrais	45
+fleury merogis	91
+fleury sur andelle	27
+fleury sur orne	14
+fleville devant nancy	54
+flines les mortagne	59
+flines lez raches	59
+flins sur seine	78
+flixecourt	80
+flize	08
+floing	08
+floirac	33
+florac trois rivieres	48
+florange	57
+florensac	34
+flourens	31
+foecy	18
+foissiat	01
+foix	09
+folembray	02
+folkling	57
+follainville dennemont	78
+folligny	50
+folschviller	57
+fonbeauzard	31
+foncine le haut	39
+fondettes	37
+fons	30
+fonsorbes	31
+font romeu odeillo via	66
+fontain	25
+fontaine	38
+fontaine au pire	59
+fontaine bellenger	27
+fontaine etoupefour	14
+fontaine la guyon	28
+fontaine la mallet	76
+fontaine le bourg	76
+fontaine le comte	86
+fontaine le port	77
+fontaine les dijon	21
+fontaine les luxeuil	70
+fontaine notre dame	59
+fontainebleau	77
+fontaines	71
+fontaines saint martin	69
+fontaines sur saone	69
+fontanil cornillon	38
+fontcouverte	17
+fontenailles	77
+fontenay	76
+fontenay aux roses	92
+fontenay en parisis	95
+fontenay le comte	85
+fontenay le fleury	78
+fontenay le marmion	14
+fontenay le pesnel	14
+fontenay le vicomte	91
+fontenay les briis	91
+fontenay sous bois	94
+fontenay sur eure	28
+fontenay sur loing	45
+fontenay tresigny	77
+fontenilles	31
+fontes	34
+fontevraud l abbaye	49
+fontoy	57
+fontvieille	13
+forbach	57
+forcalqueiret	83
+forcalquier	04
+force	53
+forest sur marque	59
+forges	17
+forges de lanouee	56
+forges les bains	91
+forges les eaux	76
+formerie	60
+fors	79
+fort de france	972
+fort mahon plage	80
+fortschwihr	68
+fos sur mer	13
+fosse	41
+fosses	95
+foucherans	39
+fouesnant	29
+foug	54
+fougere	85
+fougeres	35
+fougerolles du plessis	53
+fougerolles saint valbert	70
+fouilloy	80
+foulayronnes	47
+fouquereuil	62
+fouquieres les bethune	62
+fouquieres les lens	62
+four	38
+fouras	17
+fourchambault	58
+fourmies	59
+fournes	30
+fournes en weppes	59
+fourques	30
+fourques sur garonne	47
+foussais payre	85
+fragnes la loyere	71
+frahier et chatebier	70
+fraisans	39
+fraisses	42
+fraize	88
+francheleins	01
+francheville	69
+franconville	95
+francueil	37
+frangy	74
+franois	25
+franqueville saint pierre	76
+frans	01
+frasne	25
+frehel	22
+freistroff	57
+frejairolles	81
+frejus	83
+freland	68
+frelinghien	59
+frenelles en vexin	27
+freneuse	78
+frenouville	14
+frepillon	95
+fresnay sur sarthe	72
+fresnes	94
+fresnes sur escaut	59
+fresnoy le grand	02
+fresquiennes	76
+fresse sur moselle	88
+fressenneville	80
+fressines	79
+freteval	41
+frethun	62
+fretin	59
+frevent	62
+freyming merlebach	57
+frignicourt	51
+friville escarbotin	80
+froberville	76
+froges	38
+froideconche	70
+froidfond	85
+fromelennes	08
+fromelles	59
+froncles	52
+fronsac	33
+frontenay rohan rohan	79
+frontenex	73
+frontignan	34
+fronton	31
+frontonas	38
+frossay	44
+frotey les vesoul	70
+frouard	54
+frouzins	31
+fruges	62
+fublaines	77
+fumay	08
+fumel	47
+furdenheim	67
+furiani	2B
+fursac	23
+fussy	18
+fuveau	13
+fye	72
+gabarret	40
+gace	61
+gael	35
+gagnac sur garonne	31
+gagnieres	30
+gagny	93
+gahard	35
+gaillac	81
+gaillac toulza	31
+gaillan en medoc	33
+gaillard	74
+gaillefontaine	76
+gaillon	27
+gainneville	76
+galgon	33
+gallardon	28
+gallargues le montueux	30
+galluis	78
+gamaches	80
+gamarde les bains	40
+gambais	78
+gambier	987
+gambsheim	67
+gan	64
+gandrange	57
+ganges	34
+gannat	03
+gap	05
+garancieres	78
+garat	16
+garches	92
+garchizy	58
+gard	30
+gardanne	13
+gardonne	24
+gardouch	31
+garennes sur eure	27
+gareoult	83
+gargas	84
+gargenville	78
+garges les gonesse	95
+garidech	31
+garlan	29
+garlin	64
+garnay	28
+garons	30
+gasny	27
+gassin	83
+gasville oiseme	28
+gattieres	06
+gauchy	02
+gauciel	27
+gaujac	30
+gauriaguet	33
+gavray sur sienne	50
+gazeran	78
+geispolsheim	67
+gelos	64
+gemenos	13
+gemozac	17
+genas	69
+genay	69
+gencay	86
+genech	59
+genelard	71
+generac	30
+geneston	44
+geneuille	25
+genilac	42
+genille	37
+genissac	33
+genissieux	26
+genlis	21
+gennes longuefuye	53
+gennes val de loire	49
+gennevilliers	92
+gensac la pallue	16
+gentilly	94
+ger	64
+gerardmer	88
+gerbeviller	54
+gerde	65
+gergy	71
+germigny l eveque	77
+germond rouvre	79
+gers	32
+gerstheim	67
+gertwiller	67
+gerzat	63
+gestel	56
+getigne	44
+geudertheim	67
+geveze	35
+gevrey chambertin	21
+gex	01
+ghisonaccia	2B
+ghyvelde	59
+giberville	14
+gidy	45
+gien	45
+gieres	38
+gievres	41
+gif sur yvette	91
+gigean	34
+gignac	34
+gignac la nerthe	13
+gilette	06
+gilley	25
+gillonnay	38
+gilly sur isere	73
+gimont	32
+ginasservis	83
+ginestas	11
+giraumont	54
+giromagny	90
+gironde	33
+gironde sur dropt	33
+giroussens	81
+gisors	27
+givenchy en gohelle	62
+givet	08
+givonne	08
+givors	69
+givrand	85
+givry	71
+glageon	59
+gleize	69
+glieres val de borne	74
+glomel	22
+goderville	76
+godewaersvelde	59
+goetzenbruck	57
+goincourt	60
+golbey	88
+golfech	82
+gometz la ville	91
+gometz le chatel	91
+gommegnies	59
+goncelin	38
+gond pontouvre	16
+gondecourt	59
+gondrecourt le chateau	55
+gondreville	54
+gondrin	32
+gonesse	95
+gonfaron	83
+gonfreville l orcher	76
+gonnehem	62
+gonneville la mallet	76
+gonneville le theil	50
+gontaud de nogaret	47
+gorbio	06
+gorcy	54
+gordes	84
+gorges	44
+gorron	53
+gorze	57
+gosne	35
+gouaix	77
+goudargues	30
+goudelin	22
+gouesnach	29
+gouesnou	29
+gouezec	29
+gouffern en auge	61
+goult	84
+goupil othon	27
+gourbeyre	971
+gourdan polignan	31
+gourdon	46
+gourin	56
+gournay en bray	76
+gournay sur marne	93
+goussainville	95
+gouvernes	77
+gouvieux	60
+gouville sur mer	50
+gouy sous bellonne	62
+gouzeaucourt	59
+gouzon	23
+goven	35
+goyave	971
+grabels	34
+gracay	18
+graces	22
+gradignan	33
+gragnague	31
+grainville la teinturiere	76
+grainville sur odon	14
+gramat	46
+grambois	84
+grand aigueblanche	73
+grand bourg	971
+grand bourgtheroulde	27
+grand champ	56
+grand charmont	25
+grand combe chateleu	25
+grand couronne	76
+grand fort philippe	59
+grand fougeray	35
+grand santi	973
+grandcamp maisy	14
+grandchamp des fontaines	44
+grande synthe	59
+grandfontaine	25
+grandfresnoy	60
+grandparigny	50
+grandpuits bailly carrois	77
+grandris	69
+grandvillars	90
+grandvilliers	60
+grane	26
+granges aumontzey	88
+granges narboz	25
+grans	13
+granville	50
+grasse	06
+gratentour	31
+graulhet	81
+gravelines	59
+graveson	13
+gravigny	27
+gray	70
+grayan et l hopital	33
+grazac	43
+greasque	13
+grenade	31
+grenade sur l adour	40
+grenay	62
+grendelbruch	67
+grenoble	38
+grentheville	14
+greoux les bains	04
+grepiac	31
+gresswiller	67
+gresy sur aix	73
+gresy sur isere	73
+gretz armainvilliers	77
+grez neuville	49
+grez sur loing	77
+grezieu la varenne	69
+gricourt	02
+grieges	01
+gries	67
+griesheim pres molsheim	67
+griesheim sur souffel	67
+grignan	26
+grignols	33
+grignon	73
+grigny	91
+grigny sur rhone	69
+grillon	84
+grimaud	83
+grisolles	82
+grisy suisnes	77
+groffliers	62
+groissiat	01
+groisy	74
+groix	56
+gron	89
+gros morne	972
+gros rederching	57
+grosbliederstroff	57
+grosbreuil	85
+groslay	95
+groslee saint benoit	01
+grosseto prugna	2A
+grossœuvre	27
+gruchet le valasse	76
+gruffy	74
+grugies	02
+grugny	76
+gruissan	11
+gruson	59
+guadeloupe	971
+guarbecque	62
+guebwiller	68
+guecelard	72
+guegon	56
+guemar	68
+guemene penfao	44
+guemene sur scorff	56
+guemps	62
+guenange	57
+guengat	29
+guenin	56
+guenrouet	44
+guer	56
+guerande	44
+guerard	77
+guereins	01
+gueret	23
+guerigny	58
+guerledan	22
+guerlesquin	29
+guermantes	77
+guern	56
+guernes	78
+guerville	78
+guesnain	59
+guethary	64
+gueugnon	71
+gueux	51
+guewenheim	68
+guichainville	27
+guiche	64
+guichen	35
+guiclan	29
+guidel	56
+guignen	35
+guignes	77
+guilers	29
+guilherand granges	07
+guillac	56
+guillestre	05
+guilliers	56
+guilvinec	29
+guines	62
+guingamp	22
+guipavas	29
+guipel	35
+guipry messac	35
+guiscard	60
+guiscriff	56
+guise	02
+guisseny	29
+guitres	33
+gujan mestras	33
+gumbrechtshoffen	67
+gundershoffen	67
+gurgy	89
+guyancourt	78
+guyane	973
+gy	70
+gœrsdorf	67
+gœulzin	59
+habas	40
+habere lullin	74
+habere poche	74
+habsheim	68
+hadol	88
+hagenthal le bas	68
+hagetmau	40
+hagondange	57
+haguenau	67
+haillicourt	62
+haisnes	62
+hallencourt	80
+hallennes lez haubourdin	59
+hallines	62
+halluin	59
+ham	80
+ham sous varsberg	57
+hambach	57
+hambye	50
+hames boucres	62
+hanches	28
+hangenbieten	67
+hangest en santerre	80
+hantay	59
+hanvec	29
+hao	987
+harbonnieres	80
+harcourt	27
+hardinghen	62
+hardricourt	78
+harfleur	76
+hargarten aux mines	57
+harly	02
+harnes	62
+hasnon	59
+hasparren	64
+haspres	59
+hatten	67
+haubourdin	59
+haucourt moulaine	54
+haulchin	59
+haussy	59
+haut mauco	40
+haut rhin	68
+haute corse	2B
+haute garonne	31
+haute goulaine	44
+haute loire	43
+haute marne	52
+haute rivoire	69
+haute saone	70
+haute savoie	74
+haute vienne	87
+hautefage la tour	47
+hauterive	03
+hauterives	26
+hautes alpes	05
+hautes pyrenees	65
+hauteville les dijon	21
+hauteville sur fier	74
+hautmont	59
+hautot sur mer	76
+hauts de bienne	39
+hauts de seine	92
+hauville	27
+haveluy	59
+haverskerque	59
+hayange	57
+haybes	08
+hazebrouck	59
+hede bazouges	35
+hegenheim	68
+heillecourt	54
+heimsbrunn	68
+heiteren	68
+helesmes	59
+helfaut	62
+hem	59
+henanbihen	22
+henansal	22
+hendaye	64
+henin beaumont	62
+hennebont	56
+henon	22
+henouville	76
+henrichemont	18
+henvic	29
+herault	34
+herbault	41
+herbeys	38
+herbignac	44
+herbitzheim	67
+herblay sur seine	95
+herepian	34
+hergnies	59
+heric	44
+hericourt	70
+hericy	77
+herimoncourt	25
+herin	59
+herlies	59
+herm	40
+hermanville sur mer	14
+hermeray	78
+hermes	60
+hermies	62
+hermonville	51
+herouville saint clair	14
+herouvillette	14
+herrlisheim	67
+herrlisheim pres colmar	68
+herserange	54
+hersin coupigny	62
+hery	89
+herzeele	59
+hesdin l abbe	62
+hesdin la foret	62
+hesingue	68
+hettange grande	57
+heudreville sur eure	27
+heugas	40
+heuringhem	62
+heyrieux	38
+hienghene	988
+hieres sur amby	38
+hiersac	16
+hillion	22
+hilsenheim	67
+hindisheim	67
+hinges	62
+hinx	40
+hipsheim	67
+hirel	35
+hirsingue	68
+hirson	02
+hirtzbach	68
+hirtzfelden	68
+hitiaa o te ra	987
+hiva oa	987
+hochfelden	67
+hochstatt	68
+hoffen	67
+holnon	02
+holtzheim	67
+holving	57
+hombleux	80
+homblieres	02
+hombourg	68
+hombourg haut	57
+homecourt	54
+hondschoote	59
+honfleur	14
+hopital camfrout	29
+horbourg wihr	68
+hordain	59
+horgues	65
+hornaing	59
+hornoy le bourg	80
+hostens	33
+hostun	26
+houailou	988
+houdain	62
+houdan	78
+houdemont	54
+houilles	78
+houlbec cocherel	27
+houlgate	14
+houlle	62
+houplin ancoisne	59
+houplines	59
+houppeville	76
+hourtin	33
+houssen	68
+houtaud	25
+hoymille	59
+huahine	987
+huelgoat	29
+huez	38
+huille lezigne	49
+huismes	37
+huisseau sur cosson	41
+huisseau sur mauves	45
+hulluch	62
+hundling	57
+huningue	68
+huriel	03
+hurigny	71
+husseren wesserling	68
+hussigny godbrange	54
+huttenheim	67
+hyeres	83
+hœnheim	67
+hœrdt	67
+ibos	65
+idron	64
+iffendic	35
+ifs	14
+igney	88
+igny	91
+igon	64
+igoville	27
+illange	57
+illats	33
+ille et vilaine	35
+ille sur tet	66
+illfurth	68
+illiers combray	28
+illiers l eveque	27
+illies	59
+illkirch graffenstaden	67
+illtal	68
+illzach	68
+imphy	58
+incarville	27
+incheville	76
+indre	36
+indre et loire	37
+ingersheim	68
+ingrandes	86
+ingrandes le fresne sur loire	49
+ingre	45
+inguiniel	56
+ingwiller	67
+injoux genissiat	01
+innenheim	67
+inzinzac lochrist	56
+iracoubo	973
+irigny	69
+irodouer	35
+irvillac	29
+is sur tille	21
+isbergues	62
+isere	38
+isigny le buat	50
+isigny sur mer	14
+isle	87
+isles les villenoy	77
+isneauville	76
+isques	62
+isse	44
+issenheim	68
+issoire	63
+issou	78
+issoudun	36
+issy les moulineaux	92
+istres	13
+iteuil	86
+ittenheim	67
+itteville	91
+itxassou	64
+ivry la bataille	27
+ivry sur seine	94
+iwuy	59
+izeaux	38
+izel les equerchin	62
+izernore	01
+izon	33
+jacob bellecombette	73
+jacou	34
+jaillans	26
+janneyrias	38
+jans	44
+janville en beauce	28
+janville sur juine	91
+janze	35
+jarcieu	38
+jard sur mer	85
+jardin	38
+jardres	86
+jargeau	45
+jarnac	16
+jarny	54
+jarrie	38
+jarville la malgrange	54
+jarze villages	49
+jassans riottier	01
+jasseron	01
+jatxou	64
+jau dignac et loirac	33
+jaujac	07
+jaunay marigny	86
+jausiers	04
+jaux	60
+javene	35
+javron les chapelles	53
+jayat	01
+jeanmenil	88
+jebsheim	68
+jegun	32
+jenlain	59
+jeumont	59
+jezainville	54
+job	63
+joigny	89
+joinville	52
+joinville le pont	94
+jonage	69
+joncherey	90
+jonchery sur vesle	51
+jonquerettes	84
+jonquieres	84
+jonquieres saint vincent	30
+jons	69
+jonzac	17
+jonzieux	42
+josse	40
+josselin	56
+jouarre	77
+jouars pontchartrain	78
+joudreville	54
+joue l abbe	72
+joue les tours	37
+joue sur erdre	44
+jouet sur l aubois	18
+jougne	25
+jouques	13
+jourgnac	87
+joux la ville	89
+jouy	28
+jouy aux arches	57
+jouy en josas	78
+jouy le chatel	77
+jouy le moutier	95
+jouy le potier	45
+jouy sous thelle	60
+jouy sur morin	77
+joyeuse	07
+joze	63
+jugon les lacs	22
+juigne sur sarthe	72
+juillac	19
+juillan	65
+juilly	77
+jujurieux	01
+jullouville	50
+jumieges	76
+jumilhac le grand	24
+junas	30
+juniville	08
+jura	39
+jurancon	64
+jury	57
+jussac	15
+jussey	70
+jussy	02
+juvignac	34
+juvigne	53
+juvigny les vallees	50
+juvigny val d andaine	61
+juvisy sur orge	91
+juziers	78
+jœuf	54
+kaala gomen	988
+kaltenhouse	67
+kanfen	57
+kani keli	976
+kaysersberg vignoble	68
+kedange sur canner	57
+kembs	68
+kerbach	57
+kerlouan	29
+kermaria sulard	22
+kernilis	29
+kersaint plabennec	29
+kertzfeld	67
+kervignac	56
+keskastel	67
+killem	59
+kilstett	67
+kingersheim	68
+kintzheim	67
+knutange	57
+kogenheim	67
+kolbsheim	67
+kone	988
+kouaoua	988
+koumac	988
+koungou	976
+kourou	973
+krautergersheim	67
+kunheim	68
+kuntzig	57
+kurtzenhouse	67
+kœnigsmacker	57
+l abergement sainte colombe	71
+l absie	79
+l aigle	61
+l aiguillon la presqu ile	85
+l aiguillon sur vie	85
+l ajoupa bouillon	972
+l albenc	38
+l arbresle	69
+l argentiere la bessee	05
+l epine	85
+l escale	04
+l escarene	06
+l etang la ville	78
+l etang sale	974
+l etoile	80
+l etrat	42
+l hay les roses	94
+l herbergement	85
+l hermitage	35
+l honor de cos	82
+l hopital	57
+l hopital le grand	42
+l horme	42
+l houmeau	17
+l huisserie	53
+l ile bouchard	37
+l ile d elle	85
+l ile d olonne	85
+l ile d yeu	85
+l ile des pins	988
+l ile rousse	2B
+l ile saint denis	93
+l isle adam	95
+l isle d abeau	38
+l isle d espagnac	16
+l isle en dodon	31
+l isle jourdain	32
+l isle sur la sorgue	84
+l isle sur le doubs	25
+l oie	85
+l union	31
+la baconniere	53
+la balme de sillingy	74
+la balme les grottes	38
+la barre de monts	85
+la barre de semilly	50
+la barthe de neste	65
+la bassee	59
+la bastide clairence	64
+la bastide des jourdans	84
+la bathie	73
+la batie montgascon	38
+la batie neuve	05
+la batie rolland	26
+la baule escoublac	44
+la bazoche gouet	28
+la bazoge	72
+la bazouge du desert	35
+la begude de mazenc	26
+la bernerie en retz	44
+la biolle	73
+la boisse	01
+la boissiere	34
+la boissiere de montaigu	85
+la boissiere des landes	85
+la boissiere du dore	44
+la boixe	16
+la bonneville sur iton	27
+la bouexiere	35
+la bouilladisse	13
+la bourboule	63
+la boussac	35
+la brede	33
+la bresse	88
+la bridoire	73
+la brillanne	04
+la broque	67
+la bruffiere	85
+la buisse	38
+la cadiere d azur	83
+la caillere saint hilaire	85
+la calmette	30
+la canourgue	48
+la capelle	02
+la capelle les boulogne	62
+la cavalerie	12
+la celle	83
+la celle saint avant	37
+la celle saint cloud	78
+la celle sur morin	77
+la cerlangue	76
+la chaize giraud	85
+la chaize le vicomte	85
+la chambre	73
+la chapelle bouexic	35
+la chapelle chaussee	35
+la chapelle d aligne	72
+la chapelle d armentieres	59
+la chapelle d aurec	43
+la chapelle de brain	35
+la chapelle de guinchay	71
+la chapelle de la tour	38
+la chapelle des fougeretz	35
+la chapelle des marais	44
+la chapelle des pots	17
+la chapelle du lou du lac	35
+la chapelle du noyer	28
+la chapelle en serval	60
+la chapelle fleurigne	35
+la chapelle gauthier	77
+la chapelle gonaguet	24
+la chapelle hermier	85
+la chapelle heulin	44
+la chapelle la reine	77
+la chapelle launay	44
+la chapelle longueville	27
+la chapelle neuve	56
+la chapelle palluau	85
+la chapelle saint aubin	72
+la chapelle saint laurent	79
+la chapelle saint luc	10
+la chapelle saint mesmin	45
+la chapelle saint ursin	18
+la chapelle sur erdre	44
+la chapelle sur loire	37
+la chapelle thouarault	35
+la charite sur loire	58
+la chartre sur le loir	72
+la chataigneraie	85
+la chatre	36
+la chaussee d ivry	28
+la chaussee saint victor	41
+la chevallerais	44
+la chevroliere	44
+la ciotat	13
+la clayette	71
+la clusaz	74
+la cluse et mijoux	25
+la colle sur loup	06
+la copechagniere	85
+la coquille	24
+la cote saint andre	38
+la couarde sur mer	17
+la coucourde	26
+la courneuve	93
+la couronne	16
+la couture	62
+la couture boussey	27
+la crau	83
+la creche	79
+la croix blanche	47
+la croix en touraine	37
+la croix valmer	83
+la desirade	971
+la destrousse	13
+la devise	17
+la dominelais	35
+la douze	24
+la drenne	60
+la fare les oliviers	13
+la farlede	83
+la fere	02
+la ferriere	85
+la ferriere aux etangs	61
+la ferte alais	91
+la ferte bernard	72
+la ferte en ouche	61
+la ferte gaucher	77
+la ferte mace	61
+la ferte milon	02
+la ferte saint aubin	45
+la ferte saint cyr	41
+la ferte sous jouarre	77
+la feuillie	76
+la flamengrie	02
+la fleche	72
+la flotte	17
+la foa	988
+la force	24
+la forest landerneau	29
+la foret fouesnant	29
+la foret sur sevre	79
+la fouillade	12
+la fouillouse	42
+la francheville	08
+la frenaye	76
+la fresnais	35
+la frette	38
+la frette sur seine	95
+la gacilly	56
+la garde	83
+la garde adhemar	26
+la garde freinet	83
+la garenne colombes	92
+la garnache	85
+la gaubretiere	85
+la gaude	06
+la genetouze	85
+la gorgue	59
+la gouesniere	35
+la grand combe	30
+la grand croix	42
+la grande motte	34
+la grande paroisse	77
+la grigonnais	44
+la guerche de bretagne	35
+la guerche sur l aubois	18
+la gueriniere	85
+la guierche	72
+la hague	50
+la haie fouassiere	44
+la haye	50
+la haye malherbe	27
+la haye pesnel	50
+la houssaye en brie	77
+la jarne	17
+la jarrie	17
+la lande de fronsac	33
+la lande patry	61
+la lechere	73
+la limouziniere	44
+la londe	76
+la londe les maures	83
+la longueville	59
+la loubiere	12
+la loupe	28
+la machine	58
+la madeleine	59
+la madeleine de nonancourt	27
+la magdelaine sur tarn	31
+la marne	44
+la maxe	57
+la meaugon	22
+la meilleraie tillay	85
+la meilleraye de bretagne	44
+la membrolle sur choisille	37
+la menitre	49
+la merlatiere	85
+la meziere	35
+la milesse	72
+la mole	83
+la monnerie le montel	63
+la montagne	44
+la mothe saint heray	79
+la motte	83
+la motte d aigues	84
+la motte d aveillans	38
+la motte saint jean	71
+la motte servolex	73
+la mulatiere	69
+la muraz	74
+la mure	38
+la murette	38
+la neuville chant d oisel	76
+la noe blanche	35
+la norville	91
+la pacaudiere	42
+la palme	11
+la penne sur huveaune	13
+la peyratte	79
+la plagne tarentaise	73
+la plaine	49
+la plaine des palmistes	974
+la plaine sur mer	44
+la planche	44
+la porte du der	52
+la possession	974
+la possonniere	49
+la queue en brie	94
+la queue les yvelines	78
+la rabateliere	85
+la ravoire	73
+la redorte	11
+la regrippiere	44
+la remaudiere	44
+la remuee	76
+la reole	33
+la reorthe	85
+la reunion	974
+la ricamarie	42
+la richardais	35
+la riche	37
+la riviere de corps	10
+la riviere saint sauveur	14
+la roche blanche	63
+la roche chalais	24
+la roche de glun	26
+la roche des arnauds	05
+la roche jaudy	22
+la roche maurice	29
+la roche neuville	53
+la roche posay	86
+la roche sur foron	74
+la roche sur yon	85
+la roche vineuse	71
+la rochefoucauld en angoumois	16
+la rochelle	17
+la rochette	77
+la romagne	49
+la roque d antheron	13
+la roquebrussanne	83
+la roquette sur siagne	06
+la salvetat peyrales	12
+la salvetat saint gilles	31
+la salvetat sur agout	34
+la saulce	05
+la saussaye	27
+la sauve	33
+la seauve sur semene	43
+la seguiniere	49
+la selle la forge	61
+la selle sur le bied	45
+la sentinelle	59
+la seyne sur mer	83
+la souterraine	23
+la sure en chartreuse	38
+la suze sur sarthe	72
+la talaudiere	42
+la terrasse	38
+la tessoualle	49
+la teste de buch	33
+la tour	74
+la tour d aigues	84
+la tour de salvagny	69
+la tour du crieu	09
+la tour du pin	38
+la tour en jarez	42
+la tour en maurienne	73
+la tour sur orb	34
+la tranche sur mer	85
+la tremblade	17
+la trinite	972
+la trinite sur mer	56
+la trinite surzur	56
+la tronche	38
+la turballe	44
+la turbie	06
+la valette du var	83
+la valla en gier	42
+la vaupaliere	76
+la verdiere	83
+la verpilliere	38
+la verriere	78
+la vespiere friardel	14
+la vicomte sur rance	22
+la ville aux clercs	41
+la ville aux dames	37
+la ville dieu du temple	82
+la ville du bois	91
+la ville es nonais	35
+la villedieu du clain	86
+la voge les bains	88
+la voulte sur rhone	07
+la vraie croix	56
+la wantzenau	67
+labaroche	68
+labarthe riviere	31
+labarthe sur leze	31
+labastide beauvoir	31
+labastide d anjou	11
+labastide du temple	82
+labastide marnhac	46
+labastide rouairoux	81
+labastide saint georges	81
+labastide saint pierre	82
+labastide saint sernin	31
+labastidette	31
+labatut	40
+labege	31
+labegude	07
+labenne	40
+labergement les seurre	21
+labergement sainte marie	25
+labeuvriere	62
+lablachere	07
+laboissiere en thelle	60
+labouheyre	40
+labourse	62
+labruguiere	81
+labry	54
+lacanau	33
+lacapelle marival	46
+lacaune	81
+lacenas	69
+lachapelle aux pots	60
+lachapelle sous aubenas	07
+lachassagne	69
+lacourt saint pierre	82
+lacq	64
+lacroix falgarde	31
+lacroix saint ouen	60
+lacrouzette	81
+ladignac le long	87
+ladoix serrigny	21
+ladon	45
+lafitte vigordane	31
+lafox	47
+lafrancaise	82
+lagardelle sur leze	31
+lagarrigue	81
+lagnes	84
+lagnieu	01
+lagny le sec	60
+lagny sur marne	77
+lagor	64
+lagorce	33
+lagord	17
+lagrauliere	19
+lagrave	81
+laguenne sur avalouze	19
+laguiole	12
+lahonce	64
+laigne saint gervais	72
+laignelet	35
+laigneville	60
+laille	35
+lailly en val	45
+laissac severac l eglise	12
+laiz	01
+laize	71
+laize clinchamps	14
+lalbenque	46
+lalevade d ardeche	07
+lalinde	24
+lallaing	59
+laloubere	65
+laluque	40
+lamagistere	82
+lamalou les bains	34
+lamanon	13
+lamarche sur saone	21
+lamarque	33
+lamasquere	31
+lamastre	07
+lamballe armor	22
+lambersart	59
+lambesc	13
+lambres lez aire	62
+lambres lez douai	59
+lamentin	971
+lamonzie saint martin	24
+lamorlaye	60
+lamothe capdeville	82
+lamothe landerron	33
+lamothe montravel	24
+lamotte beuvron	41
+lampaul guimiliau	29
+lampaul plouarzel	29
+lampertheim	67
+lamure sur azergues	69
+lancie	69
+lancieux	22
+lancon provence	13
+landas	59
+landaul	56
+landean	35
+landeda	29
+landehen	22
+landerneau	29
+landeronde	85
+landes	40
+landevant	56
+landevieille	85
+landiras	33
+landivisiau	29
+landivy	53
+landorthe	31
+landrecies	59
+landrethun le nord	62
+landrevarzec	29
+landser	68
+landudec	29
+landunvez	29
+lanester	56
+laneuveville devant nancy	54
+lanfains	22
+langan	35
+langeac	43
+langeais	37
+langlade	30
+langoat	22
+langogne	48
+langoiran	33
+langon	33
+langonnet	56
+langres	52
+langrune sur mer	14
+languenan	22
+langueux	22
+languidic	56
+lanhouarneau	29
+lanildut	29
+lanmeur	29
+lannemezan	65
+lannilis	29
+lannion	22
+lannoy	59
+lanobre	15
+lanquetot	76
+lanrivoare	29
+lanrodec	22
+lans en vercors	38
+lansargues	34
+lanta	31
+lantic	22
+lanton	33
+lantosque	06
+lantriac	43
+lanvallay	22
+lanvenegen	56
+lanveoc	29
+lanvollon	22
+laon	02
+lapalisse	03
+lapalud	84
+lapeyrouse fossat	31
+lapeyrouse mornay	26
+laplume	47
+lapoutroie	68
+lapte	43
+lapugnoy	62
+laquenexy	57
+laragne monteglin	05
+larajasse	69
+larcay	37
+larchamp	53
+larche	19
+lardy	91
+largentiere	07
+larmor plage	56
+larnage	26
+laroche saint cydroine	89
+laroin	64
+laroque	34
+laroque d olmes	09
+laroque des alberes	66
+laroque timbaut	47
+larra	31
+larre	56
+larressore	64
+larringes	74
+laruns	64
+laruscade	33
+lasalle	30
+lassay les chateaux	53
+lasserre pradere	31
+lasseube	64
+lassigny	60
+lassy	35
+lathuile	74
+lathus saint remy	86
+latille	86
+latour bas elne	66
+latour de france	66
+latresne	33
+lattes	34
+laudun l ardoise	30
+launac	31
+launaguet	31
+laurac en vivarais	07
+laure minervois	11
+laurens	34
+lauris	84
+laussonne	43
+lautenbach	68
+lauterbourg	67
+lautrec	81
+lauwin planque	59
+lauzach	56
+lauzerte	82
+lauzerville	31
+laval	53
+laval en belledonne	38
+laval pradel	30
+lavalette	11
+lavans les saint claude	39
+lavardac	47
+lavau	10
+lavault sainte anne	03
+lavaur	81
+lavelanet	09
+laventie	62
+lavernose lacasse	31
+laversines	60
+laverune	34
+laveyron	26
+lavilledieu	07
+lavit	82
+lavoux	86
+laxou	54
+lay saint christophe	54
+layrac	47
+le bailleul	72
+le ban saint martin	57
+le bar sur loup	06
+le barcares	66
+le barp	33
+le bas segala	12
+le beausset	83
+le bernard	85
+le bignon	44
+le blanc	36
+le blanc mesnil	93
+le bois plage en re	17
+le bono	56
+le bosc	34
+le bosc du theil	27
+le boulou	66
+le boupere	85
+le bourg d oisans	38
+le bourget	93
+le bourget du lac	73
+le bourgneuf la foret	53
+le bouscat	33
+le bousquet d orb	34
+le breil sur merize	72
+le breuil	71
+le breuil sur couze	63
+le broc	06
+le bugue	24
+le buisson de cadouin	24
+le cailar	30
+le cannet	06
+le cannet des maures	83
+le carbet	972
+le castelet	14
+le castellet	83
+le cateau cambresis	59
+le cellier	44
+le cendre	63
+le chambon feugerolles	42
+le chambon sur lignon	43
+le champ pres froges	38
+le champ saint pere	85
+le chateau d oleron	17
+le chatelet en brie	77
+le chesnay rocquencourt	78
+le cheylard	07
+le cheylas	38
+le conquet	29
+le controis en sologne	41
+le coteau	42
+le coudray	28
+le coudray montceaux	91
+le cres	34
+le crest	63
+le creusot	71
+le croisic	44
+le crotoy	80
+le deschaux	39
+le diamant	972
+le donjon	03
+le dorat	87
+le doulieu	59
+le drennec	29
+le faou	29
+le faouet	56
+le fauga	31
+le fenouiller	85
+le fidelaire	27
+le fleix	24
+le folgoet	29
+le fossat	09
+le fousseret	31
+le francois	972
+le fœil	22
+le garric	81
+le gavre	44
+le genest saint isle	53
+le girouard	85
+le gosier	971
+le grand bornand	74
+le grand bourg	23
+le grand lemps	38
+le grand luce	72
+le grand quevilly	76
+le grand village plage	17
+le grau du roi	30
+le gua	17
+le gue d allere	17
+le haillan	33
+le havre	76
+le houga	32
+le houlme	76
+le kremlin bicetre	94
+le lamentin	972
+le landreau	44
+le langon	85
+le lardin saint lazare	24
+le lavandou	83
+le lion d angers	49
+le loroux bottereau	44
+le lorrain	972
+le luart	72
+le luc	83
+le lude	72
+le magny	36
+le malesherbois	45
+le manoir	27
+le mans	72
+le marigot	972
+le marin	972
+le mas d agenais	47
+le mas d azil	09
+le may sur evre	49
+le mayet de montagne	03
+le mee sur seine	77
+le mene	22
+le merevillois	91
+le mesnil en thelle	60
+le mesnil esnard	76
+le mesnil le roi	78
+le mesnil saint denis	78
+le meux	60
+le minihic sur rance	35
+le molay littry	14
+le monastere	12
+le monastier sur gazeille	43
+le mont dore	988
+le montat	46
+le montsaugeonnais	52
+le morne rouge	972
+le morne vert	972
+le moule	971
+le muy	83
+le neubourg	27
+le nouvion en thierache	02
+le palais	56
+le palais sur vienne	87
+le pallet	44
+le passage	47
+le peage de roussillon	38
+le pechereau	36
+le pecq	78
+le pellerin	44
+le perray en yvelines	78
+le perreon	69
+le perreux sur marne	94
+le perrey	27
+le perrier	85
+le pertre	35
+le petit quevilly	76
+le pian medoc	33
+le pin	77
+le pizou	24
+le plan de la tour	83
+le plessis belleville	60
+le plessis bouchard	95
+le plessis brion	60
+le plessis grammoire	49
+le plessis pate	91
+le plessis robinson	92
+le plessis trevise	94
+le poinconnet	36
+le poire sur vie	85
+le pont de beauvoisin	38
+le pont de claix	38
+le pontet	84
+le porge	33
+le port	974
+le port marly	78
+le portel	62
+le pouget	34
+le pouliguen	44
+le pouzin	07
+le pradet	83
+le pre saint gervais	93
+le precheur	972
+le puy en velay	43
+le puy notre dame	49
+le puy sainte reparade	13
+le quesnoy	59
+le raincy	93
+le relecq kerhuon	29
+le revest les eaux	83
+le rheu	35
+le robert	972
+le rouget pers	15
+le rouret	06
+le rove	13
+le russey	25
+le sappey en chartreuse	38
+le sel de bretagne	35
+le sequestre	81
+le soler	66
+le sourn	56
+le syndicat	88
+le taillan medoc	33
+le tallud	79
+le tampon	974
+le teich	33
+le teil	07
+le teilleul	50
+le temple de bretagne	44
+le temple sur lot	47
+le theil de bretagne	35
+le thillay	95
+le thillot	88
+le tholonet	13
+le tholy	88
+le thor	84
+le thoronet	83
+le thou	17
+le thuit de l oison	27
+le tignet	06
+le touquet paris plage	62
+le tour du parc	56
+le touvet	38
+le trait	76
+le treport	76
+le trevoux	29
+le tronchet	35
+le val	83
+le val d ajol	88
+le val d hazey	27
+le val saint germain	91
+le val saint pere	50
+le vauclin	972
+le vaudreuil	27
+le verdon sur mer	33
+le verger	35
+le vernet	03
+le versoud	38
+le vesinet	78
+le vieux marche	22
+le vigan	30
+le vigan en quercy	46
+le vigen	87
+le vivier sur mer	35
+lecci	2A
+lecelles	59
+lecluse	59
+lecousse	35
+lectoure	32
+ledat	47
+ledenon	30
+ledeuix	64
+ledignan	30
+lee	64
+leers	59
+leffrinckoucke	59
+leforest	62
+lege	44
+lege cap ferret	33
+leguevin	31
+lembach	67
+lemberg	57
+lembras	24
+lempdes	63
+lempdes sur allagnon	43
+lencloitre	86
+lens	62
+lent	01
+lentigny	42
+lentilly	69
+leognan	33
+leojac	82
+leon	40
+lepuix	90
+lere	18
+lerouville	55
+lery	27
+les abrets en dauphine	38
+les abymes	971
+les achards	85
+les adrets	38
+les adrets de l esterel	83
+les ageux	60
+les aix d angillon	18
+les allues	73
+les alluets le roi	78
+les ancizes comps	63
+les andelys	27
+les angles	30
+les anses d arlet	972
+les arcs	83
+les artigues de lussac	33
+les attaques	62
+les authieux sur le port saint ouen	76
+les auxons	25
+les avenieres veyrins thuellin	38
+les avirons	974
+les belleville	73
+les billaux	33
+les bois d anjou	49
+les bordes	45
+les breviaires	78
+les brouzils	85
+les champs geraux	22
+les cheres	69
+les clayes sous bois	78
+les contamines montjoie	74
+les cotes d arey	38
+les damps	27
+les deux alpes	38
+les echelles	73
+les eglisottes et chalaures	33
+les eparres	38
+les epesses	85
+les essarts le roi	78
+les eyzies	24
+les fins	25
+les forges	88
+les fourgs	25
+les garennes sur loire	49
+les gets	74
+les gonds	17
+les grandes ventes	76
+les granges le roi	91
+les hautes rivieres	08
+les hauts d anjou	49
+les hauts de caux	76
+les herbiers	85
+les houches	74
+les landes genusson	85
+les lilas	93
+les loges	76
+les loges en josas	78
+les loges marchis	50
+les lucs sur boulogne	85
+les mages	30
+les magnils reigniers	85
+les martres d artiere	63
+les martres de veyre	63
+les matelles	34
+les mathes	17
+les mees	04
+les molieres	91
+les montils	41
+les monts d andaine	61
+les monts d aunay	14
+les monts du roumois	27
+les moutiers en retz	44
+les mureaux	78
+les noes pres troyes	10
+les ollieres sur eyrieux	07
+les ormes	86
+les pavillons sous bois	93
+les peintures	33
+les pennes mirabeau	13
+les pieux	50
+les ponts de ce	49
+les portes du coglais	35
+les premiers sapins	25
+les rairies	49
+les riceys	10
+les roches de condrieu	38
+les rousses	39
+les sables d olonne	85
+les salles du gardon	30
+les septvallons	02
+les sorinieres	44
+les touches	44
+les tourrettes	26
+les trois bassins	974
+les trois ilets	972
+les trois lacs	27
+les trois moutiers	86
+les trois saints	19
+les ulis	91
+les vallees de la vanne	89
+les vans	07
+les velluire sur vendee	85
+les ventes	27
+les villages voveens	28
+les villards sur thones	74
+les villettes	43
+lescar	64
+lescure d albigeois	81
+lesigny	77
+lesneven	29
+lesparre medoc	33
+lesperon	40
+lespignan	34
+lespinasse	31
+lesquin	59
+lessay	50
+lestrem	62
+leucate	11
+leudeville	91
+leuville sur orge	91
+leval	59
+levallois perret	92
+levens	06
+leves	28
+levet	18
+levier	25
+levignac	31
+levignen	60
+levis saint nom	78
+levroux	36
+lewarde	59
+lexy	54
+leymen	68
+leyment	01
+lezan	30
+lezardrieux	22
+lezat sur leze	09
+lezay	79
+lezennes	59
+lezignan corbieres	11
+lezignan la cebe	34
+lezigneux	42
+lezoux	63
+lherm	31
+liancourt	60
+libercourt	62
+libourne	33
+licques	62
+liepvre	68
+liesse notre dame	02
+lieu saint amand	59
+lieuran les beziers	34
+lieurey	27
+lieusaint	77
+lievin	62
+liffol le grand	88
+liffre	35
+lifou	988
+lignan sur orb	34
+ligne	44
+lignieres	18
+lignieres de touraine	37
+ligny en barrois	55
+ligny en cambresis	59
+ligny le chatel	89
+ligny le ribault	45
+ligre	37
+ligueil	37
+liguge	86
+lille	59
+lillebonne	76
+lillers	62
+limas	69
+limay	78
+limeil brevannes	94
+limeray	37
+limerzel	56
+limesy	76
+limetz villez	78
+limoges	87
+limonest	69
+limours	91
+limoux	11
+linards	87
+linars	16
+linas	91
+lindry	89
+lingolsheim	67
+linguizzetta	2B
+linselles	59
+linxe	40
+lion sur mer	14
+lipsheim	67
+lisieux	14
+lisle sur tarn	81
+lisses	91
+lissieu	69
+listrac medoc	33
+lit et mixe	40
+livarot pays d auge	14
+liverdun	54
+liverdy en brie	77
+livet et gavet	38
+livinhac le haut	12
+livre sur changeon	35
+livron sur drome	26
+livry gargan	93
+livry louvercy	51
+livry sur seine	77
+lizy sur ourcq	77
+llupia	66
+loches	37
+locmaria grand champ	56
+locmaria plouzane	29
+locmariaquer	56
+locmine	56
+locmiquelic	56
+locoal mendon	56
+locon	62
+locqueltas	56
+locquirec	29
+loctudy	29
+locunole	29
+lodeve	34
+lognes	77
+logonna daoulas	29
+loir en vallee	72
+loir et cher	41
+loire	42
+loire atlantique	44
+loire authion	49
+loire sur rhone	69
+loireauxence	44
+loiret	45
+loiron ruille	53
+loisin	74
+loison sous lens	62
+loisy sur marne	51
+loivre	51
+lombers	81
+lombez	32
+lombron	72
+lompret	59
+londinieres	76
+longages	31
+longchamp	21
+longchaumois	39
+longeault pluvault	21
+longecourt en plaine	21
+longeves	85
+longeville en barrois	55
+longeville les metz	57
+longeville les saint avold	57
+longeville sur mer	85
+longfosse	62
+longjumeau	91
+longlaville	54
+longnes	78
+longny les villages	61
+longperrier	77
+longpont sur orge	91
+longpre les corps saints	80
+longue jumelles	49
+longueau	80
+longueil annel	60
+longueil sainte marie	60
+longuenee en anjou	49
+longuenesse	62
+longueville	77
+longuyon	54
+longvic	21
+longwy	54
+lonlay l abbaye	61
+lonrai	61
+lons	64
+lons le saunier	39
+looberghe	59
+loon plage	59
+loos	59
+loos en gohelle	62
+loperhet	29
+lorette	42
+loretz d argenton	79
+lorgies	62
+lorgues	83
+lorient	56
+loriol du comtat	84
+loriol sur drome	26
+lormaison	60
+lormes	58
+lormont	33
+lorp sentaraille	09
+lorquin	57
+lorrez le bocage preaux	77
+lorris	45
+lorry les metz	57
+losne	21
+lot	46
+lot et garonne	47
+louannec	22
+louargat	22
+loubeyrat	63
+loudeac	22
+loudun	86
+loue	72
+louey	65
+louhans chateaurenaud	71
+loupiac	33
+loupian	34
+louplande	72
+lourches	59
+lourdes	65
+lourmarin	84
+loury	45
+louveciennes	78
+louverne	53
+louvie juzon	64
+louviers	27
+louvigne	53
+louvigne de bais	35
+louvigne du desert	35
+louvigny	14
+louvres	95
+louvroil	59
+louzy	79
+lovagny	74
+loyat	56
+loyettes	01
+lozanne	69
+lozere	48
+lozinghem	62
+luant	36
+lubersac	19
+luc la primaube	12
+luc sur mer	14
+luc sur orbieu	11
+lucay le male	36
+lucciana	2B
+luce	28
+luceau	72
+lucenay	69
+luceram	06
+luche pringe	72
+lucinges	74
+lucon	85
+ludon medoc	33
+ludres	54
+lugon et l ile du carnay	33
+lugos	33
+lugrin	74
+luisant	28
+luitre dompierre	35
+lumbin	38
+lumbres	62
+lumes	08
+lumigny nesles ormeaux	77
+lumio	2B
+lunay	41
+lunel	34
+lunel viel	34
+luneray	76
+lunery	18
+luneville	54
+luray	28
+lurcy levis	03
+lure	70
+luriecq	42
+lusanger	44
+lusignan	86
+lusigny	03
+lusigny sur barse	10
+lussac	33
+lussac les chateaux	86
+lussant	17
+lussas	07
+lutterbach	68
+lutzelhouse	67
+lux	71
+luxeuil les bains	70
+luynes	37
+luzancy	77
+luzarches	95
+luzech	46
+luzillat	63
+luzinay	38
+luzy	58
+lyaud	74
+lyon	69
+lys haut layon	49
+lys lez lannoy	59
+m tsangamouji	976
+mably	42
+macau	33
+mache	85
+machecoul saint meme	44
+macheren	57
+machilly	74
+maclas	42
+macon	71
+macornay	39
+macouria	973
+mael carhaix	22
+maen roch	35
+maffliers	95
+magalas	34
+magenta	51
+magescq	40
+magland	74
+magnac bourg	87
+magnac laval	87
+magnac sur touvre	16
+magnanville	78
+magne	79
+magnet	03
+magny cours	58
+magny en vexin	95
+magny le desert	61
+magny le hongre	77
+magny les hameaux	78
+magny vernois	70
+mahalon	29
+mahina	987
+maiche	25
+maidieres	54
+maignelay montigny	60
+maillane	13
+maillot	89
+mailly le camp	10
+maincy	77
+maine et loire	49
+maing	59
+maintenon	28
+mainvilliers	28
+mainxe gondeville	16
+maisdon sur sevre	44
+maisnil les ruitz	62
+maisons alfort	94
+maisons laffitte	78
+maisse	91
+maizieres la grande paroisse	10
+maizieres les metz	57
+makemo	987
+malafretaz	01
+malakoff	92
+malansac	56
+malataverne	26
+malaucene	84
+malaunay	76
+malause	82
+malauzat	63
+malay le grand	89
+malemort	19
+malemort du comtat	84
+malestroit	56
+malguenac	56
+malicorne sur sarthe	72
+malijai	04
+malintrat	63
+malissard	26
+malleloy	54
+mallemort	13
+maltot	14
+malville	44
+malzeville	54
+mamers	72
+mametz	62
+mamirolle	25
+mamoudzou	976
+mana	973
+manche	50
+mandelieu la napoule	06
+mandeure	25
+mandres les roses	94
+manduel	30
+mane	04
+maneglise	76
+manigod	74
+manihi	987
+manneville la goupil	76
+manneville sur risle	27
+manom	57
+manosque	04
+mansac	19
+mansigne	72
+mansle les fontaines	16
+mantes la jolie	78
+mantes la ville	78
+manthelan	37
+manzat	63
+manziat	01
+marange silvange	57
+marans	17
+maransin	33
+maraussan	34
+marbache	54
+marbois	27
+marboue	28
+marboz	01
+marcay	86
+marcelcave	80
+marcellaz	74
+marcellaz albanais	74
+marcey les greves	50
+marchaux chaudefontaine	25
+marcheprime	33
+marchiennes	59
+marciac	32
+marcigny	71
+marcillac vallon	12
+marcille robert	35
+marcilloles	38
+marcilly d azergues	69
+marcilly en villette	45
+marcilly la campagne	27
+marcilly le chatel	42
+marcilly sur eure	27
+marcilly sur tille	21
+marck	62
+marckolsheim	67
+marcoing	59
+marcon	72
+marconnelle	62
+marcorignan	11
+marcoussis	91
+marcq en barœul	59
+marcy l etoile	69
+mardeuil	51
+mardie	45
+mare	988
+mareau aux pres	45
+mareil marly	78
+mareil sur mauldre	78
+marennes	69
+marennes hiers brouage	17
+maresquel ecquemicourt	62
+maretz	59
+mareuil en perigord	24
+mareuil le port	51
+mareuil les meaux	77
+mareuil sur cher	41
+mareuil sur lay dissais	85
+mareuil sur ourcq	60
+margaux cantenac	33
+margencel	74
+margency	95
+marges	26
+margny les compiegne	60
+marguerittes	30
+marignane	13
+marigne laille	72
+marignier	74
+marigny le chatel	10
+marigny le lozon	50
+marigny les usages	45
+marin	74
+marines	95
+maringues	63
+maripasoula	973
+marle	02
+marlenheim	67
+marles en brie	77
+marles les mines	62
+marlhes	42
+marlieux	01
+marlioz	74
+marly	59
+marly la ville	95
+marly le roi	78
+marmagne	18
+marmande	47
+marmoutier	67
+marnay	70
+marnaz	74
+marne	51
+marnes la coquette	92
+maroilles	59
+marolles en brie	94
+marolles en hurepoix	91
+marolles les braults	72
+marolles sur seine	77
+maromme	76
+marpent	59
+marpire	35
+marquette en ostrevant	59
+marquette lez lille	59
+marquillies	59
+marquion	62
+marquise	62
+marsac en livradois	63
+marsac sur don	44
+marsac sur l isle	24
+marsannay la cote	21
+marsanne	26
+marsas	33
+marsat	63
+marseillan	34
+marseille	13
+marseille en beauvaisis	60
+marsillargues	34
+marsilly	17
+marsonnas	01
+marssac sur tarn	81
+martel	46
+marthod	73
+martiel	12
+martignas sur jalle	33
+martignat	01
+martigne ferchaud	35
+martigne sur mayenne	53
+martigues	13
+martillac	33
+martin eglise	76
+martinet	85
+martinique	972
+martinvast	50
+martres tolosane	31
+marvejols	48
+marville moutiers brule	28
+mary sur marne	77
+marzan	56
+marzy	58
+marœuil	62
+mas grenier	82
+masevaux niederbruck	68
+masnieres	59
+masny	59
+massay	18
+masseube	32
+massiac	15
+massieux	01
+massongy	74
+massy	91
+matha	17
+mathay	25
+mathieu	14
+matignon	22
+matour	71
+matoury	973
+matzenheim	67
+maubec	38
+maubert fontaine	08
+maubeuge	59
+maubourguet	65
+mauges sur loire	49
+mauguio	34
+maule	78
+mauleon	79
+mauleon licharre	64
+maulette	78
+maulevrier	49
+maulevrier sainte gertrude	76
+maupiti	987
+maurecourt	78
+maureilhan	34
+maureillas las illas	66
+maurepas	78
+mauriac	15
+mauron	56
+maurs	15
+maussane les alpilles	13
+mauves	07
+mauves sur loire	44
+mauvezin	32
+mauzac	31
+mauze sur le mignon	79
+maxent	35
+maxeville	54
+maxilly sur leman	74
+mayenne	53
+mayet	72
+mayotte	976
+mazamet	81
+mazan	84
+maze milon	49
+mazeres	09
+mazeres lezons	64
+mazerolles	64
+mazet saint voy	43
+mazeyrat d allier	43
+mazieres de touraine	37
+mazieres en gatine	79
+mazieres en mauges	49
+mazingarbe	62
+meaulte	80
+meaux	77
+meauzac	82
+mecleuves	57
+medan	78
+medis	17
+medreac	35
+mees	40
+megeve	74
+mehun sur yevre	18
+meilhan	40
+meilhan sur garonne	47
+meillac	35
+meillonnas	01
+meistratzheim	67
+mejannes les ales	30
+melesse	35
+melgven	29
+melisey	70
+mellac	29
+melle	79
+mellecey	71
+melrand	56
+melun	77
+mende	48
+meneac	56
+menesplet	24
+menestreau en villette	45
+menetou salon	18
+menetrol	63
+menilles	27
+mennecy	91
+menneval	27
+mens	38
+mensignac	24
+menthon saint bernard	74
+menthonnex en bornes	74
+menton	06
+menucourt	95
+meounes les montrieux	83
+mer	41
+meral	53
+mercuer	07
+mercues	46
+mercurey	71
+mercurol veaunes	26
+mercury	73
+mercus garrabet	09
+mercy le bas	54
+merdrignac	22
+mere	78
+mereau	18
+mereville	54
+mericourt	62
+meriel	95
+merignac	33
+merignies	59
+merindol	84
+merlerault le pin	61
+merlevenez	56
+merlimont	62
+mernel	35
+meroux moval	90
+merpins	16
+merris	59
+mers les bains	80
+merten	57
+mertzwiller	67
+meru	60
+mervans	71
+mervent	85
+merville	59
+merville franceville plage	14
+merxheim	68
+mery	73
+mery bissieres en auge	14
+mery sur oise	95
+mery sur seine	10
+mesanger	44
+meschers sur gironde	17
+meslan	56
+meslay du maine	53
+mesnard la barotiere	85
+mesnil en ouche	27
+mesnil raoul	76
+mesnil roc h	35
+mesnils sur iton	27
+mesquer	44
+messanges	40
+messas	45
+messei	61
+messein	54
+messery	74
+messigny et vantoux	21
+messimy	69
+messimy sur saone	01
+messy	77
+metabief	25
+meteren	59
+mettray	37
+metz	57
+metzeral	68
+metzeresche	57
+metzervisse	57
+meucon	56
+meudon	92
+meulan en yvelines	78
+meung sur loire	45
+meurchin	62
+meursac	17
+meursault	21
+meurthe et moselle	54
+meuse	55
+meusnes	41
+meximieux	01
+mexy	54
+meyenheim	68
+meylan	38
+meymac	19
+meynes	30
+meyrargues	13
+meyreuil	13
+meyrie	38
+meyrieu les etangs	38
+meyssac	19
+meysse	07
+meyzieu	69
+meze	34
+mezeray	72
+mezeriat	01
+mezidon vallee d auge	14
+mezieres en drouais	28
+mezieres sur couesnon	35
+mezieres sur seine	78
+mezin	47
+mezire	90
+mezy sur seine	78
+michery	89
+mielan	32
+mieussy	74
+migennes	89
+mignaloux beauvoir	86
+migne auxances	86
+mignieres	28
+milhaud	30
+milizac guipronvel	29
+millas	66
+millau	12
+millery	69
+milly la foret	91
+milly sur therain	60
+mimbaste	40
+mimet	13
+mimizan	40
+miniac morvan	35
+minihy treguier	22
+minzier	74
+mionnay	01
+mions	69
+mios	33
+mirabeau	84
+mirabel	82
+mirabel aux baronnies	26
+mirabel et blacons	26
+miramas	13
+mirambeau	17
+miramont de guyenne	47
+mirande	32
+mirandol bourgnounac	81
+mire	49
+mirebeau	86
+mirebeau sur beze	21
+mirecourt	88
+mirefleurs	63
+miremont	31
+mirepeix	64
+mirepoix	09
+mirepoix sur tarn	31
+mireval	34
+miribel	01
+miribel les echelles	38
+miserey salines	25
+miserieux	01
+mison	04
+missillac	44
+missiriac	56
+mitry mory	77
+mittelhausbergen	67
+modane	73
+moelan sur mer	29
+mogneville	60
+moidieu detourbe	38
+moigny sur ecole	91
+moineville	54
+moirans	38
+moirans en montagne	39
+moirax	47
+moisdon la riviere	44
+moisenay	77
+moislains	80
+moissac	82
+moissat	63
+moisselles	95
+moissy cramayel	77
+molac	56
+moliens	60
+molieres	82
+molieres sur ceze	30
+moliets et maa	40
+molinet	03
+mollans sur ouveze	26
+molleges	13
+molsheim	67
+mommenheim	67
+monce en belin	72
+moncheaux	59
+monchecourt	59
+monchy saint eloi	60
+monclar de quercy	82
+moncourt fromonville	77
+moncoutant sur sevre	79
+mondelange	57
+mondeville	14
+mondonville	31
+mondoubleau	41
+mondragon	84
+mondrepuis	02
+monein	64
+monestier de clermont	38
+monesties	81
+moneteau	89
+monflanquin	47
+monistrol sur loire	43
+monnaie	37
+monnetier mornex	74
+monnieres	44
+mons	31
+mons en barœul	59
+mons en laonnois	02
+mons en pevele	59
+monsegur	33
+monsempron libos	47
+monswiller	67
+mont	64
+mont bernanchon	62
+mont de marsan	40
+mont dol	35
+mont dore	63
+mont lozere et goulet	48
+mont pres chambord	41
+mont saint aignan	76
+mont saint eloi	62
+mont saint martin	54
+mont saxonnex	74
+mont sous vaudrey	39
+mont sur meurthe	54
+montady	34
+montagnac	34
+montagnat	01
+montagne	33
+montagnieu	38
+montagnole	73
+montagny	69
+montaigu de quercy	82
+montaigu vendee	85
+montaigut sur save	31
+montalieu vercieu	38
+montamise	86
+montanay	69
+montans	81
+montardon	64
+montaren et saint mediers	30
+montargis	45
+montarnaud	34
+montastruc la conseillere	31
+montataire	60
+montauban	82
+montauban de bretagne	35
+montaud	34
+montauroux	83
+montaut	64
+montauville	54
+montayral	47
+montbard	21
+montbartier	82
+montbazens	12
+montbazin	34
+montbazon	37
+montbeliard	25
+montberon	31
+montbert	44
+montbeton	82
+montbizot	72
+montblanc	34
+montbonnot saint martin	38
+montboucher sur jabron	26
+montbrison	42
+montbron	16
+montbronn	57
+montcaret	24
+montceau les mines	71
+montceaux	01
+montcel	73
+montcenis	71
+montchanin	71
+montchevreuil	60
+montcornet	02
+montcresson	45
+montcuq en quercy blanc	46
+montcy notre dame	08
+montdidier	80
+montebourg	50
+montech	82
+monteils	82
+monteleger	26
+montelier	26
+montelimar	26
+montenay	53
+montendre	17
+montenois	25
+monterblanc	56
+montereau fault yonne	77
+monterfil	35
+montescot	66
+montescourt lizerolles	02
+montesquieu des alberes	66
+montesquieu lauragais	31
+montesquieu volvestre	31
+montesson	78
+monteux	84
+montevrain	77
+montfaucon	25
+montfaucon en velay	43
+montfermeil	93
+montferrand le chateau	25
+montferrat	38
+montferrier sur lez	34
+montfort en chalosse	40
+montfort l amaury	78
+montfort le gesnois	72
+montfort sur argens	83
+montfort sur meu	35
+montfrin	30
+montgailhard	09
+montgermont	35
+montgeron	91
+montgiscard	31
+montgivray	36
+montguyon	17
+montherme	08
+montholon	89
+monthyon	77
+monticello	2B
+montierchaume	36
+montignac lascaux	24
+montigne le brillant	53
+montigny	76
+montigny en gohelle	62
+montigny en ostrevent	59
+montigny le bretonneux	78
+montigny lencoup	77
+montigny les cormeilles	95
+montigny les metz	57
+montigny sur loing	77
+montilliers	49
+montivilliers	76
+montjean	53
+montjoire	31
+montlaur	31
+montlebon	25
+montlhery	91
+montlieu la garde	17
+montlignon	95
+montlivault	41
+montlouis sur loire	37
+montlucon	03
+montluel	01
+montmacq	60
+montmagny	95
+montmain	76
+montmarault	03
+montmartin sur mer	50
+montmedy	55
+montmelian	73
+montmerle sur saone	01
+montmeyran	26
+montmirail	51
+montmoreau	16
+montmorency	95
+montmorillon	86
+montmorot	39
+montoir de bretagne	44
+montoire sur le loir	41
+montois la montagne	57
+montoison	26
+montournais	85
+montpellier	34
+montpeyroux	34
+montpezat	30
+montpezat de quercy	82
+montpon menesterol	24
+montpont en bresse	71
+montrabe	31
+montracol	01
+montreal	11
+montreal la cluse	01
+montredon des corbieres	11
+montredon labessonnie	81
+montrejeau	31
+montrem	24
+montreuil	93
+montreuil aux lions	02
+montreuil bellay	49
+montreuil juigne	49
+montreuil le gast	35
+montreuil sous perouse	35
+montreuil sur ille	35
+montreuil sur mer	62
+montreux chateau	90
+montrevault sur evre	49
+montrevel en bresse	01
+montreverd	85
+montrichard val de cher	41
+montricoux	82
+montrodat	48
+montrond les bains	42
+montrottier	69
+montrouge	92
+montrozier	12
+montry	77
+monts	37
+monts de randon	48
+montsegur sur lauzon	26
+montsenelle	50
+montsinery tonnegrande	973
+montsoult	95
+montsurs	53
+montussan	33
+montval sur loir	72
+montvendre	26
+montverdun	42
+montville	76
+moorea maiao	987
+moosch	68
+morainvilliers	78
+morance	69
+morancez	28
+morangis	91
+morannes sur sarthe daumeray	49
+morbecque	59
+morbier	39
+morbihan	56
+morcenx la nouvelle	40
+mordelles	35
+moreac	56
+moree	41
+morestel	38
+moret loing et orvanne	77
+moreuil	80
+morfontaine	54
+morgny la pommeraye	76
+morhange	57
+morienval	60
+morieres les avignon	84
+morigny champigny	91
+morlaas	64
+morlaix	29
+mormant	77
+mormoiron	84
+mornac	16
+mornant	69
+mornas	84
+morne a l eau	971
+morre	25
+morsang sur orge	91
+morsbach	57
+morschwiller le bas	68
+mortagne au perche	61
+mortagne du nord	59
+mortagne sur sevre	85
+mortain bocage	50
+mortcerf	77
+morteau	25
+mortree	61
+morvillars	90
+morzine	74
+moselle	57
+mothern	67
+mouans sartoux	06
+mouaze	35
+mouchamps	85
+mouchard	39
+mouchin	59
+mouen	14
+mougins	06
+mouguerre	64
+mouilleron le captif	85
+mouilleron saint germain	85
+mouleydier	24
+mouliets et villemartin	33
+moulins	03
+moulins en bessin	14
+moulins engilbert	58
+moulins les metz	57
+moulis en medoc	33
+moulle	62
+moulon	33
+moult chicheboville	14
+mourenx	64
+mouries	13
+mourmelon le grand	51
+mouroux	77
+mours	95
+mours saint eusebe	26
+moussac	30
+moussan	11
+moussy le neuf	77
+moussy le vieux	77
+moustoir ac	56
+mouthe	25
+mouthiers sur boeme	16
+moutiers	73
+moutiers les mauxfaits	85
+mouvaux	59
+mouxy	73
+mouy	60
+mouzeil	44
+mouzeuil saint martin	85
+mouzillon	44
+mouzon	08
+moyaux	14
+moyenmoutier	88
+moyeuvre grande	57
+moyon villages	50
+moyrazes	12
+mozac	63
+moze sur louet	49
+mtsamboro	976
+mudaison	34
+muespach le haut	68
+mugron	40
+muides sur loire	41
+muizon	51
+mulhouse	68
+mulsanne	72
+munchhouse	68
+mundolsheim	67
+munster	68
+muntzenheim	68
+mur de sologne	41
+mur sur allier	63
+murat	15
+muret	31
+muron	17
+murs erigne	49
+murviel les beziers	34
+murviel les montpellier	34
+mus	30
+mussidan	24
+mussig	67
+muttersholtz	67
+mutzig	67
+muzillac	56
+myans	73
+nages et solorgues	30
+nailloux	31
+nailly	89
+naintre	86
+nalliers	85
+namps maisnil	80
+nancray	25
+nancy	54
+nandy	77
+nangis	77
+nangy	74
+nans les pins	83
+nant	12
+nanterre	92
+nantes	44
+nanteuil	79
+nanteuil en vallee	16
+nanteuil le haudouin	60
+nanteuil les meaux	77
+nantiat	87
+nantua	01
+naours	80
+narbonne	11
+nargis	45
+narrosse	40
+nassandres sur risle	27
+naucelle	12
+naucelles	15
+naujac sur mer	33
+navailles angos	64
+navarrenx	64
+naveil	41
+navenne	70
+naves	19
+naves parmelan	74
+nay	64
+nazelles negron	37
+neant sur yvel	56
+neaufles saint martin	27
+neauphle le chateau	78
+nebian	34
+neffies	34
+nefiach	66
+negrepelisse	82
+nemours	77
+neoules	83
+nerac	47
+nercillac	16
+neris les bains	03
+nerondes	18
+nersac	16
+nervieux	42
+nesle	80
+nesles	62
+nesles la montagne	02
+nesles la vallee	95
+nesmy	85
+neuf berquin	59
+neuf brisach	68
+neuf mesnil	59
+neufchateau	88
+neufchatel en bray	76
+neufchatel en saosnois	72
+neufchatel hardelot	62
+neufchef	57
+neufgrange	57
+neufmoutiers en brie	77
+neuille	49
+neuille pont pierre	37
+neuilly crimolois	21
+neuilly en thelle	60
+neuilly le real	03
+neuilly plaisance	93
+neuilly saint front	02
+neuilly sous clermont	60
+neuilly sur marne	93
+neuilly sur seine	92
+neulise	42
+neulliac	56
+neung sur beuvron	41
+neuve chapelle	62
+neuvecelle	74
+neuveglise sur truyere	15
+neuves maisons	54
+neuvic	24
+neuville aux bois	45
+neuville de poitou	86
+neuville en ferrain	59
+neuville les dames	01
+neuville saint remy	59
+neuville saint vaast	62
+neuville sur ain	01
+neuville sur escaut	59
+neuville sur oise	95
+neuville sur saone	69
+neuville sur sarthe	72
+neuvilly	59
+neuvy	03
+neuvy en sullias	45
+neuvy le roi	37
+neuvy pailloux	36
+neuvy saint sepulchre	36
+neuvy sur barangeon	18
+neuvy sur loire	58
+neuwiller les saverne	67
+nevers	58
+nevez	29
+nevian	11
+neville	76
+nevoy	45
+nexon	87
+neydens	74
+neyron	01
+nezel	78
+nezignan l eveque	34
+nibelle	45
+nice	06
+niderviller	57
+niederbronn les bains	67
+niederhaslach	67
+niederhausbergen	67
+niederhergheim	68
+niedernai	67
+niederschaeffolsheim	67
+nieppe	59
+nieuil l espoir	86
+nieul	87
+nieul le dolent	85
+nieul les saintes	17
+nieul sur mer	17
+nieulle sur seudre	17
+nievre	58
+nievroz	01
+niherne	36
+nilvange	57
+nimes	30
+niort	79
+nissan lez enserune	34
+nivelle	59
+nivillac	56
+nivolas vermelle	38
+noaillan	33
+noailles	60
+noe	31
+nogaro	32
+nogent	52
+nogent l artaud	02
+nogent le phaye	28
+nogent le roi	28
+nogent le rotrou	28
+nogent sur marne	94
+nogent sur oise	60
+nogent sur seine	10
+nogent sur vernisson	45
+nogentel	02
+nohanent	63
+nohic	82
+noidans les vesoul	70
+nointel	60
+nointot	76
+noiretable	42
+noirmoutier en l ile	85
+noiron sous gevrey	21
+noiseau	94
+noisiel	77
+noisseville	57
+noisy le grand	93
+noisy le roi	78
+noisy le sec	93
+noisy sur ecole	77
+noizay	37
+nolay	21
+nomain	59
+nomeny	54
+nomexy	88
+nommay	25
+nonancourt	27
+nontron	24
+nord	59
+nordausques	62
+nordhouse	67
+normanville	27
+norrent fontes	62
+norroy les pont a mousson	54
+nort sur erdre	44
+nortkerque	62
+nostang	56
+notre dame d oe	37
+notre dame de bondeville	76
+notre dame de mesage	38
+notre dame de monts	85
+notre dame de riez	85
+notre dame des landes	44
+nouaille maupertuis	86
+nouan le fuzelier	41
+noues de sienne	14
+noumea	988
+nousseviller saint nabor	57
+nousty	64
+nouvion	80
+nouvion sur meuse	08
+nouvoitou	35
+nouzilly	37
+nouzonville	08
+novalaise	73
+noveant sur moselle	57
+noves	13
+novillars	25
+noyal chatillon sur seiche	35
+noyal muzillac	56
+noyal pontivy	56
+noyal sur vilaine	35
+noyant de touraine	37
+noyant villages	49
+noyarey	38
+noyelles godault	62
+noyelles les vermelles	62
+noyelles sous lens	62
+noyen sur sarthe	72
+noyers sur cher	41
+noyon	60
+nozay	91
+nuaille	49
+nuaille d aunis	17
+nueil les aubiers	79
+nuille sur vicoin	53
+nuits saint georges	21
+nuku hiva	987
+nyons	26
+nœux les mines	62
+o de selle	80
+obenheim	67
+oberbronn	67
+oberhaslach	67
+oberhausbergen	67
+oberhergheim	68
+oberhoffen sur moder	67
+obermodern zutzendorf	67
+obernai	67
+obersaasheim	68
+oberschaeffolsheim	67
+objat	19
+octeville sur mer	76
+oderen	68
+odos	65
+oermingen	67
+oeyreluy	40
+offekerque	62
+offemont	90
+offendorf	67
+offranville	76
+ogeu les bains	64
+ognes	02
+ogy montoy flanville	57
+ohain	59
+ohlungen	67
+ohnenheim	67
+oignies	62
+oinville sur montcient	78
+oise	60
+oisemont	80
+oisseau	53
+oissel sur seine	76
+oissery	77
+oisy le verger	62
+oize	72
+olemps	12
+oletta	2B
+olivet	45
+ollainville	91
+ollioules	83
+olmeto	2A
+olonzac	34
+oloron sainte marie	64
+ombree d anjou	49
+oncy sur ecole	91
+ondres	40
+onesse laharie	40
+onet le chateau	12
+onnaing	59
+onnion	74
+ons en bray	60
+opio	06
+opoul perillos	66
+oppede	84
+oradour sur glane	87
+oradour sur vayres	87
+oraison	04
+orange	84
+orbec	14
+orbey	68
+orcet	63
+orchamps	39
+orchamps vennes	25
+orchies	59
+orcier	74
+orcines	63
+oree d anjou	49
+orgelet	39
+orgeres	35
+orgeres en beauce	28
+orgerus	78
+orgeval	78
+orgon	13
+orgueil	82
+origny en thierache	02
+origny sainte benoite	02
+orleans	45
+orleat	63
+orleix	65
+orlienas	69
+orly	94
+ormes	45
+ormesson sur marne	94
+ormoy	91
+ornaisons	11
+ornans	25
+orne	61
+ornex	01
+orry la ville	60
+orsan	30
+orsay	91
+orschwihr	68
+ortaffa	66
+orthevielle	40
+orthez	64
+orval	18
+orval sur sienne	50
+orvault	44
+oslon	71
+osny	95
+osseja	66
+ossun	65
+ostheim	68
+ostricourt	59
+ostwald	67
+othis	77
+ottange	57
+otterswiller	67
+ottmarsheim	68
+ottrott	67
+ouangani	976
+ouches	42
+oucques la nouvelle	41
+oudon	44
+ouegoa	988
+ouges	21
+ouistreham	14
+oulins	28
+oullins pierre benite	69
+ouroux sur saone	71
+oursbelille	65
+ourville en caux	76
+ousse	64
+outarville	45
+outreau	62
+ouvea	988
+ouveillan	11
+ouzouer sur loire	45
+ouzouer sur trezee	45
+oye plage	62
+oyeu	38
+oyonnax	01
+oytier saint oblas	38
+ozoir la ferriere	77
+ozouer le voulgis	77
+pabu	22
+pace	35
+pacy sur eure	27
+paea	987
+pagny sur meuse	55
+pagny sur moselle	54
+paillencourt	59
+paillet	33
+paimbœuf	44
+paimpol	22
+paimpont	35
+paita	988
+pajay	38
+palaiseau	91
+palaja	11
+palau del vidre	66
+palavas les flots	34
+palinges	71
+palluau	85
+palmas d aveyron	12
+pamandzi	976
+pamiers	09
+pamproux	79
+panazol	87
+pance	35
+panissieres	42
+pannece	44
+pannes	45
+pantin	93
+papaichton	973
+papara	987
+papeete	987
+paradou	13
+paray le monial	71
+paray vieille poste	91
+parcay meslay	37
+parce sur sarthe	72
+parcieux	01
+parempuyre	33
+parentis en born	40
+pargny sur saulx	51
+parigne	35
+parigne l eveque	72
+parigne le polin	72
+paris	75
+parisot	81
+parmain	95
+parne sur roc	53
+paron	89
+parthenay	79
+parthenay de bretagne	35
+pas de calais	62
+paslieres	63
+pasly	02
+passa	66
+passais villages	61
+passy	74
+patay	45
+pau	64
+pauillac	33
+paulhac	31
+paulhan	34
+paulx	44
+pavie	32
+pavilly	76
+payns	10
+payrin augmontel	81
+pays de belves	24
+pays de clerval	25
+pays de montbenoit	25
+peaugres	07
+peaule	56
+pechabou	31
+pechbonnieu	31
+pecquencourt	59
+pedernec	22
+pegomas	06
+peillac	56
+peille	06
+peillon	06
+peillonnex	74
+peipin	04
+pelissanne	13
+pelousey	25
+peltre	57
+pelussin	42
+penchard	77
+pencran	29
+pende	80
+penestin	56
+penmarch	29
+pennautier	11
+penne d agenais	47
+penta di casinca	2B
+penvenan	22
+peone	06
+pepieux	11
+perche en noce	61
+percy en normandie	50
+perenchies	59
+peret	34
+peri	2A
+periers	50
+perignat les sarlieve	63
+perignat sur allier	63
+perigneux	42
+perigny	17
+perigueux	24
+perissac	33
+pernay	37
+pernes	62
+pernes les fontaines	84
+perols	34
+peron	01
+peronnas	01
+peronne	80
+peronne en melantois	59
+perouges	01
+perouse	90
+peroy les gombries	60
+perpezac le noir	19
+perpignan	66
+perrecy les forges	71
+perreux	42
+perriers sur andelle	27
+perrignier	74
+perrigny	39
+perrigny les dijon	21
+perros guirec	22
+perrusson	37
+pers jussy	74
+persan	95
+perthes	77
+pertuis	84
+peschadoires	63
+pesmes	70
+pessac	33
+petit bourg	971
+petit canal	971
+petit caux	76
+petit couronne	76
+petit mars	44
+petit noir	39
+petit rederching	57
+petite foret	59
+petite ile	974
+petite rosselle	57
+petiville	76
+peujard	33
+pexiora	11
+peymeinade	06
+peynier	13
+peypin	13
+peyrat de bellac	87
+peyrat le chateau	87
+peyre en aubrac	48
+peyrehorade	40
+peyrestortes	66
+peyriac de mer	11
+peyriac minervois	11
+peyrilhac	87
+peyrins	26
+peyrolles en provence	13
+peyruis	04
+pezenas	34
+pezens	11
+pezilla la riviere	66
+pezou	41
+pfaffenheim	68
+pfastatt	68
+pfulgriesheim	67
+phalempin	59
+phalsbourg	57
+pia	66
+pibrac	31
+picauville	50
+picquigny	80
+piegut pluviers	24
+piennes	54
+pierre buffiere	87
+pierre chatel	38
+pierre de bresse	71
+pierrefeu du var	83
+pierrefitte nestalas	65
+pierrefonds	60
+pierrefontaine les varans	25
+pierrelatte	26
+pierrelaye	95
+pierres	28
+pierrevert	04
+pierrevillers	57
+pierric	44
+pierry	51
+pietrosella	2A
+pignan	34
+pignans	83
+pin balma	31
+pinet	34
+pineuilh	33
+piney	10
+pinon	02
+pins justaret	31
+pinsaguel	31
+piolenc	84
+pionsat	63
+pipriac	35
+pirae	987
+pire chance	35
+pirey	25
+piriac sur mer	44
+pirou	50
+pissos	40
+pissotte	85
+pissy poville	76
+pitgam	59
+pithiviers	45
+pithiviers le vieil	45
+pitres	27
+plabennec	29
+plailly	60
+plaimpied givaudins	18
+plaine d argenson	79
+plaine et vallees	79
+plaine haute	22
+plainfaing	88
+plaintel	22
+plaisance	32
+plaisance du touch	31
+plaisir	78
+plaissan	34
+plan d aups sainte baume	83
+plan d orgon	13
+plan de cuques	13
+plancher bas	70
+plancoet	22
+planfoy	42
+plappeville	57
+plateau d hauteville	01
+plateau des petites roches	38
+plaudren	56
+plauzat	63
+pleaux	15
+plechatel	35
+pledeliac	22
+pledran	22
+pleguien	22
+plehedel	22
+pleine fougeres	35
+plelan le grand	35
+plelan le petit	22
+plelo	22
+plemet	22
+plemy	22
+plenee jugon	22
+pleneuf val andre	22
+plerguer	35
+plerin	22
+plerneuf	22
+plescop	56
+pleslin trigavou	22
+plesse	44
+plestan	22
+plestin les greves	22
+pleubian	22
+pleucadeuc	56
+pleudihen sur rance	22
+pleugriffet	56
+pleugueneuc	35
+pleumartin	86
+pleumeleuc	35
+pleumeur bodou	22
+pleumeur gautier	22
+pleurtuit	35
+pleuven	29
+pleyben	29
+pleyber christ	29
+plobannalec lesconil	29
+plobsheim	67
+ploemel	56
+ploemeur	56
+ploerdut	56
+ploeren	56
+ploermel	56
+ploezal	22
+plogastel saint germain	29
+plogoff	29
+plogonnec	29
+plombieres les bains	88
+plombieres les dijon	21
+plomelin	29
+plomeur	29
+plomodiern	29
+ploneis	29
+ploneour lanvern	29
+plonevez du faou	29
+plonevez porzay	29
+plouaret	22
+plouarzel	29
+plouasne	22
+plouay	56
+ploubazlanec	22
+ploubezre	22
+ploudalmezeau	29
+ploudaniel	29
+plouec du trieux	22
+plouedern	29
+plouegat guerand	29
+plouenan	29
+plouer sur rance	22
+plouescat	29
+plouezec	22
+plouezoc h	29
+ploufragan	22
+plougasnou	29
+plougastel daoulas	29
+plougonvelin	29
+plougonven	29
+plougoulm	29
+plougoumelen	56
+plougourvest	29
+plougrescant	22
+plouguenast langast	22
+plouguerneau	29
+plouguernevel	22
+plouguiel	22
+plouguin	29
+plouha	22
+plouharnel	56
+plouhinec	56
+plouider	29
+plouigneau	29
+plouisy	22
+ploulec h	22
+ploumagoar	22
+ploumilliau	22
+ploumoguer	29
+plouneour brignogan plages	29
+plouneour menez	29
+plouneventer	29
+plounevez lochrist	29
+plounevez moedec	22
+plounevez quintin	22
+plounevezel	29
+plouray	56
+plourhan	22
+plourin	29
+plourin les morlaix	29
+plourivo	22
+plouvara	22
+plouvien	29
+plouvorn	29
+plouzane	29
+plouzevede	29
+plozevet	29
+pluguffan	29
+pluherlin	56
+plumaudan	22
+plumaugat	22
+plumelec	56
+plumeliau bieuzy	56
+plumelin	56
+plumergat	56
+plumieux	22
+pluneret	56
+plurien	22
+pluvigner	56
+pluzunet	22
+plœuc l hermitage	22
+poce les bois	35
+poce sur cisse	37
+podensac	33
+poey de lescar	64
+poilly lez gien	45
+poindimie	988
+pointe a pitre	971
+pointe noire	971
+poiroux	85
+poisat	38
+poissy	78
+poisy	74
+poitiers	86
+poix de picardie	80
+poix du nord	59
+poleymieux au mont d or	69
+polienas	38
+polignac	43
+poligne	35
+poligny	39
+pollestres	66
+polliat	01
+pollionnay	69
+polminhac	15
+pomarez	40
+pomas	11
+pomerols	34
+pomeys	69
+pommeret	22
+pommerit le vicomte	22
+pommeuse	77
+pommiers	69
+pompaire	79
+pompertuzat	31
+pompey	54
+pompignac	33
+pompignan	82
+pomponne	77
+ponchon	60
+poncin	01
+poncins	42
+ponerihouen	988
+pons	17
+pont a marcq	59
+pont a mousson	54
+pont a vendin	62
+pont audemer	27
+pont aven	29
+pont croix	29
+pont d ain	01
+pont d ouilly	14
+pont de buis les quimerch	29
+pont de cheruy	38
+pont de l arche	27
+pont de l isere	26
+pont de larn	81
+pont de metz	80
+pont de roide vermondans	25
+pont de ruan	37
+pont de salars	12
+pont de vaux	01
+pont de veyle	01
+pont du casse	47
+pont du chateau	63
+pont eveque	38
+pont hebert	50
+pont l abbe	29
+pont l abbe d arnoult	17
+pont l eveque	14
+pont pean	35
+pont remy	80
+pont saint esprit	30
+pont saint martin	44
+pont saint pierre	27
+pont saint vincent	54
+pont sainte marie	10
+pont sainte maxence	60
+pont salomon	43
+pont scorff	56
+pont sur sambre	59
+pont sur seine	10
+pont sur yonne	89
+pontacq	64
+pontailler sur saone	21
+pontarlier	25
+pontault combault	77
+pontcarre	77
+pontcharra	38
+pontchateau	44
+ponteilla	66
+pontenx les forges	40
+pontfaverger moronvilliers	51
+pontgouin	28
+pontivy	56
+pontlevoy	41
+pontoise	95
+pontonx sur l adour	40
+pontorson	50
+pontpoint	60
+pontrieux	22
+ponts sur seulles	14
+pontvallain	72
+porcelette	57
+porcheville	78
+porcieu amblagnieu	38
+pordic	22
+pornic	44
+pornichet	44
+porspoder	29
+port bail sur mer	50
+port brillet	53
+port d envaux	17
+port de bouc	13
+port de lanne	40
+port des barques	17
+port en bessin huppain	14
+port jerome sur seine	76
+port la nouvelle	11
+port louis	971
+port saint louis du rhone	13
+port saint pere	44
+port sainte foy et ponchapt	24
+port sainte marie	47
+port sur saone	70
+port vendres	66
+porte de savoie	73
+porte des bonnevaux	38
+porte des pierres dorees	69
+porte du ried	68
+portel des corbieres	11
+portes les valence	26
+portet sur garonne	31
+portets	33
+portieux	88
+portiragnes	34
+porto vecchio	2A
+poses	27
+potigny	14
+pouebo	988
+pouembout	988
+pougues les eaux	58
+pouille les coteaux	44
+pouilley les vignes	25
+pouillon	40
+pouilly en auxois	21
+pouilly les feurs	42
+pouilly les nonains	42
+pouilly sous charlieu	42
+pouilly sur loire	58
+poulainville	80
+pouldergat	29
+pouldreuzic	29
+poule les echarmeaux	69
+pouligny saint pierre	36
+poullan sur mer	29
+poullaouen	29
+poulx	30
+poum	988
+pourcieux	83
+pourrain	89
+pourrieres	83
+pouru saint remy	08
+poussan	34
+pouxeux	88
+pouzac	65
+pouzauges	85
+pouzolles	34
+poya	988
+prades	66
+prades le lez	34
+pradines	46
+prahecq	79
+prat	22
+prats de mollo la preste	66
+prayssac	46
+praz sur arly	74
+pre en pail saint samson	53
+preaux	76
+prechac	33
+precieux	42
+precigne	72
+precy sur oise	60
+pree d anjou	53
+prefailles	44
+preignac	33
+preignan	32
+premanon	39
+premery	58
+premesques	59
+premilhat	03
+preseau	59
+presilly	74
+presles	95
+presles en brie	77
+pressins	38
+preuilly sur claise	37
+prevessin moens	01
+priay	01
+prignac et marcamps	33
+prigonrieux	24
+pringy	77
+prinquiau	44
+prisches	59
+prisse	71
+privas	07
+prix les mezieres	08
+priziac	56
+proissans	24
+propriano	2A
+prouvy	59
+provencheres et colroy	88
+proville	59
+provin	59
+provins	77
+pruille le chetif	72
+prunay	51
+prunay le gillon	28
+prunelli di fiumorbo	2B
+pruniers en sologne	41
+publier	74
+puceul	44
+puget sur argens	83
+puget theniers	06
+puget ville	83
+pugnac	33
+pugny chatenod	73
+puicheric	11
+puilboreau	17
+puimisson	34
+puiseaux	45
+puiseux en france	95
+puissalicon	34
+puisserguier	34
+pujaudran	32
+pujaut	30
+pujols	47
+pulligny	54
+pulnoy	54
+pulversheim	68
+punaauia	987
+pusey	70
+pusignan	69
+pussay	91
+putanges le lac	61
+puteaux	92
+puttelange aux lacs	57
+puttelange les thionville	57
+puy de dome	63
+puy guillaume	63
+puy l eveque	46
+puygouzon	81
+puylaurens	81
+puyloubier	13
+puymoyen	16
+puyoo	64
+pyrenees atlantiques	64
+pyrenees orientales	66
+quaedypre	59
+quarante	34
+quarouble	59
+quebriac	35
+quedillac	35
+quelaines saint gault	53
+quemeneven	29
+quemper guezennec	22
+quend	80
+querrien	29
+quesnoy sur deule	59
+quessoy	22
+questembert	56
+quetigny	21
+quettehou	50
+quettreville sur sienne	50
+quevauvillers	80
+queven	56
+quevert	22
+quevreville la poterie	76
+queyrac	33
+quiberon	56
+quiers sur bezonde	45
+quievrechain	59
+quievy	59
+quillan	11
+quilly	44
+quimper	29
+quimperle	29
+quincampoix	76
+quincay	86
+quincey	70
+quincie en beaujolais	69
+quincieux	69
+quincy sous senart	91
+quincy voisins	77
+quingey	25
+quinsac	33
+quinssaines	03
+quint fonsegrives	31
+quintal	74
+quintenas	07
+quintin	22
+quissac	30
+quistinic	56
+rabastens	81
+rabastens de bigorre	65
+raches	59
+racquinghem	62
+radenac	56
+radinghem en weppes	59
+raedersheim	68
+rai	61
+raillencourt sainte olle	59
+raimbeaucourt	59
+rainneville	80
+raismes	59
+ramatuelle	83
+rambervillers	88
+rambouillet	78
+ramonchamp	88
+ramonville saint agne	31
+randan	63
+ranes	61
+rang du fliers	62
+rangiroa	987
+rannee	35
+rantigny	60
+ranville	14
+raon aux bois	88
+raon l etape	88
+rauville la bigot	50
+rauzan	33
+ravenel	60
+razac sur l isle	24
+razes	87
+realmont	81
+realville	82
+reau	77
+reaumont	38
+rebais	77
+rebrechien	45
+rebreuve ranchicourt	62
+recquignies	59
+recy	51
+redange	57
+redene	29
+redessan	30
+reding	57
+redon	35
+regina	973
+regnie durette	69
+regny	42
+reguiny	56
+reguisheim	68
+regusse	83
+rehainviller	54
+rehon	54
+reichshoffen	67
+reichstett	67
+reignac	33
+reignac sur indre	37
+reignier esery	74
+reilhac	15
+reillanne	04
+reims	51
+reiningue	68
+remalard en perche	61
+remelfing	57
+remering les puttelange	57
+remilly	57
+remilly les marais	50
+remilly sur tille	21
+remire montjoly	973
+remiremont	88
+remouille	44
+remoulins	30
+remy	60
+renac	35
+renage	38
+renaison	42
+renaze	53
+renescure	59
+rennes	35
+renwez	08
+replonges	01
+requeil	72
+requista	12
+ressons sur matz	60
+restigne	37
+restinclieres	34
+retaud	17
+rethel	08
+retiers	35
+retonfey	57
+retournac	43
+rety	62
+reugny	37
+reuilly	36
+revel	31
+revel tourdan	38
+reventin vaugris	38
+revigny sur ornain	55
+reville	50
+revin	08
+rexpoede	59
+reynes	66
+reyrieux	01
+reze	44
+rhinau	67
+rhone	69
+ria sirach	66
+riaille	44
+rians	83
+riantec	56
+ribaute les tavernes	30
+ribeauville	68
+ribecourt dreslincourt	60
+ribemont	02
+riberac	24
+richardmenil	54
+richebourg	62
+richelieu	37
+richemont	57
+richwiller	68
+riec sur belon	29
+riedisheim	68
+riedseltz	67
+rieulay	59
+rieumes	31
+rieupeyroux	12
+rieux	56
+rieux de pelleport	09
+rieux en cambresis	59
+rieux minervois	11
+rieux volvestre	31
+riez	04
+rignac	12
+rignieux le franc	01
+rilhac rancon	87
+rillieux la pape	69
+rilly la montagne	51
+rimogne	08
+rinxent	62
+riom	63
+riom es montagnes	15
+rion des landes	40
+rions	33
+riorges	42
+riotord	43
+rioz	70
+ris orangis	91
+riscle	32
+rivarennes	37
+rive de gier	42
+rivedoux plage	17
+rivery	80
+rives	38
+rives d andaine	61
+rives d autise	85
+rives de l yon	85
+rives dervoises	52
+rives du couesnon	35
+rives du fougerais	85
+rives du loir en anjou	49
+rives en seine	76
+rivesaltes	66
+riviere	62
+riviere pilote	972
+riviere saas et gourby	40
+riviere salee	972
+riviere sur tarn	12
+rivieres	16
+rixheim	68
+roaillan	33
+roanne	42
+roannes saint mary	15
+robecq	62
+robion	84
+rocbaron	83
+roche	38
+roche la moliere	42
+roche lez beaupre	25
+rochechouart	87
+rochecorbon	37
+rochefort	17
+rochefort du gard	30
+rochefort samson	26
+rochefort sur loire	49
+rochegude	26
+rochemaure	07
+roches premarie andille	86
+rocheserviere	85
+rochetaillee sur saone	69
+rochetoirin	38
+rocroi	08
+rodelle	12
+rodemack	57
+rodez	12
+rodilhan	30
+roeze sur sarthe	72
+rogerville	76
+rognac	13
+rognes	13
+rognonas	13
+rohan	56
+rohrbach les bitche	57
+rohrwiller	67
+roiffieux	07
+roinville	91
+roisel	80
+roisey	42
+roissy en brie	77
+roissy en france	95
+rolampont	52
+rolleville	76
+romagnat	63
+romagne	35
+romagnieu	38
+romagny fontenay	50
+romainville	93
+romaneche thorins	71
+romans sur isere	26
+romanswiller	67
+rombas	57
+romenay	71
+romille	35
+romilly sur andelle	27
+romilly sur seine	10
+romorantin lanthenay	41
+rompon	07
+ronchamp	70
+roncherolles sur le vivier	76
+ronchin	59
+roncourt	57
+roncq	59
+rontalon	69
+roost warendin	59
+roppe	90
+roppenheim	67
+roquebilliere	06
+roquebrune cap martin	06
+roquebrune sur argens	83
+roquecourbe	81
+roquefort	47
+roquefort des corbieres	11
+roquefort la bedoule	13
+roquefort les pins	06
+roquemaure	30
+roques	31
+roquetoire	62
+roquettes	31
+roquevaire	13
+roscoff	29
+rosenau	68
+rosheim	67
+rosieres	43
+rosieres aux salines	54
+rosieres en santerre	80
+rosieres pres troyes	10
+rosiers d egletons	19
+rosnoen	29
+rosny sous bois	93
+rosny sur seine	78
+rosoy	89
+rospez	22
+rosporden	29
+rosselange	57
+rossfeld	67
+rostrenen	22
+rosult	59
+rothau	67
+rots	14
+rouans	44
+roubaix	59
+rouen	76
+rouffach	68
+rouffiac tolosan	31
+rouffignac saint cernin de reilhac	24
+rouge	44
+rougemont	25
+rougemont le chateau	90
+rougemontier	27
+rougiers	83
+rouhling	57
+rouillac	16
+rouille	86
+rouillon	72
+roujan	34
+roulans	25
+roullet saint estephe	16
+roumare	76
+rountzenheim auenheim	67
+roura	973
+rousies	59
+rousset	13
+roussillon	38
+rousson	30
+roussy le village	57
+routot	27
+rouvres	77
+rouvres en plaine	21
+rouvroy	62
+rouxmesnil bouteilles	76
+rouziers de touraine	37
+royan	17
+royat	63
+roybon	38
+roye	80
+roz landrieux	35
+roz sur couesnon	35
+rozay en brie	77
+rozerieulles	57
+rozier en donzy	42
+ruaudin	72
+rubelles	77
+rue	80
+rueil malmaison	92
+ruelisheim	68
+ruelle sur touvre	16
+ruffec	16
+ruffey les echirey	21
+ruffiac	56
+rugles	27
+ruitz	62
+rully	71
+rumegies	59
+rumersheim le haut	68
+rumilly	74
+rumilly en cambresis	59
+ruminghem	62
+rungis	94
+ruoms	07
+rupt sur moselle	88
+rurange les thionville	57
+rurutu	987
+russ	67
+russange	57
+rustenhart	68
+ruy montceau	38
+rœschwoog	67
+rœulx	59
+rœux	62
+saacy sur marne	77
+sable sur sarthe	72
+sablet	84
+sablonceaux	17
+sablons	38
+sablons sur huisne	61
+sabran	30
+sabres	40
+sache	37
+saclas	91
+saclay	91
+sacquenville	27
+sacy le grand	60
+sada	976
+sadirac	33
+sadroc	19
+saffre	44
+sagy	71
+sahurs	76
+saillagouse	66
+saillans	26
+sailly labourse	62
+sailly lez lannoy	59
+sailly sur la lys	62
+sain bel	69
+sainghin en melantois	59
+sainghin en weppes	59
+sains du nord	59
+sains en amienois	80
+sains en gohelle	62
+saint affrique	12
+saint agathon	22
+saint agnant	17
+saint agnant de versillat	23
+saint agnin sur bion	38
+saint agreve	07
+saint aignan	41
+saint aignan grandlieu	44
+saint aigulin	17
+saint alban	31
+saint alban auriolles	07
+saint alban d ay	07
+saint alban de roche	38
+saint alban leysse	73
+saint alban sur limagnole	48
+saint alexandre	30
+saint amand en puisaye	58
+saint amand les eaux	59
+saint amand longpre	41
+saint amand montrond	18
+saint amand sur fion	51
+saint amand sur sevre	79
+saint amand villages	50
+saint amans soult	81
+saint amant de boixe	16
+saint amant tallende	63
+saint amarin	68
+saint ambroix	30
+saint ame	88
+saint amour	39
+saint andiol	13
+saint andre	974
+saint andre d apchon	42
+saint andre de corcy	01
+saint andre de cubzac	33
+saint andre de l eure	27
+saint andre de la roche	06
+saint andre de lidon	17
+saint andre de roquelongue	11
+saint andre de sangonis	34
+saint andre de seignanx	40
+saint andre des eaux	44
+saint andre goule d oie	85
+saint andre le gaz	38
+saint andre le puy	42
+saint andre les alpes	04
+saint andre les vergers	10
+saint andre lez lille	59
+saint andre sur orne	14
+saint andre sur vieux jonc	01
+saint antoine de breuilh	24
+saint antoine du rocher	37
+saint antoine l abbaye	38
+saint antoine la foret	76
+saint antonin noble val	82
+saint apollinaire	21
+saint armel	35
+saint arnoult	76
+saint arnoult en yvelines	78
+saint astier	24
+saint aubert	59
+saint aubin	39
+saint aubin celloville	76
+saint aubin d arquenay	14
+saint aubin d aubigne	35
+saint aubin de medoc	33
+saint aubin des bois	28
+saint aubin des chateaux	44
+saint aubin des ormeaux	85
+saint aubin du cormier	35
+saint aubin en bray	60
+saint aubin epinay	76
+saint aubin le cloud	79
+saint aubin les elbeuf	76
+saint aubin routot	76
+saint aubin sur gaillon	27
+saint aubin sur mer	14
+saint aubin sur scie	76
+saint augustin	77
+saint augustin des bois	49
+saint aulaye puymangou	24
+saint aunes	34
+saint aupre	38
+saint avaugourd des landes	85
+saint ave	56
+saint avertin	37
+saint avit saint nazaire	33
+saint avold	57
+saint ay	45
+saint baldoph	73
+saint barnabe	22
+saint barthelemy	977
+saint barthelemy d anjou	49
+saint barthelemy de vals	26
+saint baudelle	53
+saint bauzille de montmel	34
+saint bauzille de putois	34
+saint beauzire	63
+saint benigne	01
+saint benin d azy	58
+saint benoit	974
+saint benoit de carmaux	81
+saint benoit sur loire	45
+saint berain sous sanvignes	71
+saint bernard	01
+saint beron	73
+saint berthevin	53
+saint blaise	06
+saint blaise du buis	38
+saint bomer les forges	61
+saint bonnet de mure	69
+saint bonnet en champsaur	05
+saint bonnet le chateau	42
+saint bonnet les oules	42
+saint bonnet pres riom	63
+saint branchs	37
+saint brandan	22
+saint bres	34
+saint brevin les pins	44
+saint briac sur mer	35
+saint brice courcelles	51
+saint brice sous foret	95
+saint brice sur vienne	87
+saint brieuc	22
+saint bris le vineux	89
+saint broladre	35
+saint calais	72
+saint cannat	13
+saint caprais de bordeaux	33
+saint caradec	22
+saint carne	22
+saint carreuc	22
+saint cassien	38
+saint cassin	73
+saint cast le guildo	22
+saint cere	46
+saint cergues	74
+saint cernin	15
+saint cezaire sur siagne	06
+saint chaffrey	05
+saint chamas	13
+saint chamond	42
+saint chaptes	30
+saint chef	38
+saint chely d apcher	48
+saint cheron	91
+saint chinian	34
+saint christo en jarez	42
+saint christol	84
+saint christol lez ales	30
+saint christoly de blaye	33
+saint christophe	17
+saint christophe du bois	49
+saint christophe du ligneron	85
+saint christophe en bresse	71
+saint christophe sur le nais	37
+saint christophe vallon	12
+saint ciers d abzac	33
+saint ciers sur gironde	33
+saint clair	07
+saint clair de la tour	38
+saint clair du rhone	38
+saint clar	32
+saint clar de riviere	31
+saint claud	16
+saint claude	971
+saint claude de diray	41
+saint clement	89
+saint clement de la place	49
+saint clement de riviere	34
+saint clement des levees	49
+saint cloud	92
+saint colomban	44
+saint come d olt	12
+saint contest	14
+saint corneille	72
+saint cosme en vairais	72
+saint coulomb	35
+saint crepin ibouvillers	60
+saint cyprien	66
+saint cyr	07
+saint cyr au mont d or	69
+saint cyr de favieres	42
+saint cyr en val	45
+saint cyr l ecole	78
+saint cyr les vignes	42
+saint cyr sur le rhone	69
+saint cyr sur loire	37
+saint cyr sur menthon	01
+saint cyr sur mer	83
+saint cyr sur morin	77
+saint denis	974
+saint denis d anjou	53
+saint denis d oleron	17
+saint denis de cabanne	42
+saint denis de gastines	53
+saint denis de l hotel	45
+saint denis de pile	33
+saint denis en bugey	01
+saint denis en val	45
+saint denis la chevasse	85
+saint denis lanneray	28
+saint denis les bourg	01
+saint denis sur sarthon	61
+saint desir	14
+saint didier	84
+saint didier au mont d or	69
+saint didier de formans	01
+saint didier de la tour	38
+saint didier en velay	43
+saint didier sur chalaronne	01
+saint die des vosges	88
+saint dionisy	30
+saint divy	29
+saint dizier	52
+saint dizier masbaraud	23
+saint dolay	56
+saint domineuc	35
+saint donan	22
+saint donat sur l herbasse	26
+saint doulchard	18
+saint drezery	34
+saint dye sur loire	41
+saint egreve	38
+saint eloi	58
+saint eloy de gy	18
+saint eloy les mines	63
+saint emilion	33
+saint epain	37
+saint erblon	35
+saint erme outre et ramecourt	02
+saint esprit	972
+saint estephe	33
+saint esteve	66
+saint etienne	42
+saint etienne au mont	62
+saint etienne de baigorry	64
+saint etienne de chigny	37
+saint etienne de crossey	38
+saint etienne de cuines	73
+saint etienne de fontbellon	07
+saint etienne de mer morte	44
+saint etienne de montluc	44
+saint etienne de saint geoirs	38
+saint etienne de tinee	06
+saint etienne de tulmont	82
+saint etienne des oullieres	69
+saint etienne du bois	01
+saint etienne du gres	13
+saint etienne du rouvray	76
+saint etienne le molard	42
+saint etienne les orgues	04
+saint etienne les remiremont	88
+saint etienne sur chalaronne	01
+saint eusebe	71
+saint eustache la foret	76
+saint evarzec	29
+saint fargeau	89
+saint fargeau ponthierry	77
+saint felicien	07
+saint feliu d amont	66
+saint feliu d avall	66
+saint felix	74
+saint felix de lodez	34
+saint felix lauragais	31
+saint ferreol d auroure	43
+saint fiacre sur maine	44
+saint fiel	23
+saint florent	2B
+saint florent sur auzonnet	30
+saint florent sur cher	18
+saint florentin	89
+saint flour	15
+saint folquin	62
+saint fons	69
+saint forgeux	69
+saint francois	971
+saint front de pradoux	24
+saint fulgent	85
+saint fuscien	80
+saint galmier	42
+saint gatien des bois	14
+saint gaudens	31
+saint gaultier	36
+saint gelais	79
+saint gely du fesc	34
+saint gence	87
+saint genes champanelle	63
+saint genest d ambiere	86
+saint genest lerpt	42
+saint genest malifaux	42
+saint gengoux le national	71
+saint genies bellevue	31
+saint genies de comolas	30
+saint genies de fontedit	34
+saint genies de malgoires	30
+saint genies des mourgues	34
+saint geniez d olt et d aubrac	12
+saint genis de saintonge	17
+saint genis des fontaines	66
+saint genis laval	69
+saint genis les ollieres	69
+saint genis pouilly	01
+saint genix les villages	73
+saint genouph	37
+saint geoire en valdaine	38
+saint georges	973
+saint georges buttavent	53
+saint georges d esperanche	38
+saint georges d oleron	17
+saint georges d orques	34
+saint georges de commiers	38
+saint georges de didonne	17
+saint georges de luzencon	12
+saint georges de mons	63
+saint georges de pointindoux	85
+saint georges de reintembault	35
+saint georges de reneins	69
+saint georges des coteaux	17
+saint georges des groseillers	61
+saint georges du bois	72
+saint georges haute ville	42
+saint georges les baillargeaux	86
+saint georges les bains	07
+saint georges sur allier	63
+saint georges sur baulche	89
+saint georges sur cher	41
+saint georges sur eure	28
+saint georges sur loire	49
+saint geours de maremne	40
+saint gerand croixanvec	56
+saint germain	10
+saint germain au mont d or	69
+saint germain d esteuil	33
+saint germain de la grange	78
+saint germain de lusignan	17
+saint germain de princay	85
+saint germain des fosses	03
+saint germain des pres	45
+saint germain du bois	71
+saint germain du corbeis	61
+saint germain du pinel	35
+saint germain du plain	71
+saint germain du puch	33
+saint germain du puy	18
+saint germain en cogles	35
+saint germain en laye	78
+saint germain la blanche herbe	14
+saint germain laprade	43
+saint germain laval	77
+saint germain le fouilloux	53
+saint germain lembron	63
+saint germain les arpajon	91
+saint germain les belles	87
+saint germain les corbeil	91
+saint germain les vergnes	19
+saint germain lespinasse	42
+saint germain nuelles	69
+saint germain sur avre	27
+saint germain sur ille	35
+saint germain sur morin	77
+saint germer de fly	60
+saint gervais	85
+saint gervais d auvergne	63
+saint gervais la foret	41
+saint gervais les bains	74
+saint gervais les trois clochers	86
+saint gervais sur roubion	26
+saint gervasy	30
+saint gildas de rhuys	56
+saint gildas des bois	44
+saint gilles	30
+saint gilles croix de vie	85
+saint girons	09
+saint gobain	02
+saint gondon	45
+saint gonnery	56
+saint gratien	95
+saint gregoire	35
+saint guinoux	35
+saint guyomard	56
+saint heand	42
+saint helen	22
+saint herblain	44
+saint hilaire	31
+saint hilaire bonneval	87
+saint hilaire d ozilhan	30
+saint hilaire de brethmas	30
+saint hilaire de chaleons	44
+saint hilaire de clisson	44
+saint hilaire de la cote	38
+saint hilaire de lusignan	47
+saint hilaire de riez	85
+saint hilaire de villefranche	17
+saint hilaire des landes	35
+saint hilaire des loges	85
+saint hilaire du harcouet	50
+saint hilaire du rosier	38
+saint hilaire la palud	79
+saint hilaire le vouhis	85
+saint hilaire lez cambrai	59
+saint hilaire saint mesmin	45
+saint hippolyte	66
+saint hippolyte du fort	30
+saint ismier	38
+saint jacques de la lande	35
+saint jacques sur darnetal	76
+saint jacut les pins	56
+saint james	50
+saint jans cappel	59
+saint jean	31
+saint jean bonnefonds	42
+saint jean brevelay	56
+saint jean cap ferrat	06
+saint jean d angely	17
+saint jean d arvey	73
+saint jean d asse	72
+saint jean d aulps	74
+saint jean d elle	50
+saint jean d hermine	85
+saint jean d illac	33
+saint jean de boiseau	44
+saint jean de bournay	38
+saint jean de braye	45
+saint jean de fos	34
+saint jean de galaure	26
+saint jean de gonville	01
+saint jean de la ruelle	45
+saint jean de liversay	17
+saint jean de luz	64
+saint jean de marsacq	40
+saint jean de maurienne	73
+saint jean de moirans	38
+saint jean de monts	85
+saint jean de muzols	07
+saint jean de niost	01
+saint jean de sauves	86
+saint jean de sixt	74
+saint jean de soudain	38
+saint jean de tholome	74
+saint jean de thouars	79
+saint jean de vedas	34
+saint jean de verges	09
+saint jean des champs	50
+saint jean du cardonnay	76
+saint jean du falga	09
+saint jean du gard	30
+saint jean du pin	30
+saint jean en royans	26
+saint jean la bussiere	69
+saint jean la poterie	56
+saint jean lasseille	66
+saint jean le blanc	45
+saint jean le vieux	01
+saint jean les deux jumeaux	77
+saint jean pied de port	64
+saint jean pla de corts	66
+saint jean saint maurice sur loire	42
+saint jean saint nicolas	05
+saint jean sur mayenne	53
+saint jean sur veyle	01
+saint jean sur vilaine	35
+saint jeannet	06
+saint jeoire	74
+saint jeoire prieure	73
+saint jeures	43
+saint joachim	44
+saint jorioz	74
+saint jory	31
+saint joseph	974
+saint joseph de riviere	38
+saint josse	62
+saint jouan des guerets	35
+saint jouin bruneval	76
+saint jouvent	87
+saint juery	81
+saint julien	83
+saint julien chapteuil	43
+saint julien de concelles	44
+saint julien de coppel	63
+saint julien de peyrolas	30
+saint julien des landes	85
+saint julien du sault	89
+saint julien en born	40
+saint julien en genevois	74
+saint julien en saint alban	07
+saint julien l ars	86
+saint julien les metz	57
+saint julien les rosiers	30
+saint julien les villas	10
+saint julien molin molette	42
+saint julien mont denis	73
+saint junien	87
+saint just	34
+saint just chaleyssin	38
+saint just d ardeche	07
+saint just de claix	38
+saint just en chaussee	60
+saint just en chevalet	42
+saint just la pendue	42
+saint just le martel	87
+saint just luzac	17
+saint just malmont	43
+saint just saint rambert	42
+saint just sauvage	51
+saint justin	40
+saint lager	69
+saint lambert la potherie	49
+saint lattier	38
+saint laurent	08
+saint laurent blangy	62
+saint laurent d agny	69
+saint laurent d aigouze	30
+saint laurent d arce	33
+saint laurent de brevedent	76
+saint laurent de cerdans	66
+saint laurent de chamousset	69
+saint laurent de la pree	17
+saint laurent de la salanque	66
+saint laurent de mure	69
+saint laurent des arbres	30
+saint laurent des hommes	24
+saint laurent des vignes	24
+saint laurent du maroni	973
+saint laurent du pape	07
+saint laurent du pont	38
+saint laurent du var	06
+saint laurent en grandvaux	39
+saint laurent en royans	26
+saint laurent medoc	33
+saint laurent nouan	41
+saint laurent sur gorre	87
+saint laurent sur saone	01
+saint laurent sur sevre	85
+saint leger de linieres	49
+saint leger de montbrun	79
+saint leger des vignes	58
+saint leger du bourg denis	76
+saint leger en yvelines	78
+saint leger les domart	80
+saint leger les vignes	44
+saint leger sous cholet	49
+saint leger sur dheune	71
+saint leger sur roanne	42
+saint leon	31
+saint leon sur l isle	24
+saint leonard	62
+saint leonard de noblat	87
+saint leu	974
+saint leu d esserent	60
+saint leu la foret	95
+saint lieux les lavaur	81
+saint lizier	09
+saint lo	50
+saint lon les mines	40
+saint loubes	33
+saint louis	974
+saint louis de montferrand	33
+saint loup cammas	31
+saint loup de varennes	71
+saint loup geanges	71
+saint loup lamaire	79
+saint loup sur semouse	70
+saint lubin des joncherets	28
+saint lumine de clisson	44
+saint lumine de coutais	44
+saint lunaire	35
+saint luperce	28
+saint lye	10
+saint lye la foret	45
+saint lyphard	44
+saint lys	31
+saint m herve	35
+saint macaire	33
+saint magne	33
+saint magne de castillon	33
+saint maixant	33
+saint maixent l ecole	79
+saint maixent sur vie	85
+saint malo	35
+saint malo de guersac	44
+saint malo de phily	35
+saint malo du bois	85
+saint mamert du gard	30
+saint mamet la salvetat	15
+saint mammes	77
+saint mande	94
+saint mandrier sur mer	83
+saint manvieu norrey	14
+saint marc jaumegarde	13
+saint marc le blanc	35
+saint marcel	71
+saint marcel bel accueil	38
+saint marcel d ardeche	07
+saint marcel les annonay	07
+saint marcel les sauzet	26
+saint marcel les valence	26
+saint marcel sur aude	11
+saint marcellin	38
+saint marcellin en forez	42
+saint mard	77
+saint mariens	33
+saint mars d outille	72
+saint mars de coutais	44
+saint mars du desert	44
+saint mars la briere	72
+saint mars la reorthe	85
+saint martin	978
+saint martin belle roche	71
+saint martin boulogne	62
+saint martin d abbat	45
+saint martin d ablois	51
+saint martin d auxigny	18
+saint martin d heres	38
+saint martin d oney	40
+saint martin d uriage	38
+saint martin de boscherville	76
+saint martin de crau	13
+saint martin de hinx	40
+saint martin de l if	76
+saint martin de londres	34
+saint martin de mailloc	14
+saint martin de may	14
+saint martin de nigelles	28
+saint martin de queyrieres	05
+saint martin de re	17
+saint martin de saint maixent	79
+saint martin de sanzay	79
+saint martin de seignanx	40
+saint martin de valamas	07
+saint martin de valgalgues	30
+saint martin des champs	29
+saint martin des noyers	85
+saint martin des tilleuls	85
+saint martin du fouilloux	49
+saint martin du frene	01
+saint martin du manoir	76
+saint martin du mont	01
+saint martin du tertre	95
+saint martin du var	06
+saint martin du vivier	76
+saint martin en bresse	71
+saint martin en haut	69
+saint martin la pallu	86
+saint martin la plaine	42
+saint martin lacaussade	33
+saint martin lalande	11
+saint martin le beau	37
+saint martin le nœud	60
+saint martin le vinoux	38
+saint martin lez tatinghem	62
+saint martin longueau	60
+saint martin osmonville	76
+saint martin sur ocre	45
+saint martin sur oust	56
+saint martin vesubie	06
+saint martory	31
+saint mathieu	87
+saint mathieu de treviers	34
+saint mathurin	85
+saint maur	36
+saint maur des fosses	94
+saint maurice	94
+saint maurice de beynost	01
+saint maurice de gourdans	01
+saint maurice de lignon	43
+saint maurice en gourgois	42
+saint maurice l exil	38
+saint maurice la clouere	86
+saint maurice la souterraine	23
+saint maurice les brousses	87
+saint maurice montcouronne	91
+saint maurice sur fessard	45
+saint maurice sur moselle	88
+saint max	54
+saint maximin	60
+saint maximin la sainte baume	83
+saint maxire	79
+saint medard d aunis	17
+saint medard d eyrans	33
+saint medard de guizieres	33
+saint medard de mussidan	24
+saint medard en jalles	33
+saint medard sur ille	35
+saint meen le grand	35
+saint melaine sur aubance	49
+saint meloir des ondes	35
+saint meme les carrieres	16
+saint memmie	51
+saint menoux	03
+saint mesmin	85
+saint mexant	19
+saint michel	02
+saint michel chef chef	44
+saint michel de maurienne	73
+saint michel en l herm	85
+saint michel l observatoire	04
+saint michel le cloucq	85
+saint michel sur meurthe	88
+saint michel sur orge	91
+saint mihiel	55
+saint mitre les remparts	13
+saint molf	44
+saint montan	07
+saint morillon	33
+saint nabord	88
+saint nauphary	82
+saint nazaire	44
+saint nazaire d aude	11
+saint nazaire les eymes	38
+saint nazaire sur charente	17
+saint nexans	24
+saint nicolas	62
+saint nicolas d aliermont	76
+saint nicolas de bourgueil	37
+saint nicolas de la grave	82
+saint nicolas de la taille	76
+saint nicolas de port	54
+saint nicolas de redon	44
+saint nicolas du pelem	22
+saint nizier du moucherotte	38
+saint nizier sous charlieu	42
+saint nolff	56
+saint nom la breteche	78
+saint offenge	73
+saint omer	62
+saint omer capelle	62
+saint omer en chaussee	60
+saint onen la chapelle	35
+saint orens de gameville	31
+saint ouen	41
+saint ouen d aunis	17
+saint ouen de thouberville	27
+saint ouen des alleux	35
+saint ouen des toits	53
+saint ouen du tilleul	27
+saint ouen en belin	72
+saint ouen l aumone	95
+saint ouen sur seine	93
+saint ours	63
+saint pabu	29
+saint paer	76
+saint pair sur mer	50
+saint pal de chalencon	43
+saint pal de mons	43
+saint palais	64
+saint palais sur mer	17
+saint pantaleon de larche	19
+saint pardoux isaac	47
+saint pardoux la riviere	24
+saint pardoux le lac	87
+saint pardoux soutiers	79
+saint pargoire	34
+saint parize le chatel	58
+saint parres aux tertres	10
+saint parres les vaudes	10
+saint paterne le chevain	72
+saint paterne racan	37
+saint pathus	77
+saint paul	974
+saint paul cap de joux	81
+saint paul de fenouillet	66
+saint paul de jarrat	09
+saint paul de varax	01
+saint paul de varces	38
+saint paul de vence	06
+saint paul des landes	15
+saint paul en chablais	74
+saint paul en cornillon	42
+saint paul en foret	83
+saint paul en jarez	42
+saint paul en pareds	85
+saint paul et valmalle	34
+saint paul les dax	40
+saint paul les fonts	30
+saint paul les romans	26
+saint paul sur save	31
+saint paul trois chateaux	26
+saint paulet de caisson	30
+saint paulien	43
+saint pavace	72
+saint pe de bigorre	65
+saint pee sur nivelle	64
+saint peray	07
+saint perdon	40
+saint pere	58
+saint pere en retz	44
+saint pere marc en poulet	35
+saint pere sur loire	45
+saint perreux	56
+saint philbert de bouaine	85
+saint philbert de grand lieu	44
+saint philbert du peuple	49
+saint philibert	56
+saint philippe	974
+saint piat	28
+saint pierre	974
+saint pierre d albigny	73
+saint pierre d aurillac	33
+saint pierre d eyraud	24
+saint pierre d irube	64
+saint pierre d oleron	17
+saint pierre de bœuf	42
+saint pierre de chandieu	69
+saint pierre de chartreuse	38
+saint pierre de mons	33
+saint pierre de varengeville	76
+saint pierre des corps	37
+saint pierre des echaubrognes	79
+saint pierre des fleurs	27
+saint pierre des nids	53
+saint pierre du chemin	85
+saint pierre du mont	40
+saint pierre du perray	91
+saint pierre du regard	61
+saint pierre du vauvray	27
+saint pierre eglise	50
+saint pierre en auge	14
+saint pierre en faucigny	74
+saint pierre en val	76
+saint pierre eynac	43
+saint pierre la cour	53
+saint pierre la noue	17
+saint pierre la palud	69
+saint pierre le moutier	58
+saint pierre les elbeuf	76
+saint pierre les nemours	77
+saint pierre quiberon	56
+saint planchers	50
+saint pol de leon	29
+saint pol sur ternoise	62
+saint pons de thomieres	34
+saint porchaire	17
+saint porquier	82
+saint pouange	10
+saint pourcain sur sioule	03
+saint prest	28
+saint priest	69
+saint priest en jarez	42
+saint priest sous aixe	87
+saint priest taurion	87
+saint prim	38
+saint privat	07
+saint privat des vieux	30
+saint privat en perigord	24
+saint privat la montagne	57
+saint prix	95
+saint prouant	85
+saint pryve saint mesmin	45
+saint quay perros	22
+saint quay portrieux	22
+saint quentin	02
+saint quentin de baron	33
+saint quentin fallavier	38
+saint quentin la motte croix au bailly	80
+saint quentin la poterie	30
+saint quentin sur isere	38
+saint quentin sur le homme	50
+saint rambert d albon	26
+saint rambert en bugey	01
+saint raphael	83
+saint remy	71
+saint remy de maurienne	73
+saint remy de provence	13
+saint remy du nord	59
+saint remy en rollat	03
+saint remy l honore	78
+saint remy les chevreuse	78
+saint remy sur avre	28
+saint remy sur durolle	63
+saint renan	29
+saint restitut	26
+saint reverend	85
+saint riquier	80
+saint roch	37
+saint rogatien	17
+saint romain au mont d or	69
+saint romain d ay	07
+saint romain de benet	17
+saint romain de colbosc	76
+saint romain de jalionas	38
+saint romain de lerps	07
+saint romain de popey	69
+saint romain en gal	69
+saint romain en jarez	42
+saint romain la motte	42
+saint romain lachalm	43
+saint romain le puy	42
+saint romain sur cher	41
+saint romans	38
+saint saens	76
+saint samson sur rance	22
+saint sardos	82
+saint satur	18
+saint saturnin	72
+saint saturnin les apt	84
+saint saturnin les avignon	84
+saint saulve	59
+saint sauvant	86
+saint sauves d auvergne	63
+saint sauveur	31
+saint sauveur d aunis	17
+saint sauveur d emalleville	76
+saint sauveur de montagut	07
+saint sauveur des landes	35
+saint sauveur en rue	42
+saint sauveur le vicomte	50
+saint sauveur sur ecole	77
+saint sauveur villages	50
+saint savin	38
+saint savinien	17
+saint savournin	13
+saint sebastien de morsent	27
+saint sebastien sur loire	44
+saint segal	29
+saint selve	33
+saint senier sous avranches	50
+saint senoux	35
+saint sernin	07
+saint sernin du bois	71
+saint seurin sur l isle	33
+saint sever	40
+saint siffret	30
+saint simeon de bressieux	38
+saint simon	15
+saint sixt	74
+saint sorlin en bugey	01
+saint sorlin en valloire	26
+saint souplet	59
+saint soupplets	77
+saint suliac	35
+saint sulpice	60
+saint sulpice de faleyrens	33
+saint sulpice de pommeray	41
+saint sulpice de royan	17
+saint sulpice et cameyrac	33
+saint sulpice la foret	35
+saint sulpice la pointe	81
+saint sulpice le gueretois	23
+saint sulpice les feuilles	87
+saint sulpice sur leze	31
+saint sulpice sur risle	61
+saint sylvain	14
+saint sylvestre cappel	59
+saint sylvestre pragoulin	63
+saint sylvestre sur lot	47
+saint symphorien	79
+saint symphorien d ancelles	71
+saint symphorien d ozon	69
+saint symphorien de lay	42
+saint symphorien sur coise	69
+saint thegonnec loc eguiner	29
+saint thibaud de couz	73
+saint thibault des vignes	77
+saint thibery	34
+saint thonan	29
+saint thurial	35
+saint thuriau	56
+saint thurien	29
+saint trivier de courtes	01
+saint trivier sur moignans	01
+saint trojan les bains	17
+saint tropez	83
+saint urbain	85
+saint usage	21
+saint usuge	71
+saint uze	26
+saint vaast la hougue	50
+saint valerien	89
+saint valery en caux	76
+saint valery sur somme	80
+saint vallier	71
+saint vallier de thiey	06
+saint varent	79
+saint vaury	23
+saint venant	62
+saint verand	38
+saint viance	19
+saint viatre	41
+saint viaud	44
+saint victor	03
+saint victor de cessieu	38
+saint victor de morestel	38
+saint victor la coste	30
+saint victor sur rhins	42
+saint victoret	13
+saint victurnien	87
+saint vigor d ymonville	76
+saint vigor le grand	14
+saint vincent	43
+saint vincent de mercuze	38
+saint vincent de paul	40
+saint vincent de tyrosse	40
+saint vincent des landes	44
+saint vincent sur graon	85
+saint vincent sur jard	85
+saint vincent sur oust	56
+saint vit	25
+saint vite	47
+saint vivien	17
+saint vivien de medoc	33
+saint vrain	91
+saint vulbas	01
+saint witz	95
+saint xandre	17
+saint yan	71
+saint yorre	03
+saint yrieix la perche	87
+saint yrieix sur charente	16
+saint yvi	29
+saint yzan de soudiac	33
+saint zacharie	83
+sainte adresse	76
+sainte agathe la bouteresse	42
+sainte agnes	06
+sainte anastasie	30
+sainte anastasie sur issole	83
+sainte anne	971
+sainte anne d auray	56
+sainte anne sur brivet	44
+sainte anne sur vilaine	35
+sainte bazeille	47
+sainte blandine	38
+sainte catherine	62
+sainte cecile	85
+sainte cecile les vignes	84
+sainte colombe	69
+sainte colombe en bruilhois	47
+sainte consorce	69
+sainte croix aux mines	68
+sainte croix en plaine	68
+sainte eulalie	33
+sainte eulalie en born	40
+sainte euphemie	01
+sainte fereole	19
+sainte feyre	23
+sainte flaive des loups	85
+sainte florence	85
+sainte florine	43
+sainte fortunade	19
+sainte foy	85
+sainte foy d aigrefeuille	31
+sainte foy de peyrolieres	31
+sainte foy l argentiere	69
+sainte foy la grande	33
+sainte foy les lyon	69
+sainte gauburge sainte colombe	61
+sainte gemme	17
+sainte gemme la plaine	85
+sainte gemme moronval	28
+sainte gemmes sur loire	49
+sainte genevieve	60
+sainte genevieve des bois	91
+sainte helene	33
+sainte helene sur isere	73
+sainte honorine du fay	14
+sainte jamme sur sarthe	72
+sainte julie	01
+sainte livrade sur lot	47
+sainte lizaigne	36
+sainte luce	972
+sainte luce sur loire	44
+sainte marguerite	88
+sainte marguerite sur duclair	76
+sainte marie	974
+sainte marie aux chenes	57
+sainte marie aux mines	68
+sainte marie de gosse	40
+sainte marie de re	17
+sainte marie des champs	76
+sainte marie kerque	62
+sainte marie la mer	66
+sainte maure	10
+sainte maure de touraine	37
+sainte maxime	83
+sainte menehould	51
+sainte mere eglise	50
+sainte neomaye	79
+sainte pazanne	44
+sainte radegonde	12
+sainte reine de bretagne	44
+sainte rose	971
+sainte savine	10
+sainte seve	29
+sainte sigolene	43
+sainte solange	18
+sainte soulle	17
+sainte suzanne	974
+sainte suzanne et chammes	53
+sainte terre	33
+sainte tulle	04
+sainte verge	79
+saintes	17
+saintes maries de la mer	13
+saintines	60
+saintry sur seine	91
+saints geosmes	52
+sainville	28
+saivres	79
+saix	81
+saizerais	54
+salagnon	38
+salaise sur sanne	38
+salaunes	33
+salazie	974
+salbris	41
+saleilles	66
+salernes	83
+sales	74
+saleux	80
+salies de bearn	64
+salies du salat	31
+salignac eyvigues	24
+salindres	30
+salins	77
+salins les bains	39
+sallanches	74
+sallaumines	62
+sallebœuf	33
+salleles d aude	11
+sallertaine	85
+salles	33
+salles curan	12
+salles d angles	16
+salles d aude	11
+salles la source	12
+salles sur mer	17
+salome	59
+salon de provence	13
+salouel	80
+salses le chateau	66
+salvagnac	81
+salviac	46
+samadet	40
+samatan	32
+sameon	59
+samer	62
+sammeron	77
+samoens	74
+samois sur seine	77
+samoreau	77
+sampans	39
+san gavino di carbini	2A
+san martino di lota	2B
+san nicolao	2B
+sanary sur mer	83
+sance	71
+sancerre	18
+sancey	25
+sancoins	18
+sand	67
+sandillon	45
+sangatte	62
+sanguinet	40
+sanilhac	24
+sannerville	14
+sannois	95
+sansac de marmiesse	15
+sanssac l eglise	43
+santa lucia di moriani	2B
+santa maria di lota	2B
+santa reparata di balagna	2B
+santec	29
+santeny	94
+santes	59
+sanvignes les mines	71
+saone	25
+saone et loire	71
+saran	45
+sarbazan	40
+sarceaux	61
+sarcelles	95
+sardieu	38
+sare	64
+sarge les le mans	72
+sari solenzara	2A
+sarlat la caneda	24
+sarliac sur l isle	24
+sarralbe	57
+sarras	07
+sarre union	67
+sarrebourg	57
+sarreguemines	57
+sarreinsming	57
+sarrians	84
+sarrola carcopino	2A
+sarry	51
+sars poteries	59
+sartene	2A
+sarthe	72
+sartilly baie bocage	50
+sartrouville	78
+sarzeau	56
+sassay	41
+sassenage	38
+sassenay	71
+sathonay camp	69
+sathonay village	69
+satillieu	07
+satolas et bonce	38
+saturargues	34
+saubens	31
+saubion	40
+saubrigues	40
+saubusse	40
+saucats	33
+saugnac et cambran	40
+saugnac et muret	40
+saugues	43
+saujon	17
+saulce sur rhone	26
+saulcy sur meurthe	88
+saulge	86
+saulieu	21
+saulnes	54
+saulny	57
+saulon la chapelle	21
+sault	84
+sault brenaz	01
+sault les rethel	08
+saultain	59
+saulx les chartreux	91
+saulxures les nancy	54
+saulxures sur moselotte	88
+saulzoir	59
+saumur	49
+sausheim	68
+saussan	34
+saussay	28
+sausset les pins	13
+saussines	34
+sautron	44
+sauvagnon	64
+sauve	30
+sauverny	01
+sauveterre	30
+sauveterre de bearn	64
+sauveterre de guyenne	33
+sauvian	34
+sauvigny les bois	58
+sauxillanges	63
+sauze entre bois	79
+sauzet	26
+sauzon	56
+savasse	26
+savenay	44
+savennieres	49
+saverdun	09
+saverne	67
+saveuse	80
+savieres	10
+savignac les eglises	24
+savigne	86
+savigne l eveque	72
+savigne sur lathan	37
+savigneux	42
+savigny	69
+savigny en revermont	71
+savigny en sancerre	18
+savigny en veron	37
+savigny le temple	77
+savigny les beaune	21
+savigny levescault	86
+savigny sur braye	41
+savigny sur orge	91
+savines le lac	05
+savoie	73
+savonnieres	37
+sayat	63
+saze	30
+scaer	29
+sceaux	92
+sceaux d anjou	49
+scey sur saone et saint albin	70
+scharrachbergheim irmstett	67
+scherwiller	67
+schiltigheim	67
+schirmeck	67
+schirrhein	67
+schleithal	67
+schlierbach	68
+schnersheim	67
+schweighouse sur moder	67
+schwindratzheim	67
+schœlcher	972
+schœneck	57
+scientrier	74
+sciez	74
+scionzier	74
+scorbe clairvaux	86
+scy chazelles	57
+sebazac concoures	12
+seboncourt	02
+sebourg	59
+seclin	59
+secondigny	79
+sedan	08
+seebach	67
+sees	61
+seez	73
+segny	01
+segonzac	16
+segoufielle	32
+segre en anjou bleu	49
+seichamps	54
+seiches sur le loir	49
+seignelay	89
+seignosse	40
+seilh	31
+seilhac	19
+seillans	83
+seillons source d argens	83
+seine et marne	77
+seine maritime	76
+seine port	77
+seine saint denis	93
+seingbouse	57
+seissan	32
+selestat	67
+selles saint denis	41
+selles sur cher	41
+seloncourt	25
+selongey	21
+seltz	67
+semalens	81
+semblancay	37
+semeac	65
+semecourt	57
+semoy	45
+semur en auxois	21
+semussac	17
+senas	13
+sendets	64
+sene	56
+senille saint sauveur	86
+senlis	60
+sennecey le grand	71
+sennecey les dijon	21
+senonches	28
+senones	88
+senouillac	81
+senozan	71
+sens	89
+sens de bretagne	35
+sentheim	68
+seppois le bas	68
+septeme	38
+septemes les vallons	13
+septeuil	78
+septfonds	82
+sequedin	59
+seraincourt	95
+sereilhac	87
+seremange erzange	57
+serent	56
+serezin de la tour	38
+serezin du rhone	69
+sergines	89
+sergy	01
+serifontaine	60
+serignac sur garonne	47
+serignan	34
+serignan du comtat	84
+serigne	85
+sermaise	91
+sermaises	45
+sermaize les bains	51
+sermerieu	38
+sermoise sur loire	58
+sernhac	30
+serpaize	38
+serques	62
+serquigny	27
+serre les sapins	25
+serres	05
+serres castet	64
+serrieres	07
+serrieres de briord	01
+serrieres en chautagne	73
+serris	77
+servas	01
+servaville salmonville	76
+servian	34
+servins	62
+servon	77
+servon sur vilaine	35
+servoz	74
+sessenheim	67
+sete	34
+seugy	95
+seulline	14
+seurre	21
+severac	44
+severac d aveyron	12
+sevignac	22
+sevran	93
+sevremoine	49
+sevremont	85
+sevres	92
+sevres anxaumont	86
+sevrey	71
+sevrier	74
+seyches	47
+seyne	04
+seyresse	40
+seyssel	74
+seysses	31
+seyssinet pariset	38
+seyssins	38
+seyssuel	38
+sezanne	51
+sibiril	29
+sierck les bains	57
+sierentz	68
+sierville	76
+sigave	986
+sigean	11
+signes	83
+signy l abbaye	08
+signy le petit	08
+sigoules et flaugeac	24
+sillans	38
+sille le guillaume	72
+sille le philippe	72
+sillery	51
+sillingy	74
+silly le long	60
+simandre	71
+simandres	69
+simard	71
+simiane collongue	13
+sin le noble	59
+sinceny	02
+sinnamary	973
+sion les mines	44
+siorac en perigord	24
+sireuil	16
+sisco	2B
+sissonne	02
+sisteron	04
+sivry courtry	77
+six fours les plages	83
+sixt sur aff	35
+sizun	29
+smarves	86
+sochaux	25
+soignolles en brie	77
+soings en sologne	41
+soissons	02
+soisy sous montmorency	95
+soisy sur ecole	91
+soisy sur seine	91
+solaize	69
+solers	77
+solesmes	59
+solgne	57
+soliers	14
+solignac	87
+solignac sur loire	43
+sollies pont	83
+sollies toucas	83
+sollies ville	83
+solre le chateau	59
+somain	59
+sombernon	21
+somme	80
+sommerau	67
+sommerviller	54
+sommieres	30
+sonchamp	78
+sonnay	38
+sonnaz	73
+sonzay	37
+soorts hossegor	40
+sorbiers	42
+sorcy saint martin	55
+sore	40
+sorede	66
+sorel moussel	28
+soreze	81
+sorges et ligueux en perigord	24
+sorgues	84
+sorigny	37
+sornay	71
+sospel	06
+sotta	2A
+sottevast	50
+sotteville les rouen	76
+soual	81
+soubise	17
+souchez	62
+soucht	57
+soucieu en jarrest	69
+soucy	89
+soudan	44
+soues	65
+souffelweyersheim	67
+soufflenheim	67
+souillac	46
+soulac sur mer	33
+soulaines sur aubance	49
+soulaire et bourg	49
+souleuvre en bocage	14
+soulge sur ouette	53
+souligne sous ballon	72
+soullans	85
+soultz haut rhin	68
+soultz sous forets	67
+soultzeren	68
+soultzmatt	68
+soumoulou	64
+souppes sur loing	77
+souprosse	40
+souraide	64
+sourcieux les mines	69
+sourdeval	50
+sourdun	77
+sours	28
+sourzac	24
+sousceyrac en quercy	46
+soussans	33
+soustons	40
+souvigny	03
+soyaux	16
+soyons	07
+spay	72
+spechbach	68
+speracedes	06
+spezet	29
+spicheren	57
+spycker	59
+staffelfelden	68
+stains	93
+steenbecque	59
+steene	59
+steenvoorde	59
+steenwerck	59
+steinbach	68
+steinbourg	67
+stenay	55
+still	67
+stiring wendel	57
+stosswihr	68
+stotzheim	67
+strasbourg	67
+stuckange	57
+stutzheim offenheim	67
+suce sur erdre	44
+sucy en brie	94
+suevres	41
+suippes	51
+sully sur loire	45
+sulniac	56
+sumene	30
+sundhoffen	68
+sundhouse	67
+surbourg	67
+suresnes	92
+surgeres	17
+surtainville	50
+survilliers	95
+sury le comtal	42
+surzur	56
+sussargues	34
+susville	38
+suze la rousse	26
+sylvains les moulins	27
+tabanac	33
+tacoignieres	78
+taden	22
+tahaa	987
+taiarapu est	987
+taiarapu ouest	987
+taillades	84
+taillecourt	25
+taillis	35
+tain l hermitage	26
+taintrux	88
+taissy	51
+takaroa	987
+talange	57
+talant	21
+talence	33
+talencieux	07
+talensac	35
+tallard	05
+tallende	63
+talloires montmin	74
+talmas	80
+talmont saint hilaire	85
+taluyers	69
+tancarville	76
+taninges	74
+tanneron	83
+taponnat fleurignac	16
+taputapuatea	987
+taradeau	83
+tarare	69
+tarascon	13
+tarascon sur ariege	09
+tarbes	65
+tarcenay foucherans	25
+targon	33
+tarn	81
+tarn et garonne	82
+tarnos	40
+tart	21
+tartas	40
+tassin la demi lune	69
+taule	29
+taulignan	26
+taupont	56
+tauriac	33
+tauxigny saint bauld	37
+tavaux	39
+tavel	30
+tavernes	83
+taverny	95
+tavers	45
+tecou	81
+teillay	35
+teille	44
+telgruc sur mer	29
+teloche	72
+templemars	59
+templeuve en pevele	59
+tenay	01
+tence	43
+tencin	38
+tende	06
+tennie	72
+tenteling	57
+terce	86
+tercis les bains	40
+tergnier	02
+ternay	69
+terranjou	49
+terrasson lavilledieu	24
+terre de bancalie	81
+terre de haut	971
+terre et marais	50
+terres de bord	27
+terres de caux	76
+terres de haute charente	16
+territoire de belfort	90
+terssac	81
+terval	85
+terville	57
+tesson	17
+tessy bocage	50
+teteghem coudekerque village	59
+teting sur nied	57
+teurtheville hague	50
+teva i uta	987
+teyran	34
+thaire	17
+thann	68
+thaon	14
+thaon les vosges	88
+theding	57
+theillay	41
+theix noyalo	56
+theize	69
+thelus	62
+thenac	17
+thenezay	79
+thenon	24
+thenouville	27
+theoule sur mer	06
+therdonne	60
+thereval	50
+therouanne	62
+thesee	41
+theys	38
+theza	66
+thezan les beziers	34
+theziers	30
+thiais	94
+thiant	59
+thiaucourt regnieville	54
+thiberville	27
+thiel sur acolin	03
+thiers	63
+thiers sur theve	60
+thierville sur meuse	55
+thil	54
+thilouze	37
+thimert gatelles	28
+thio	988
+thionville	57
+thise	25
+thivars	28
+thiverny	60
+thiverval grignon	78
+thiviers	24
+thizy les bourgs	69
+thoiry	01
+thoissey	01
+thomery	77
+thones	74
+thonon les bains	74
+thorey en plaine	21
+thorigne d anjou	49
+thorigne fouillard	35
+thorigne sur due	72
+thorigny	85
+thorigny sur marne	77
+thorigny sur oreuse	89
+thouare sur loire	44
+thouars	79
+thourotte	60
+thue et mue	14
+thueyts	07
+thuir	66
+thumeries	59
+thun saint amand	59
+thure	86
+thurins	69
+thury harcourt le hom	14
+thusy	74
+thyez	74
+tierce	49
+tiffauges	85
+tigery	91
+tignes	73
+tignieu jameyzieu	38
+tigy	45
+til chatel	21
+tille	60
+tillieres sur avre	27
+tilloy les mofflaines	62
+tilly sur seulles	14
+tilques	62
+tinchebray bocage	61
+tinqueux	51
+tinteniac	35
+tocane saint apre	24
+tollevast	50
+tomblaine	54
+tonnay boutonne	17
+tonnay charente	17
+tonneins	47
+tonnerre	89
+tonquedec	22
+torce	35
+torce en vallee	72
+torcy	77
+torigny les villes	50
+torreilles	66
+torvilliers	10
+tosse	40
+tossiat	01
+totes	76
+toucy	89
+toufflers	59
+touho	988
+toul	54
+toulaud	07
+toulenne	33
+toulon	83
+toulon sur allier	03
+toulon sur arroux	71
+toulouges	66
+toulouse	31
+touques	14
+touquin	77
+tour en sologne	41
+tourbes	34
+tourch	29
+tourcoing	59
+tournan en brie	77
+tournay	65
+tournefeuille	31
+tournehem sur la hem	62
+tournes	08
+tourneville sur mer	50
+tournon saint martin	36
+tournon sur rhone	07
+tournus	71
+tourouvre au perche	61
+tourrette levens	06
+tourrettes	83
+tourrettes sur loup	06
+tours	37
+tours sur marne	51
+tourves	83
+tourville la campagne	27
+tourville la riviere	76
+tourville sur arques	76
+tourville sur odon	14
+toury	28
+toussieu	69
+toussieux	01
+toussus le noble	78
+toutainville	27
+toutlemonde	49
+touvois	44
+touvre	16
+tracy le mont	60
+tracy le val	60
+trainel	10
+trainou	45
+tramayes	71
+tramoyes	01
+trange	72
+trans en provence	83
+trans sur erdre	44
+trappes	78
+trebes	11
+trebeurden	22
+tredarzec	22
+tredion	56
+tredrez locquemeau	22
+treffendel	35
+treffiagat	29
+trefflean	56
+tregastel	22
+treglamus	22
+tregueux	22
+treguier	22
+tregunc	29
+treignac	19
+treigny perreuse sainte colombe	89
+treillieres	44
+treis sants en ouche	27
+treize septiers	85
+treize vents	85
+trelaze	49
+trelevern	22
+trelissac	24
+trelivan	22
+trelon	59
+tremblay en france	93
+tremblay les villages	28
+trementines	49
+tremeoc	29
+tremeven	29
+tremorel	22
+tremuson	22
+treon	28
+trept	38
+tresbœuf	35
+tresques	30
+tressange	57
+tresserre	66
+tresserve	73
+tresses	33
+tressin	59
+trets	13
+treve	22
+trevenans	90
+trevol	03
+trevou treguignec	22
+trevoux	01
+triaize	85
+tricot	60
+trie chateau	60
+trie sur baise	65
+triel sur seine	78
+trieux	54
+trignac	44
+trigueres	45
+trilport	77
+trith saint leger	59
+trizay	17
+troarn	14
+trois rivieres	971
+troisfontaines	57
+troissereux	60
+tronville en barrois	55
+trosly breuil	60
+trouillas	66
+trouville sur mer	14
+trouy	18
+troyes	10
+truchtersheim	67
+trun	61
+truyes	37
+tsingoni	976
+tubuai	987
+tucquegnieux	54
+tuffalun	49
+tuffe val de la cheronne	72
+tulette	26
+tulle	19
+tullins	38
+tumaraa	987
+turckheim	68
+turretot	76
+ua pou	987
+ucel	07
+uchaud	30
+uchaux	84
+uckange	57
+uffheim	68
+uffholtz	68
+ugine	73
+ully saint georges	60
+ungersheim	68
+unieux	42
+unverre	28
+upie	26
+urcuit	64
+urimenil	88
+urmatt	67
+urrugne	64
+urt	64
+urzy	58
+us	95
+ussac	19
+ussel	19
+usson du poitou	86
+usson en forez	42
+ussy sur marne	77
+ustaritz	64
+uturoa	987
+uvea	986
+uxegney	88
+uxem	59
+uzein	64
+uzel	22
+uzemain	88
+uzerche	19
+uzes	30
+vaas	72
+vabres l abbaye	12
+vacqueyras	84
+vacquiers	31
+vagney	88
+vaiges	53
+vailhauques	34
+vailly sur aisne	02
+vair sur loire	44
+vaire	85
+vaires sur marne	77
+vaison la romaine	84
+vaivre et montoille	70
+val au perche	61
+val buech meouge	05
+val cenis	73
+val couesnon	35
+val d aigoual	30
+val d anast	35
+val d arc	73
+val d arguenon	22
+val d arry	14
+val d erdre auxence	49
+val d isere	73
+val d issoire	87
+val d ize	35
+val d oingt	69
+val d oire et gartempe	87
+val d oise	95
+val d oust	56
+val d usiers	25
+val de bonnieure	16
+val de briey	54
+val de chaise	74
+val de cognac	16
+val de la hune	72
+val de livenne	33
+val de louyre et caudeau	24
+val de marne	94
+val de meuse	52
+val de moder	67
+val de reuil	27
+val de saane	76
+val de scie	76
+val de vesle	51
+val de virieu	38
+val de virvee	33
+val des vignes	16
+val du layon	49
+val du mignon	79
+val en vignes	79
+val revermont	01
+val sonnette	39
+valady	12
+valambray	14
+valbonne	06
+vald yerre	28
+valdahon	25
+valdalliere	14
+valdivienne	86
+valdoie	90
+valencay	36
+valence	26
+valence d albigeois	81
+valence en brie	77
+valence en poitou	86
+valence sur baise	32
+valenciennes	59
+valencin	38
+valencisse	41
+valensole	04
+valentigney	25
+valenton	94
+valergues	34
+valff	67
+valframbert	61
+valgelon la rochette	73
+valherbasse	26
+vallabregues	30
+vallauris	06
+valleiry	74
+valleres	37
+valleroy	54
+vallet	44
+vallieres sur fier	74
+valliquerville	76
+valloire	73
+valloire sur cisse	41
+vallon en sully	03
+vallon pont d arc	07
+vallons de l erdre	44
+vallouise pelvoux	05
+valmondois	95
+valmont	57
+valognes	50
+valorbiquet	14
+valras plage	34
+valravillon	89
+valreas	84
+valromey sur seran	01
+valros	34
+vals les bains	07
+vals pres le puy	43
+valserhone	01
+valsonne	69
+vandœuvre les nancy	54
+vannes	56
+vanves	92
+var	83
+varages	83
+varangeville	54
+varaville	14
+varces allieres et risset	38
+varennes changy	45
+varennes jarcy	91
+varennes le grand	71
+varennes saint sauveur	71
+varennes sur allier	03
+varennes sur loire	49
+varennes sur seine	77
+varennes vauzelles	58
+varetz	19
+varilhes	09
+varois et chaignot	21
+varrains	49
+varreddes	77
+varzy	58
+vasles	79
+vasselay	18
+vatan	36
+vatteville la rue	76
+vaucluse	84
+vaucouleurs	55
+vaucresson	92
+vaudelnay	49
+vaudricourt	62
+vaugneray	69
+vaugrigneuse	91
+vauhallan	91
+vaujours	93
+vaulnaveys le bas	38
+vaulnaveys le haut	38
+vaulx	74
+vaulx en velin	69
+vaulx milieu	38
+vaulx vraucourt	62
+vaureal	95
+vauvenargues	13
+vauvert	30
+vaux	03
+vaux en beaujolais	69
+vaux en bugey	01
+vaux le penil	77
+vaux sur mer	17
+vaux sur seine	78
+vay	44
+vayrac	46
+vayres	33
+veauche	42
+veauchette	42
+vedene	84
+veigne	37
+veigy foncenex	74
+velars sur ouche	21
+velaux	13
+velines	24
+velizy villacoublay	78
+velleron	84
+vemars	95
+venansault	85
+venarey les laumes	21
+venasque	84
+vence	06
+vendargues	34
+vendat	03
+vendays montalivet	33
+vendee	85
+vendegies sur ecaillon	59
+vendemian	34
+vendenheim	67
+vendeuvre sur barse	10
+vendeville	59
+vendin le vieil	62
+vendin les bethune	62
+vendome	41
+vendrennes	85
+vendres	34
+vendœuvres	36
+venejan	30
+venelles	13
+venerque	31
+venette	60
+venissieux	69
+venizel	02
+vennecy	45
+venoy	89
+vensac	33
+ventabren	13
+ventiseri	2B
+venzolasca	2B
+ver sur launette	60
+ver sur mer	14
+verberie	60
+vercel villedieu le camp	25
+verchain maugre	59
+verdalle	81
+verdelais	33
+verdun	55
+verdun ciel	71
+verdun sur garonne	82
+veretz	37
+verfeil	31
+vergeroux	17
+vergeze	30
+vergigny	89
+vergongheon	43
+vergt	24
+verines	17
+verlinghem	59
+vermand	02
+vermelles	62
+vermenton	89
+vern sur seiche	35
+vernaison	69
+vernantes	49
+vernegues	13
+vernet	31
+vernet les bains	66
+verneuil d avre et d iton	27
+verneuil en halatte	60
+verneuil l etang	77
+verneuil sur seine	78
+verneuil sur vienne	87
+verniolle	09
+vernioz	38
+vernoil le fourrier	49
+vernon	27
+vernosc les annonay	07
+vernou la celle sur seine	77
+vernou sur brenne	37
+vernouillet	28
+vernoux en vivarais	07
+verny	57
+veron	89
+verquigneul	62
+verquin	62
+verrieres	10
+verrieres en anjou	49
+verrieres le buisson	91
+vers pont du gard	30
+versailles	78
+verson	14
+versonnex	01
+vert en drouais	28
+vert le grand	91
+vert le petit	91
+vert saint denis	77
+vertaizon	63
+vertheuil	33
+verton	62
+vertou	44
+vervins	02
+vescovato	2B
+vesoul	70
+vesseaux	07
+vestric et candiac	30
+vetraz monthoux	74
+veurey voroize	38
+veuzain sur loire	41
+vexin sur epte	27
+veynes	05
+veyrac	87
+veyras	07
+veyre monton	63
+veyrier du lac	74
+vezac	15
+vezelise	54
+vezelois	90
+vezenobres	30
+vezeronce curtin	38
+vezin le coquet	35
+vezins	49
+viarmes	95
+vias	34
+vibraye	72
+vic en bigorre	65
+vic fezensac	32
+vic la gardiole	34
+vic le comte	63
+vic sur aisne	02
+vic sur cere	15
+vic sur seille	57
+vichy	03
+vicq	59
+vicq sur breuilh	87
+vicq sur mer	50
+vidauban	83
+vieille brioude	43
+vieille eglise	62
+vieille toulouse	31
+vieillevigne	44
+vielle saint girons	40
+vielmur sur agout	81
+viels maisons	02
+viennay	79
+vienne	38
+vienne en val	45
+vierzon	18
+viesly	59
+vieux berquin	59
+vieux boucau les bains	40
+vieux charmont	25
+vieux conde	59
+vieux fort	971
+vieux habitants	971
+vieux thann	68
+vieux vy sur couesnon	35
+vif	38
+vigeois	19
+vignacourt	80
+vigneulles les hattonchatel	55
+vigneux de bretagne	44
+vigneux sur seine	91
+vignieu	38
+vignoc	35
+vignot	55
+vignoux sur barangeon	18
+vigny	95
+vigoulet auzil	31
+vigy	57
+vilde guingalan	22
+villabe	91
+village neuf	68
+villages du lac de paladru	38
+villaines la juhel	53
+villaines les rochers	37
+villaines sous malicorne	72
+villandraut	33
+villandry	37
+villar saint pancrace	05
+villard bonnot	38
+villard de lans	38
+villars	42
+villars les dombes	01
+villasavary	11
+villate	31
+villaudric	31
+villaz	74
+ville	67
+ville d avray	92
+ville di pietrabugno	2B
+ville la grand	74
+ville sous anjou	38
+villebarou	41
+villebernier	49
+villeblevin	89
+villebois	01
+villebon sur yvette	91
+villebret	03
+villebrumier	82
+villecresnes	94
+villecroze	83
+villedieu les poeles rouffigny	50
+villedieu sur indre	36
+villedomer	37
+villedoux	17
+villefargeau	89
+villefontaine	38
+villefranche d albigeois	81
+villefranche d allier	03
+villefranche de lauragais	31
+villefranche de rouergue	12
+villefranche sur cher	41
+villefranche sur mer	06
+villefranche sur saone	69
+villefranque	64
+villegailhenc	11
+villegly	11
+villegouge	33
+villegusien le lac	52
+villejuif	94
+villejust	91
+villelaure	84
+villelongue de la salanque	66
+villelongue dels monts	66
+villemandeur	45
+villemarechal	77
+villematier	31
+villemaury	28
+villemeux sur eure	28
+villemoirieu	38
+villemoisson sur orge	91
+villemolaque	66
+villemomble	93
+villemontais	42
+villemoustaussou	11
+villemur sur tarn	31
+villenauxe la grande	10
+villenave d ornon	33
+villeneuve	04
+villeneuve d ascq	59
+villeneuve de berg	07
+villeneuve de la raho	66
+villeneuve de marc	38
+villeneuve de marsan	40
+villeneuve de riviere	31
+villeneuve en perseigne	72
+villeneuve en retz	44
+villeneuve l archeveque	89
+villeneuve la comptal	11
+villeneuve la garenne	92
+villeneuve la guyard	89
+villeneuve la riviere	66
+villeneuve le comte	77
+villeneuve le roi	94
+villeneuve les avignon	30
+villeneuve les beziers	34
+villeneuve les bouloc	31
+villeneuve les maguelone	34
+villeneuve les sablons	60
+villeneuve loubet	06
+villeneuve saint denis	77
+villeneuve saint georges	94
+villeneuve saint germain	02
+villeneuve sur aisne	02
+villeneuve sur allier	03
+villeneuve sur bellot	77
+villeneuve sur lot	47
+villeneuve sur yonne	89
+villeneuve tolosane	31
+villennes sur seine	78
+villenouvelle	31
+villenoy	77
+villeparisis	77
+villeperdue	37
+villepinte	93
+villepreux	78
+villereal	47
+villereau	59
+villerest	42
+villereversure	01
+villeron	95
+villers bocage	14
+villers bretonneux	80
+villers cotterets	02
+villers ecalles	76
+villers en cauchies	59
+villers la montagne	54
+villers le lac	25
+villers les nancy	54
+villers les pots	21
+villers outreaux	59
+villers pol	59
+villers saint paul	60
+villers semeuse	08
+villers sire nicole	59
+villers sous saint leu	60
+villers sur coudun	60
+villers sur mer	14
+villersexel	70
+villerupt	54
+villes sur auzon	84
+villetaneuse	93
+villetelle	34
+villette d anthon	38
+villette de vienne	38
+villeurbanne	69
+villevaude	77
+villeveyrac	34
+villevieille	30
+villevocance	07
+villey saint etienne	54
+villie morgon	69
+villiers charlemagne	53
+villiers en lieu	52
+villiers en plaine	79
+villiers le bacle	91
+villiers le bel	95
+villiers le morhier	28
+villiers saint frederic	78
+villiers saint georges	77
+villiers sur loir	41
+villiers sur marne	94
+villiers sur morin	77
+villiers sur orge	91
+villieu loyes mollon	01
+villorceau	45
+villy le pelloux	74
+vimartin sur orthe	53
+vimines	73
+vimory	45
+vimoutiers	61
+vimy	62
+vinassan	11
+vinay	38
+vinca	66
+vincennes	94
+vincey	88
+vindelle	16
+vindry sur turdine	69
+vineuil	41
+vineuil saint firmin	60
+vinezac	07
+vinneuf	89
+vinon sur verdon	83
+vinsobres	26
+violaines	62
+violay	42
+violes	84
+viols le fort	34
+vion	72
+virazeil	47
+vire	71
+vire normandie	14
+virelade	33
+vireux molhain	08
+vireux wallerand	08
+virey le grand	71
+viriat	01
+virieu le grand	01
+virignin	01
+viriville	38
+viroflay	78
+virsac	33
+viry	74
+viry chatillon	91
+viry noureuil	02
+visan	84
+vitre	35
+vitrolles	13
+vitry aux loges	45
+vitry en artois	62
+vitry en charollais	71
+vitry le francois	51
+vitry sur orne	57
+vitry sur seine	94
+vitteaux	21
+vittel	88
+viuz en sallaz	74
+viuz la chiesaz	74
+vivier au court	08
+viviers	07
+viviers du lac	73
+viviers les montagnes	81
+viviez	12
+vivonne	86
+vivy	49
+vix	85
+vizille	38
+voglans	73
+vogue	07
+voh	988
+void vacon	55
+voiron	38
+voisenon	77
+voisins le bretonneux	78
+voivres les le mans	72
+volgelsheim	68
+volmerange les mines	57
+volonne	04
+volstroff	57
+volvic	63
+volx	04
+vonnas	01
+voreppe	38
+vorey	43
+vosges	88
+vougy	74
+vouille	86
+voujeaucourt	25
+voulangis	77
+voulmentin	79
+voulx	77
+vouneuil sous biard	86
+vouneuil sur vienne	86
+vourey	38
+vourles	69
+voutezac	19
+vouvray	37
+vouziers	08
+vouzon	41
+vred	59
+vrigne aux bois	08
+vue	44
+vulaines sur seine	77
+vulbens	74
+vœuil et giget	16
+wahagnies	59
+wailly	62
+wailly beaucamp	62
+waldighoffen	68
+walincourt selvigny	59
+wallers	59
+walscheid	57
+wambrechies	59
+wandignies hamage	59
+wangenbourg engenthal	67
+wannehain	59
+warcq	08
+wardrecques	62
+wargnies le grand	59
+warhem	59
+warluis	60
+warmeriville	51
+wasquehal	59
+wasselonne	67
+wassy	52
+watten	59
+wattignies	59
+wattrelos	59
+wattwiller	68
+wavignies	60
+wavrans sur l aa	62
+wavrechain sous denain	59
+wavrin	59
+waziers	59
+weitbruch	67
+wervicq sud	59
+westhalten	68
+westhoffen	67
+westhouse	67
+wettolsheim	68
+weyersheim	67
+widensolen	68
+wignehies	59
+wihr au val	68
+willems	59
+willer sur thur	68
+willerwald	57
+willgottheim	67
+wimereux	62
+wimille	62
+wimmenau	67
+wingen sur moder	67
+wingersheim les quatre bans	67
+wingles	62
+winnezeele	59
+wintzenheim	68
+wisches	67
+wissembourg	67
+wissous	91
+witry les reims	51
+wittelsheim	68
+wittenheim	68
+wittisheim	67
+wizernes	62
+woincourt	80
+woippy	57
+wolfgantzen	68
+wolfisheim	67
+wormhout	59
+woustviller	57
+wœrth	67
+xertigny	88
+xonrupt longemer	88
+yainville	76
+yate	988
+ychoux	40
+ydes	15
+yebleron	76
+yenne	73
+yerres	91
+yerville	76
+yevres	28
+yffiniac	22
+ygos saint saturnin	40
+ymare	76
+yonne	89
+yquelon	50
+yssingeaux	43
+ytrac	15
+yutz	57
+yvelines	78
+yves	17
+yvetot	76
+yvetot bocage	50
+yvignac la tour	22
+yvoire	74
+yvrac	33
+yvre l eveque	72
+yvre le polin	72
+yzernay	49
+yzeure	03
+yzeures sur creuse	37
+zegerscappel	59
+zillisheim	68
+zimmersheim	68
+zonza	2A
+zoufftgen	57
+zudausques	62
+zutkerque	62
+zuydcoote	59
+œting	57

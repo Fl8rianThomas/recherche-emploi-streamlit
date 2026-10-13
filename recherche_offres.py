@@ -105,30 +105,40 @@ DEPTS_FAVORIS_PAR_DEFAUT = ["37", "41", "45", "74", "75"]
 
 # Grands groupes (onglet 🏢) : une offre France dont l'ENTREPRISE contient un de
 # ces noms (mot entier, accents/casse ignores) y est rangee. Editable dans l'interface.
+# Secteurs retenus : banque/finance, assurance, luxe/mode, aero/defense,
+# energie/industrie/BTP, sante (conso/distribution et telecom/transport/services
+# ecartes a la demande de l'utilisateur).
 GRANDS_GROUPES_PAR_DEFAUT = [
-    # Banques
+    # Banque / finance
     "BNP Paribas", "Société Générale", "Crédit Agricole", "LCL", "Natixis", "BPCE",
     "Caisse d'Épargne", "Banque Populaire", "Crédit Mutuel", "CIC",
-    "La Banque Postale", "HSBC", "Amundi", "CACEIS",
+    "La Banque Postale", "HSBC", "Amundi", "CACEIS", "Citi", "Rothschild", "Ardian",
+    "Ayvens", "Coface",
     # Assurance / mutuelles
     "AXA", "Allianz", "Generali", "CNP Assurances", "Groupama", "Malakoff Humanis",
-    "AG2R", "MAIF", "MACIF", "Covéa",
-    # Luxe / beauté
+    "AG2R", "MAIF", "MACIF", "Covéa", "Marsh McLennan",
+    # Luxe / beauté / mode
     "LVMH", "Louis Vuitton", "Dior", "Sephora", "Moët Hennessy", "Givenchy",
     "Kering", "Saint Laurent", "Chanel", "Hermès", "L'Oréal", "Loreal", "Cartier",
+    "Richemont", "PVH",
     # Aéronautique / défense
     "Airbus", "Safran", "Thales", "Dassault", "MBDA", "Naval Group", "ArianeGroup",
-    # Énergie / industrie / services
+    # Énergie / industrie / BTP
     "TotalEnergies", "EDF", "Engie", "Schneider Electric", "Air Liquide",
     "Saint-Gobain", "Michelin", "Renault", "Stellantis", "Alstom", "Veolia",
-    "^Vinci", "Bouygues", "^Orange", "SNCF", "RATP", "La Poste",
-    # Santé / grande conso / distribution
-    "Sanofi", "Servier", "Danone", "Pernod Ricard", "Carrefour", "Decathlon", "Accor",
-    # Autres groupes interroges directement sur leur site carriere (section 9)
-    "Richemont", "Valeo", "Eiffage", "Pierre Fabre", "Havas", "LFB", "Ipsen",
-    "Rothschild", "Ayvens", "Ardian", "Marsh McLennan", "Citi", "Pluxee",
-    "Maisons du Monde", "Unibail-Rodamco-Westfield", "Imerys", "Cultura", "Criteo", "PVH",
-    "Eurofins", "Ubisoft", "Kiabi", "Coface", "Bosch",
+    "^Vinci", "Bouygues", "Valeo", "Eiffage", "Imerys", "Bosch",
+    "SNCF",                 # gardee a la demande (secteur transport ecarte sinon)
+    # Santé (labos, medtech, CRO, e-santé — hors hôpitaux et cliniques)
+    "Sanofi", "Servier", "Pierre Fabre", "LFB", "Ipsen", "Eurofins", "Novo Nordisk",
+    "Shiseido", "Guerbet", "Coty", "Boehringer Ingelheim", "Cegedim", "Expanscience",
+    "Henry Schein", "Essity", "Danaher", "Stryker", "Smith+Nephew", "Pfizer", "Roche",
+    "GSK", "Johnson & Johnson", "Becton Dickinson", "Thermo Fisher", "IQVIA", "Abbott",
+    "GE HealthCare", "Biocodex", "Opella", "Sartorius", "Syneos Health", "Medline",
+    "Lonza", "Kenvue", "Fresenius", "Viatris", "Baxter", "Novartis", "Sandoz", "Alcon",
+    "Edwards Lifesciences", "Catalent", "Medtronic", "Revvity", "Amgen", "Zentiva",
+    "Biogen", "Eli Lilly", "Takeda", "MSD", "AstraZeneca", "Philips", "AbbVie",
+    "Biogaran", "Siemens Healthineers", "Merck", "Doctolib", "^Alan SA", "Lifen",
+    "Owkin", "Nabla", "Inato",
 ]
 
 # Competences relevant du domaine RH -> declenchent l'icone 👥 dans l'interface.
@@ -920,7 +930,10 @@ def rechercher_jobup(config):
 # JSON publique (celle du site carriere) : recherche par mots-cles + filtre pays.
 # Ajouter un groupe = ajouter (nom, URL publique du site carriere Workday[, facette]).
 # Facette pays : le NOM du filtre varie selon le tenant (defaut « locationCountry ») ;
-# None = pas de filtre (site 100 % France ; le filtre y renverrait une erreur 400).
+# None = pas de filtre (site 100 % France ; le filtre y renverrait une erreur 400) ;
+# "auto" = detection (facette pays si elle existe, sinon les LIEUX « …, France »,
+# « France - … », « FRA… » d'une facette de type locations) ; tuple de libelles =
+# liste blanche de lieux (tenants dont les lieux ne citent pas le pays).
 # Astuce : https://{tenant}.wdN.myworkdayjobs.com/robots.txt liste les sites d'un tenant.
 WORKDAY_GROUPES = [
     ("Airbus", "https://ag.wd3.myworkdayjobs.com/Airbus"),
@@ -931,13 +944,10 @@ WORKDAY_GROUPES = [
     ("Richemont", "https://richemont.wd3.myworkdayjobs.com/Richemont"),
     ("Air Liquide", "https://airliquidehr.wd3.myworkdayjobs.com/AirLiquideExternalCareer"),
     ("Michelin", "https://michelinhr.wd3.myworkdayjobs.com/Michelin", "Location_Country"),
-    ("Pernod Ricard", "https://pernodricard.wd3.myworkdayjobs.com/pernod-ricard"),
     ("Pierre Fabre", "https://pierrefabre.wd3.myworkdayjobs.com/External_Career_Site"),
     ("Valeo", "https://valeo.wd3.myworkdayjobs.com/valeo_jobs"),
     ("Eiffage", "https://eiffage.wd3.myworkdayjobs.com/Eiffage_Careers"),
-    ("RATP", "https://ratp.wd3.myworkdayjobs.com/RATP_Externe", None),
     ("ArianeGroup", "https://arianegroup.wd3.myworkdayjobs.com/EXTERNALALL"),
-    ("Havas", "https://havas.wd3.myworkdayjobs.com/GroupExternalCareerSite", "Country"),
     ("LFB", "https://lfb.wd3.myworkdayjobs.com/LFB_External_Careers"),
     ("Ipsen", "https://ipsen.wd103.myworkdayjobs.com/Ipsen_Careers"),
     ("AG2R La Mondiale", "https://ag2rlamondiale.wd3.myworkdayjobs.com/Candidats", None),
@@ -946,15 +956,97 @@ WORKDAY_GROUPES = [
     ("Ardian", "https://ardian.wd103.myworkdayjobs.com/ArdianCareers"),
     ("Marsh McLennan", "https://mmc.wd1.myworkdayjobs.com/MMC", "Location_Country"),
     ("Citi", "https://citi.wd5.myworkdayjobs.com/2", "Country_and_Jurisdiction"),
-    ("Pluxee", "https://pluxee.wd3.myworkdayjobs.com/Pluxee_Career_Site"),
-    ("Maisons du Monde", "https://maisonsdumonde.wd3.myworkdayjobs.com/Site_carriere"),
-    ("Unibail-Rodamco-Westfield", "https://urw.wd3.myworkdayjobs.com/urw_career_site"),
     ("Imerys", "https://imerys.wd3.myworkdayjobs.com/IMERYS-Careers", "Country"),
-    ("Cultura", "https://cultura.wd3.myworkdayjobs.com/Cultura", None),
-    ("Criteo", "https://criteo.wd3.myworkdayjobs.com/Criteo_Career_Site", "Country"),
     ("PVH", "https://pvh.wd1.myworkdayjobs.com/PVH_Careers", "Location_Country"),
+    # Santé (labos, medtech, CRO) — Centre-Val de Loire : Expanscience (Épernon),
+    # Henry Schein / Stryker / Smith+Nephew (Tours), Essity (Gien), Pfizer (Amboise).
+    ("Expanscience", "https://expanscience.wd3.myworkdayjobs.com/Expanscience_Careers", "auto"),
+    ("Henry Schein", "https://henryschein.wd1.myworkdayjobs.com/External_Careers"),
+    ("Essity", "https://essity.wd3.myworkdayjobs.com/Job_opportunities", "Country"),
+    ("Danaher", "https://danaher.wd1.myworkdayjobs.com/DanaherJobs"),
+    ("Stryker", "https://stryker.wd1.myworkdayjobs.com/StrykerCareers", "Location_Country"),
+    ("Smith+Nephew", "https://smithnephew.wd5.myworkdayjobs.com/External", "Country"),
+    ("Pfizer", "https://pfizer.wd1.myworkdayjobs.com/PfizerCareers", "Location_Country"),
+    ("Roche", "https://roche.wd3.myworkdayjobs.com/roche-ext", "auto"),
+    ("GSK", "https://gsk.wd5.myworkdayjobs.com/GSKCareers", "Location_Country"),
+    ("Johnson & Johnson", "https://jj.wd5.myworkdayjobs.com/JJ", "auto"),
+    ("Becton Dickinson", "https://bdx.wd1.myworkdayjobs.com/EXTERNAL_CAREER_SITE_FRANCE", None),
+    ("Thermo Fisher", "https://thermofisher.wd5.myworkdayjobs.com/ThermoFisherCareers", "auto"),
+    ("IQVIA", "https://iqvia.wd1.myworkdayjobs.com/IQVIA", "Location_Country"),
+    ("Abbott", "https://abbott.wd5.myworkdayjobs.com/abbottcareers", "Location_Country"),
+    ("GE HealthCare", "https://gehc.wd5.myworkdayjobs.com/GEHC_ExternalSite",
+     ("Buc", "Toulouse", "Tremblay-en-France")),
+    ("Biocodex", "https://biocodex.wd502.myworkdayjobs.com/Biocodex_Careers"),
+    ("Opella", "https://opella.wd103.myworkdayjobs.com/OpellaCareers"),
+    ("Sartorius", "https://sartorius.wd3.myworkdayjobs.com/sartoriuscareers", "Country"),
+    ("Syneos Health", "https://syneoshealth.wd12.myworkdayjobs.com/Syneos_Health_External_Site", "auto"),
+    ("Medline", "https://medline.wd5.myworkdayjobs.com/Medline", "Country"),
+    ("Lonza", "https://lonza.wd3.myworkdayjobs.com/Lonza_Careers", "auto"),
+    ("Kenvue", "https://kenvue.wd5.myworkdayjobs.com/kenvue", "auto"),
+    ("Fresenius", "https://freseniusmedicalcare.wd3.myworkdayjobs.com/fme", "auto"),
+    ("Viatris", "https://viatris.wd5.myworkdayjobs.com/External", "Country"),
+    ("Baxter", "https://baxter.wd1.myworkdayjobs.com/baxter", "Country"),
+    ("Novartis", "https://novartis.wd3.myworkdayjobs.com/Novartis_Careers"),
+    ("Sandoz", "https://sandoz.wd103.myworkdayjobs.com/Sandoz_Careers", ("Levallois HQ (Sandoz)",)),
+    ("Alcon", "https://alcon.wd5.myworkdayjobs.com/careers_alcon", "auto"),
+    ("Edwards Lifesciences", "https://edwards.wd5.myworkdayjobs.com/EdwardsCareers", "auto"),
+    ("Catalent", "https://catalent.wd1.myworkdayjobs.com/External", "auto"),
+    ("Medtronic", "https://medtronic.wd1.myworkdayjobs.com/MedtronicCareers", "auto"),
+    ("Revvity", "https://revvity.wd103.myworkdayjobs.com/External", "auto"),
+    ("Amgen", "https://amgen.wd1.myworkdayjobs.com/Careers", "LocationCountry"),
+    ("Zentiva", "https://zentiva.wd3.myworkdayjobs.com/Zentiva", "auto"),
+    ("Biogen", "https://biibhr.wd3.myworkdayjobs.com/external", "auto"),
+    ("Eli Lilly", "https://lilly.wd115.myworkdayjobs.com/LLY", "auto"),
+    ("Takeda", "https://takeda.wd502.myworkdayjobs.com/External", "auto"),
+    ("MSD", "https://msd.wd5.myworkdayjobs.com/SearchJobs", "auto"),
+    ("AstraZeneca", "https://astrazeneca.wd3.myworkdayjobs.com/Careers", "auto"),
+    ("Philips", "https://philips.wd3.myworkdayjobs.com/jobs-and-careers", "auto"),
 ]
 WORKDAY_FRANCE = "54c5b6971ffb4bf0b116fe7651ec789a"   # id pays « France » (commun aux tenants)
+# Lieux francais d'une facette « locations » : « Lyon, France », « France - Paris »,
+# « FRA-EPE ». Jamais « Fran » seul (Frankfurt, Franklin, San Francisco).
+_RE_LIEU_FRANCE = re.compile(r"(,\s*france\s*$|^france\b|^fra\b)", re.I)
+_workday_filtres = {}   # cache par process : tenant -> appliedFacets « France »
+
+def _workday_feuilles(facettes, parent=None):
+    """(parametre, id, libelle) de chaque valeur de l'arbre de facettes Workday."""
+    for f in facettes or []:
+        fp = f.get("facetParameter", parent)
+        for v in f.get("values") or []:
+            if v.get("facetParameter") and "values" in v:
+                yield from _workday_feuilles([v], fp)
+            else:
+                yield fp, v.get("id"), (v.get("descriptor") or "").strip()
+
+def _workday_filtre_france(api, nom, facette):
+    """appliedFacets qui restreint un tenant a la France (voir WORKDAY_GROUPES)."""
+    if facette is None:
+        return {}
+    if isinstance(facette, str) and facette != "auto":
+        return {facette: [WORKDAY_FRANCE]}
+    if api not in _workday_filtres:
+        data = _post_workday(api + "/jobs", {"appliedFacets": {}, "limit": 1, "offset": 0,
+                                             "searchText": ""}, nom)
+        feuilles = list(_workday_feuilles(data.get("facets")))
+        pays = [fp for fp, i, _l in feuilles if i == WORKDAY_FRANCE]
+        if facette == "auto" and pays:
+            filtre = {pays[0]: [WORKDAY_FRANCE]}
+        else:
+            if facette == "auto":
+                garde = lambda lib: bool(_RE_LIEU_FRANCE.search(lib))
+            else:
+                blanche = {normaliser(x) for x in facette}
+                garde = lambda lib: normaliser(lib) in blanche
+            lieux = {}
+            for fp, i, lib in feuilles:
+                if re.search(r"loc|city|region|country", fp or "", re.I) and garde(lib):
+                    lieux.setdefault(fp, []).append(i)
+            if not lieux:
+                raise RuntimeError(f"Workday {nom} : aucun lieu France dans les facettes")
+            fp = max(lieux, key=lambda k: len(lieux[k]))
+            filtre = {fp: lieux[fp]}
+        _workday_filtres[api] = filtre
+    return _workday_filtres[api]
 # Stages / alternances / VIE : ecartes (on vise des CDI, comme les autres sources).
 _RE_HORS_CDI = re.compile(
     r"\b(stage|stagiaire|intern|internship|alternance|alternant|apprenti|apprentie"
@@ -1051,7 +1143,7 @@ def _titre_ok(titre, inclus, exclus, contrat=""):
 def rechercher_workday(config, nom, url_site, facette="locationCountry"):
     """Offres France d'un site carriere Workday (format interne, entreprise = nom).
 
-    facette : nom du filtre pays de ce tenant (None = aucun filtre, site 100 % France).
+    facette : filtre France du tenant (cf. WORKDAY_GROUPES : nom, None, "auto", lieux).
     config["inclure_titres"] / ["exclure_titres"] (optionnels) : pre-filtre sur le
     titre AVANT d'ouvrir la fiche detaillee (1 requete par offre) -> ~5x plus rapide.
     """
@@ -1062,7 +1154,7 @@ def rechercher_workday(config, nom, url_site, facette="locationCountry"):
     total = None                                  # renvoye seulement en page 1
     pages_vides = 0                               # pages consecutives sans titre pertinent
     while len(offres) < config["max_offres"]:
-        corps = {"appliedFacets": {facette: [WORKDAY_FRANCE]} if facette else {},
+        corps = {"appliedFacets": _workday_filtre_france(api, nom, facette),
                  "limit": par_page, "offset": offset,
                  "searchText": mots_cles_recherche(config["mots_cles"])}
         data = _post_workday(api + "/jobs", corps, nom)
@@ -1270,13 +1362,12 @@ def rechercher_jibe(config, nom, base):
         time.sleep(0.2)
     return offres[: config["max_offres"]]
 
-# === 13. SOURCE SMARTRECRUITERS (Accor, Ubisoft, Coface, Bosch...) ==========
+# === 13. SOURCE SMARTRECRUITERS (Eurofins, Coface, Bosch, AbbVie, Biogaran) =
 # API publique officielle : liste filtree pays + fiche detaillee (description).
 SMARTRECRUITERS_URL = "https://api.smartrecruiters.com/v1/companies/{id}/postings"
 SMARTRECRUITERS_GROUPES = [          # (nom affiche, identifiant SmartRecruiters)
-    ("Accor", "AccorHotel"), ("Accor", "Accor"), ("Eurofins", "Eurofins"),
-    ("Ubisoft", "Ubisoft2"), ("Kiabi", "Kiabi"), ("Coface", "Coface"),
-    ("Bosch", "BoschGroup"),
+    ("Eurofins", "Eurofins"), ("Coface", "Coface"), ("Bosch", "BoschGroup"),
+    ("AbbVie", "AbbVie"), ("Biogaran", "Biogaran"),
 ]
 
 def rechercher_smartrecruiters(config, nom, ident):
@@ -1332,12 +1423,14 @@ def rechercher_smartrecruiters(config, nom, ident):
         time.sleep(0.2)
     return offres[: config["max_offres"]]
 
-# === 14. SOURCE PHENOM (Orange, Allianz) ====================================
+# === 14. SOURCE PHENOM (Allianz, Siemens Healthineers, Merck) ================
 # Sites carrieres Phenom : widget JSON « refineSearch » public. Pas de description
 # complete dans la liste -> accroche + competences detectees (ml_skills).
 PHENOM_GROUPES = [   # (nom, base, refNum, lang, pays du site, valeur filtre France)
-    ("Orange", "https://orange.jobs", "OYVOCZGB", "fr_fr", "fr", "FRANCE"),
     ("Allianz", "https://careers.allianz.com", "AISAIPGB", "en_global", "global", "France"),
+    ("Siemens Healthineers", "https://careers.siemens-healthineers.com", "SHDSHWUS",
+     "en_global", "global", "France"),                  # Tours, Bourges
+    ("Merck", "https://careers.merckgroup.com", "MQAMKDGLOBAL", "en_global", "global", "France"),
 ]
 
 def rechercher_phenom(config, nom, base, ref, lang, pays, valeur_france):
@@ -1408,12 +1501,12 @@ def rechercher_credit_agricole(config):
     limite = _limite_iso(config)
     s = requests.Session()
     s.headers["User-Agent"] = _UA_NAVIGATEUR
-    m = re.search(r'"nonce":"([0-9a-f]+)"', s.get(CA_PAGE_URL, timeout=30).text)
+    m = re.search(r'"nonce":"([0-9a-f]+)"', s.get(CA_PAGE_URL, timeout=60).text)
     if not m:
         raise RuntimeError("Crédit Agricole : jeton (nonce) introuvable")
     offres, page = [], 1
     while len(offres) < config["max_offres"]:
-        r = s.post(CA_AJAX_URL, timeout=30, data={
+        r = s.post(CA_AJAX_URL, timeout=60, data={
             "action": "get_offers", "nonce": m.group(1), "lang": "fr", "id_origine": "",
             "locationsList": CA_FRANCE, "page": page,
             "keywords": mots_cles_recherche(config["mots_cles"])})
@@ -1483,7 +1576,46 @@ def _fiche_jobposting(url):
                 break
         if fin - m.end() > len(meilleur):
             meilleur = r.text[m.end():fin]
-    return {"description": meilleur} if meilleur else {}
+    if not meilleur:
+        return {}
+    # Autres microdonnees courantes (<meta itemprop="…" content="…">) : date, lieu,
+    # employeur -> meme forme que le JSON-LD pour _lieu_jobposting & co.
+    meta = dict(re.findall(r'itemprop="([A-Za-z]+)"\s+content="([^"]*)"', r.text))
+    fiche = {"description": meilleur,
+             "datePosted": _date_libre(meta.get("datePosted", "")),
+             "hiringOrganization": {"name": html.unescape(meta.get("hiringOrganization", ""))}}
+    if meta.get("addressLocality"):
+        fiche["jobLocation"] = {"address": {"addressLocality": html.unescape(meta["addressLocality"]),
+                                            "postalCode": meta.get("postalCode", "")}}
+    return fiche
+
+# Mois (FR/EN, sans accents) -> numero, pour les dates « Oct 8, 2026 », « 8 oct. 2026 »,
+# « Thu Oct 01 02:00:00 UTC 2026 ».
+_MOIS = {"jan": 1, "feb": 2, "fev": 2, "mar": 3, "apr": 4, "avr": 4, "may": 5, "mai": 5,
+         "aug": 8, "aou": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12}
+
+def _date_libre(s):
+    """Date ISO (AAAA-MM-JJ) depuis un texte de date libre FR/EN, ou ""."""
+    s = normaliser(s or "")
+    m = re.search(r"(\d{4})-(\d{2})-(\d{2})", s)
+    if m:
+        return m.group(0)
+    an = re.search(r"\b(20\d{2})\b", s)
+    mois = None
+    for mot in re.findall(r"[a-z]+", s):
+        if mot.startswith(("juil", "jul")):
+            mois = 7
+        elif mot.startswith(("juin", "jun")):
+            mois = 6
+        else:
+            mois = _MOIS.get(mot[:3])
+        if mois:
+            break
+    reste = s.replace(an.group(1), " ") if an else s
+    jour = re.search(r"(?<![\d:])(\d{1,2})(?![\d:])", reste)
+    if not (an and mois and jour):
+        return ""
+    return f"{an.group(1)}-{mois:02d}-{int(jour.group(1)):02d}"
 
 def _lieu_jobposting(fiche, defaut=""):
     """« Ville (CP), France » depuis jobLocation (dict ou liste) d'une fiche JobPosting.
@@ -1648,25 +1780,29 @@ def rechercher_radancy(config, nom, base):
         time.sleep(0.2)
     return offres[: config["max_offres"]]
 
-# === 18. SOURCE DECATHLON (DigitalRecruiters) ================================
-DECATHLON_DOMAINE = "joinus.decathlon.fr"
+# === 18. SOURCE DIGITALRECRUITERS (Cegedim) ==================================
+# Sites carrieres DigitalRecruiters : liste JSON publique (recherche par mots-cles)
+# + fiche JSON-LD de chaque offre. Offre en France = code postal dans l'URL.
 DIGITALRECRUITERS_URL = "https://api.digitalrecruiters.com/public/v1/careers-site/job-ads"
+DIGITALRECRUITERS_GROUPES = [        # (nom affiche, domaine du site carriere)
+    ("Cegedim", "careers.cegedim.com"),
+]
 
-def rechercher_decathlon(config):
-    """Offres France de Decathlon (liste DigitalRecruiters + fiche JSON-LD)."""
+def rechercher_digitalrecruiters(config, nom, domaine):
+    """Offres France d'un site DigitalRecruiters (entreprise = nom)."""
     inclus, exclus = _prefiltre_titres(config)
     limite = _limite_iso(config)
     entetes = {"User-Agent": _UA_NAVIGATEUR, "Content-Type": "application/json",
-               "Accept": "application/json", "Origin": f"https://{DECATHLON_DOMAINE}",
-               "Referer": f"https://{DECATHLON_DOMAINE}/"}
+               "Accept": "application/json", "Origin": f"https://{domaine}",
+               "Referer": f"https://{domaine}/"}
     offres, page, par_page, pages_vides = [], 1, 50, 0
     while len(offres) < config["max_offres"] and page <= 10:
         r = requests.post(DIGITALRECRUITERS_URL, timeout=30, headers=entetes,
-                          params={"domainName": DECATHLON_DOMAINE, "limit": par_page,
+                          params={"domainName": domaine, "limit": par_page,
                                   "page": page, "locale": "fr_FR"},
                           json={"q": mots_cles_recherche(config["mots_cles"])})
         if r.status_code != 200:
-            raise RuntimeError(f"Decathlon {r.status_code}")
+            raise RuntimeError(f"{nom} {r.status_code}")
         data = r.json()
         lot = data.get("items") or []
         pertinents = 0
@@ -1675,27 +1811,29 @@ def rechercher_decathlon(config):
             if inclus and not any(t in normaliser(titre) for t in inclus):
                 continue
             pertinents += 1
+            cp = re.search(r"-(\d{5})-[a-z0-9-]+$", it.get("url", "") or "")
+            if not cp:                              # pas de code postal -> hors France
+                continue
             if not _titre_ok(titre, (), exclus, it.get("contract", "")):
                 continue
-            url = f"https://{DECATHLON_DOMAINE}/fr/annonce/{it.get('url', '')}"
+            url = f"https://{domaine}/fr/annonce/{it.get('url', '')}"
             fiche = _fiche_jobposting(url)
             publie = (fiche.get("datePosted") or "")[:10]
             if limite and publie and publie < limite:
                 continue
-            cp = re.search(r"-(\d{5})-", it.get("url", "") or "")
             ville = it.get("location") or ""
             offres.append({
                 "intitule": titre,
-                "entreprise": {"nom": "Decathlon"},
-                "lieuTravail": {"libelle": f"{ville} ({cp.group(1)}), France" if cp and ville
-                                else _lieu_jobposting(fiche, ville)},
+                "entreprise": {"nom": nom},
+                "lieuTravail": {"libelle": f"{ville} ({cp.group(1)}), France" if ville
+                                else _lieu_jobposting(fiche)},
                 "typeContratLibelle": it.get("contract", "") or "",
                 "typeContrat": "CDI" if it.get("contract") == "CDI" else "",
                 "dateCreation": publie,
                 "description": _html_vers_texte(html.unescape(fiche.get("description") or "")),
                 "origineOffre": {"urlOrigine": url},
                 "salaire": {"libelle": ""},
-                "_source": "Decathlon",
+                "_source": nom,
             })
         page += 1
         pages_vides = 0 if pertinents else pages_vides + 1   # tri par score de pertinence
@@ -1705,7 +1843,130 @@ def rechercher_decathlon(config):
         time.sleep(0.2)
     return offres[: config["max_offres"]]
 
-# === 19. SITES CARRIERES : toutes sources, en parallele ======================
+# === 19. SOURCE SUCCESSFACTORS « RMK » (pages HTML) ==========================
+# Sites carrieres SAP SuccessFactors classiques : l'API JSON y est fermee (401),
+# seule la page de recherche HTML repond (tableau ou tuiles). Fiche de l'offre en
+# microdonnees (description, et selon le site date / lieu / entite).
+RMK_GROUPES = [   # Centre-Val de Loire : Servier (Gidy), Novo Nordisk (Chartres), Shiseido (Ormes, Gien)
+    ("Servier", "https://jobs.servier.com"),
+    ("Novo Nordisk", "https://careers.novonordisk.com"),
+    ("Shiseido", "https://careers.shiseido.com"),
+    ("Guerbet", "https://careers.guerbet.com"),
+    ("Coty", "https://careers.coty.com"),
+    ("Boehringer Ingelheim", "https://jobs.boehringer-ingelheim.com"),
+]
+_RE_RMK_LIGNE = re.compile(r'<tr class="data-row[^"]*">(.*?)</tr>', re.S)
+_RE_RMK_LIEN = re.compile(r'<a\b[^>]*?href="(/job/[^"]+)"[^>]*>\s*([^<]*?)\s*</a>', re.S)
+_RE_RMK_LIEU = re.compile(r'class="(?:jobLocation|jobFacility)"[^>]*>\s*([^<]+?)\s*<'
+                          r'|(?:id|class)="[^"]*section-location-value[^"]*"[^>]*>\s*([^<]+?)\s*<')
+_RE_RMK_DATE = re.compile(r'class="jobDate[^"]*"[^>]*>\s*([^<]+?)\s*<')
+
+def rechercher_successfactors_html(config, nom, base):
+    """Offres France d'un site SuccessFactors « RMK » (entreprise = « Entite (Groupe) »)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = _limite_iso(config)
+    entetes = {"User-Agent": _UA_NAVIGATEUR, "Accept-Language": "fr-FR,fr;q=0.9"}
+    offres, debut, vus = [], 0, set()
+    while len(offres) < config["max_offres"] and debut < 500:
+        r = _get_avec_retries(base + "/search/", {"q": mots_cles_recherche(config["mots_cles"]),
+                                                  "locationsearch": "France", "startrow": debut},
+                              timeout=30, headers=entetes)
+        if r.status_code != 200:
+            raise RuntimeError(f"{nom} {r.status_code}")
+        t = r.text
+        blocs = _RE_RMK_LIGNE.findall(t) or re.split(r'<li class="job-tile ', t)[1:]
+        nouveaux = 0
+        for bloc in blocs:
+            lien = _RE_RMK_LIEN.search(bloc)
+            if not lien or lien.group(1) in vus:
+                continue
+            vus.add(lien.group(1))
+            nouveaux += 1
+            titre = html.unescape(" ".join(lien.group(2).split()))
+            if not _titre_ok(titre, inclus, exclus):
+                continue
+            lieu_liste = _RE_RMK_LIEU.search(bloc)
+            lieu_liste = html.unescape(lieu_liste.group(1) or lieu_liste.group(2)) if lieu_liste else ""
+            date_liste = _RE_RMK_DATE.search(bloc)
+            url = base + lien.group(1)
+            fiche = _fiche_jobposting(url)
+            publie = fiche.get("datePosted") or (_date_libre(date_liste.group(1)) if date_liste else "")
+            if limite and publie and publie < limite:
+                continue
+            offres.append({
+                "intitule": titre,
+                "entreprise": {"nom": _nom_groupe(_employeur_jobposting(fiche).title(), nom)},
+                "lieuTravail": {"libelle": _lieu_jobposting(fiche, lieu_liste or "France")},
+                "typeContratLibelle": "",
+                "typeContrat": "",
+                "dateCreation": publie,
+                "description": _html_vers_texte(fiche.get("description") or ""),
+                "origineOffre": {"urlOrigine": url},
+                "salaire": {"libelle": ""},
+                "_source": nom,
+            })
+        debut += len(blocs)
+        if not blocs or not nouveaux:
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 20. SOURCE ASHBY (e-sante : Doctolib, Alan, Lifen, Owkin, Nabla, Inato) ==
+# API publique Ashby : TOUT le catalogue d'un coup (pas de recherche) -> cache 30 min
+# par organisation, puis tri sur le titre ; offres France = adresse / lieu en France.
+ASHBY_URL = "https://api.ashbyhq.com/posting-api/job-board/{org}"
+ASHBY_GROUPES = [    # (nom affiche, identifiant Ashby)
+    ("Doctolib", "doctolib"), ("Alan SA", "alan"), ("Lifen", "lifen"),
+    ("Owkin", "owkin"), ("Nabla", "nabla"), ("Inato", "inato"),
+]
+_ashby_cache = {}    # org -> (horodatage, offres)
+
+def _ashby_catalogue(org):
+    if org not in _ashby_cache or time.time() - _ashby_cache[org][0] > 1800:
+        r = _get_avec_retries(ASHBY_URL.format(org=org), None, timeout=30,
+                              headers={"User-Agent": _UA_NAVIGATEUR})
+        if r.status_code != 200:
+            raise RuntimeError(f"Ashby {org} {r.status_code}")
+        _ashby_cache[org] = (time.time(), r.json().get("jobs") or [])
+    return _ashby_cache[org][1]
+
+def rechercher_ashby(config, nom, org):
+    """Offres France d'une organisation Ashby (entreprise = nom)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = _limite_iso(config)
+    offres = []
+    for x in _ashby_catalogue(org):
+        if x.get("isListed") is False:
+            continue
+        adr = (x.get("address") or {}).get("postalAddress") or {}
+        lieux = " ".join([x.get("location") or "", adr.get("addressCountry") or ""]
+                         + [str((s or {}).get("location") or "")
+                            for s in x.get("secondaryLocations") or []])
+        if not re.search(r"\bfrance\b|\bparis\b", normaliser(lieux)):
+            continue
+        publie = (x.get("publishedAt") or "")[:10]
+        if limite and publie and publie < limite:
+            continue
+        if not _titre_ok(x.get("title", ""), inclus, exclus, x.get("employmentType") or ""):
+            continue
+        ville = adr.get("addressLocality") or x.get("location") or ""
+        cp = adr.get("postalCode") or ""
+        offres.append({
+            "intitule": x.get("title", ""),
+            "entreprise": {"nom": nom},
+            "lieuTravail": {"libelle": f"{ville} ({cp}), France" if cp
+                            else ville if "france" in normaliser(ville) else f"{ville}, France"},
+            "typeContratLibelle": x.get("employmentType") or "",
+            "typeContrat": "",
+            "dateCreation": x.get("publishedAt") or "",
+            "description": x.get("descriptionPlain") or _html_vers_texte(x.get("descriptionHtml")),
+            "origineOffre": {"urlOrigine": x.get("jobUrl", "")},
+            "salaire": {"libelle": ""},
+            "_source": "Ashby",
+        })
+    return offres[: config["max_offres"]]
+
+# === 21. SITES CARRIERES : toutes sources, en parallele ======================
 def sites_carrieres():
     """[(libelle, fonction(config) -> offres)] : toutes les sources « sites carrieres »."""
     sites = [(f"Workday {g[0]}",
@@ -1719,11 +1980,17 @@ def sites_carrieres():
     sites += [(g[0], lambda cfg, g=g: rechercher_phenom(cfg, *g)) for g in PHENOM_GROUPES]
     sites += [(nom, lambda cfg, n=nom, b=base: rechercher_radancy(cfg, n, b))
               for nom, base in RADANCY_GROUPES]
+    sites += [(nom, lambda cfg, n=nom, d=dom: rechercher_digitalrecruiters(cfg, n, d))
+              for nom, dom in DIGITALRECRUITERS_GROUPES]
+    sites += [(nom, lambda cfg, n=nom, b=base: rechercher_successfactors_html(cfg, n, b))
+              for nom, base in RMK_GROUPES]
+    sites += [(nom, lambda cfg, n=nom, o=org: rechercher_ashby(cfg, n, o))
+              for nom, org in ASHBY_GROUPES]
     return sites + [("LVMH", rechercher_lvmh), ("BPCE", rechercher_bpce),
                     ("Crédit Agricole", rechercher_credit_agricole),
-                    ("Engie", rechercher_engie), ("Decathlon", rechercher_decathlon)]
+                    ("Engie", rechercher_engie)]
 
-def rechercher_sites_carrieres(config, variantes, workers=12):
+def rechercher_sites_carrieres(config, variantes, workers=16):
     """Interroge chaque site carriere pour chaque variante, EN PARALLELE.
 
     Sequentiel, ~30 sites x 7 variantes prendrait ~15 min (minutes GitHub Actions

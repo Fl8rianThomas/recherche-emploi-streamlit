@@ -426,7 +426,7 @@ with st.expander("🧹 Filtres — période, pertinence, exclusions"):
         help="Une offre France dont l'entreprise contient un de ces noms (mot entier, "
              "accents/casse ignorés) apparaît dans l'onglet 🏢 Grands groupes. "
              "« ^Nom » = le nom d'entreprise doit COMMENCER par Nom (évite « Sup de "
-             "Vinci », « Nihon Kohden Orange »). ~30 groupes (Airbus, LVMH, BPCE…) "
+             "Vinci », « Nihon Kohden Orange »). ~40 groupes (Airbus, LVMH, BPCE…) "
              "sont en plus interrogés directement sur leur site carrière "
              "(source 🏢 Sites carrières).",
     )

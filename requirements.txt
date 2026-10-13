@@ -1,7 +1,8 @@
-# Versions figées (testées ensemble) : évite qu'une nouvelle version de Streamlit
-# casse l'app au prochain déploiement. Mettre à jour volontairement, puis tester.
-requests==2.32.3
-python-dotenv==1.2.2
-streamlit==1.58.0
-pandas==2.2.3
-tzdata>=2025.2   # fuseaux horaires : toujours la plus récente
+# Versions MINIMALES (pas de version exacte) : Streamlit Cloud peut tourner sur un
+# Python plus récent que le poste local ; une version figée sans paquet compilé
+# pour ce Python (ex. pandas==2.2.3 absent en 3.14) empêche l'app de démarrer.
+requests>=2.32.3
+python-dotenv>=1.2.2
+streamlit>=1.58,<2
+pandas>=2.2.3
+tzdata>=2025.2

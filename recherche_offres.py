@@ -127,6 +127,7 @@ GRANDS_GROUPES_PAR_DEFAUT = [
     "Richemont", "Valeo", "Eiffage", "Pierre Fabre", "Havas", "LFB", "Ipsen",
     "Rothschild", "Ayvens", "Ardian", "Marsh McLennan", "Citi", "Pluxee",
     "Maisons du Monde", "Unibail-Rodamco-Westfield", "Imerys", "Cultura", "Criteo", "PVH",
+    "Eurofins", "Ubisoft", "Kiabi", "Coface", "Bosch",
 ]
 
 # Competences relevant du domaine RH -> declenchent l'icone 👥 dans l'interface.
@@ -259,7 +260,8 @@ def regex_groupes(groupes):
     """Compile la liste des grands groupes -> (libelles, regex).
 
     « Nom » = mot entier n'importe ou dans le nom d'entreprise ; « ^Nom » = le nom
-    d'entreprise COMMENCE par Nom (evite « Sup de Vinci », « Nihon Kohden Orange »).
+    d'entreprise COMMENCE par Nom (evite « Sup de Vinci », « Nihon Kohden Orange »),
+    ou Nom suit une parenthese (« Sofrecom (Orange) », forme des sites carrieres).
     """
     entrees = [g.strip() for g in groupes if g and g.strip().lstrip("^").strip()]
     entrees.sort(key=lambda g: -len(g))              # le plus specifique d'abord
@@ -268,7 +270,8 @@ def regex_groupes(groupes):
         debut = g.startswith("^")
         nom = g.lstrip("^").strip()
         libelles[f"g{i}"] = nom
-        motifs.append(f"(?P<g{i}>{'^' if debut else r'\b'}{re.escape(normaliser(nom))}\\b)")
+        prefixe = r"(?:^|\()" if debut else r"\b"
+        motifs.append(f"(?P<g{i}>{prefixe}{re.escape(normaliser(nom))}\\b)")
     return libelles, re.compile("|".join(motifs)) if motifs else None
 
 def groupe_offre(o, libelles, rx):
@@ -954,7 +957,21 @@ WORKDAY_FRANCE = "54c5b6971ffb4bf0b116fe7651ec789a"   # id pays « France » (co
 # Stages / alternances / VIE : ecartes (on vise des CDI, comme les autres sources).
 _RE_HORS_CDI = re.compile(
     r"\b(stage|stagiaire|intern|internship|alternance|alternant|apprenti|apprentie"
-    r"|apprentissage|work[- ]study|v\.?i\.?e)\b")
+    r"|apprentissage|apprenticeship|trainee|work[- ]study|v\.?i\.?e)\b")
+# En-tete « navigateur » : certains sites carrieres refusent les clients sans User-Agent.
+_UA_NAVIGATEUR = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
+
+def _nom_groupe(marque, groupe):
+    """« Marque (Groupe) » (ex. « Guerlain (LVMH) ») sauf si la marque cite deja le
+    groupe : l'onglet 🏢 reconnait ainsi toute filiale via le nom du groupe."""
+    marque = (marque or "").strip() or groupe
+    deja = re.search(r"\b" + re.escape(normaliser(groupe)) + r"\b", normaliser(marque))
+    return marque if deja else f"{marque} ({groupe})"   # « AccorHotel » -> « … (Accor) »
+
+def _iso(s):
+    """« 2026-09-22T10:24:00+0000 » -> « …+00:00 » (fuseau lisible par fromisoformat)."""
+    return re.sub(r"([+-]\d{2})(\d{2})$", r"\1:\2", (s or "").strip())
 
 def _workday_api(url_site):
     """« https://ag.wd3.myworkdayjobs.com/fr-FR/Airbus » -> base de l'API cxs."""
@@ -1120,8 +1137,7 @@ def rechercher_lvmh(config):
             maison = h.get("maison") or "LVMH"
             offres.append({
                 "intitule": h.get("name", ""),
-                "entreprise": {"nom": maison if "lvmh" in normaliser(maison)
-                               else f"{maison} (LVMH)"},
+                "entreprise": {"nom": _nom_groupe(maison, "LVMH")},
                 "lieuTravail": {"libelle": ", ".join(
                     x for x in (h.get("city"), h.get("regionState")) if x) or "France"},
                 "typeContratLibelle": h.get("contract", "") or "",
@@ -1178,8 +1194,7 @@ def rechercher_bpce(config):
             lien = (it.get("link") or {}).get("url") or ""
             offres.append({
                 "intitule": titre,
-                "entreprise": {"nom": marque if "bpce" in normaliser(marque)
-                               else f"{marque} (BPCE)"},
+                "entreprise": {"nom": _nom_groupe(marque, "BPCE")},
                 "lieuTravail": {"libelle": lieu or "France"},
                 "typeContratLibelle": contrat,
                 "typeContrat": "CDI" if contrat == "CDI" else "",
@@ -1196,14 +1211,254 @@ def rechercher_bpce(config):
         time.sleep(0.2)
     return offres[: config["max_offres"]]
 
-# === 12. SITES CARRIERES : toutes sources, en parallele ======================
+def _limite_iso(config):
+    """Date ISO (AAAA-MM-JJ) en deca de laquelle une offre est trop ancienne, ou None."""
+    j = config.get("jours_max")
+    return (date.today() - timedelta(days=j)).isoformat() if j else None
+
+# === 12. SOURCE iCIMS JIBE (AXA, Schneider Electric) ========================
+# Sites carrieres « Jibe » : API JSON publique /api/jobs (filtre pays + mots-cles),
+# description complete incluse.
+JIBE_GROUPES = [
+    ("AXA", "https://jobs.axa.com"),
+    ("Schneider Electric", "https://careers.se.com"),
+]
+
+def rechercher_jibe(config, nom, base):
+    """Offres France d'un site carriere Jibe (entreprise = « Entite (Groupe) »)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = _limite_iso(config)
+    offres, page = [], 1
+    while len(offres) < config["max_offres"]:
+        params = {"page": page, "limit": 100, "country": "France",
+                  "keywords": mots_cles_recherche(config["mots_cles"])}
+        r = _get_avec_retries(base + "/api/jobs", params, timeout=25,
+                              headers={"User-Agent": _UA_NAVIGATEUR, "Accept": "application/json"})
+        if r.status_code != 200:
+            raise RuntimeError(f"{nom} {r.status_code}")
+        data = r.json()
+        lot = data.get("jobs") or []
+        for x in lot:
+            d = x.get("data") or {}
+            contrat = " ".join((d.get("tags1") or []) + (d.get("tags2") or []))
+            publie = _iso(d.get("posted_date"))
+            if limite and publie and publie[:10] < limite:
+                continue
+            if not _titre_ok(d.get("title", ""), inclus, exclus, contrat):
+                continue
+            ville = (d.get("city") or "").title()
+            cp = d.get("postal_code") or ""
+            offres.append({
+                "intitule": d.get("title", ""),
+                "entreprise": {"nom": _nom_groupe((d.get("tags3") or [""])[0]
+                                                  if nom == "AXA" else "", nom)},
+                "lieuTravail": {"libelle": f"{ville} ({cp}), France" if cp
+                                else f"{ville}, France" if ville else "France"},
+                "typeContratLibelle": contrat,
+                "typeContrat": "CDI" if "permanent" in normaliser(contrat) else "",
+                "dateCreation": publie,
+                "description": _html_vers_texte(d.get("description")),
+                "origineOffre": {"urlOrigine": f"{base}/jobs/{d['slug']}" if d.get("slug")
+                                 else d.get("apply_url", "")},
+                "salaire": {"libelle": ""},
+                "_source": nom,
+            })
+        page += 1
+        if not lot or (page - 1) * 100 >= (data.get("totalCount") or 0):
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 13. SOURCE SMARTRECRUITERS (Accor, Ubisoft, Coface, Bosch...) ==========
+# API publique officielle : liste filtree pays + fiche detaillee (description).
+SMARTRECRUITERS_URL = "https://api.smartrecruiters.com/v1/companies/{id}/postings"
+SMARTRECRUITERS_GROUPES = [          # (nom affiche, identifiant SmartRecruiters)
+    ("Accor", "AccorHotel"), ("Accor", "Accor"), ("Eurofins", "Eurofins"),
+    ("Ubisoft", "Ubisoft2"), ("Kiabi", "Kiabi"), ("Coface", "Coface"),
+    ("Bosch", "BoschGroup"),
+]
+
+def rechercher_smartrecruiters(config, nom, ident):
+    """Offres France d'une entreprise SmartRecruiters (entreprise = nom)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = _limite_iso(config)
+    url = SMARTRECRUITERS_URL.format(id=ident)
+    entetes = {"User-Agent": _UA_NAVIGATEUR}
+    offres, depart = [], 0
+    while len(offres) < config["max_offres"]:
+        r = _get_avec_retries(url, {"country": "fr", "limit": 100, "offset": depart,
+                                    "q": mots_cles_recherche(config["mots_cles"])},
+                              headers=entetes)
+        if r.status_code != 200:
+            raise RuntimeError(f"SmartRecruiters {ident} {r.status_code}")
+        data = r.json()
+        lot = data.get("content") or []
+        for p in lot:
+            contrat = " ".join(filter(None, [
+                (p.get("typeOfEmployment") or {}).get("label"),
+                (p.get("experienceLevel") or {}).get("label")]
+                + [c.get("valueLabel") for c in p.get("customField") or []
+                   if "contract" in normaliser(c.get("fieldLabel"))]))
+            publie = p.get("releasedDate") or ""
+            if limite and publie and publie[:10] < limite:
+                continue
+            if not _titre_ok(p.get("name", ""), inclus, exclus, contrat):
+                continue
+            try:   # fiche detaillee : description (sections de l'annonce) + URL publique
+                d = _get_avec_retries(f"{url}/{p['id']}", None, headers=entetes).json()
+            except (RuntimeError, ValueError):
+                d = {}
+            sections = ((d.get("jobAd") or {}).get("sections") or {}).values()
+            loc = p.get("location") or {}
+            offres.append({
+                "intitule": p.get("name", ""),
+                "entreprise": {"nom": _nom_groupe((p.get("company") or {}).get("name"), nom)},
+                "lieuTravail": {"libelle": ", ".join(filter(None, [
+                    loc.get("city"), loc.get("postalCode"), "France"]))},
+                "typeContratLibelle": contrat,
+                "typeContrat": "",
+                "dateCreation": publie,
+                "description": _html_vers_texte("\n".join(
+                    s.get("text") or "" for s in sections if isinstance(s, dict))),
+                "origineOffre": {"urlOrigine": d.get("postingUrl")
+                                 or f"https://jobs.smartrecruiters.com/{ident}/{p.get('id')}"},
+                "salaire": {"libelle": ""},
+                "_source": "SmartRecruiters",
+            })
+        depart += 100
+        if not lot or depart >= (data.get("totalFound") or 0):
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 14. SOURCE PHENOM (Orange, Allianz) ====================================
+# Sites carrieres Phenom : widget JSON « refineSearch » public. Pas de description
+# complete dans la liste -> accroche + competences detectees (ml_skills).
+PHENOM_GROUPES = [   # (nom, base, refNum, lang, pays du site, valeur filtre France)
+    ("Orange", "https://orange.jobs", "OYVOCZGB", "fr_fr", "fr", "FRANCE"),
+    ("Allianz", "https://careers.allianz.com", "AISAIPGB", "en_global", "global", "France"),
+]
+
+def rechercher_phenom(config, nom, base, ref, lang, pays, valeur_france):
+    """Offres France d'un site carriere Phenom (entreprise = « Entite (Groupe) »)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = _limite_iso(config)
+    offres, depart, taille = [], 0, 50
+    while len(offres) < config["max_offres"]:
+        corps = {"lang": lang, "deviceType": "desktop", "country": pays,
+                 "pageName": "search-results", "ddoKey": "refineSearch", "sortBy": "",
+                 "subsearch": "", "from": depart, "jobs": True, "counts": True,
+                 "all_fields": ["country"], "size": taille, "clearAll": False,
+                 "jdsource": "facets", "isSliderEnable": False, "siteType": "external",
+                 "keywords": mots_cles_recherche(config["mots_cles"]), "global": True,
+                 "selected_fields": {"country": [valeur_france]}, "locationData": {},
+                 "refNum": ref}
+        r = requests.post(base + "/widgets", json=corps, timeout=25,
+                          headers={"User-Agent": _UA_NAVIGATEUR,
+                                   "Content-Type": "application/json"})
+        if r.status_code != 200:
+            raise RuntimeError(f"{nom} {r.status_code}")
+        res = r.json().get("refineSearch") or {}
+        lot = (res.get("data") or {}).get("jobs") or []
+        for j in lot:
+            contrat = " ".join(filter(None, [j.get("contractType"), j.get("type")]))
+            publie = _iso(j.get("postedDate"))
+            if limite and publie and publie[:10] < limite:
+                continue
+            if not _titre_ok(j.get("title", ""), inclus, exclus, contrat):
+                continue
+            cp = re.search(r"\b(\d{5})\b", j.get("address") or "")
+            ville = (j.get("city") or "").title()
+            competences = ", ".join(j.get("ml_skills") or [])
+            offres.append({
+                "intitule": j.get("title", ""),
+                "entreprise": {"nom": _nom_groupe(j.get("company"), nom)},
+                "lieuTravail": {"libelle": ", ".join(filter(None, [
+                    ville, cp.group(1) if cp else "", "France"]))},
+                "typeContratLibelle": contrat,
+                "typeContrat": "CDI" if j.get("contractType") == "CDI" else "",
+                "dateCreation": publie,
+                "description": (j.get("descriptionTeaser") or "")
+                               + (f"\nCompétences : {competences}" if competences else ""),
+                # Page publique de l'offre : /{pays}/{langue}/job/{id} (« fr_fr » ->
+                # /fr/fr/, « en_global » -> /global/en/) ; applyUrl est parfois vide.
+                "origineOffre": {"urlOrigine": f"{base}/{lang.split('_')[1]}/"
+                                 f"{lang.split('_')[0]}/job/{j['jobId']}" if j.get("jobId")
+                                 else j.get("applyUrl") or ""},
+                "salaire": {"libelle": j.get("salary", "") or ""},
+                "_source": nom,
+            })
+        depart += taille
+        if not lot or depart >= (res.get("totalHits") or 0):
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 15. SOURCE CREDIT AGRICOLE (LCL, CA-CIB, Amundi...) =====================
+# Site groupecreditagricole.jobs (WordPress) : endpoint admin-ajax « get_offers »,
+# protege par un jeton (nonce) public lu dans la page de recherche.
+CA_PAGE_URL = "https://groupecreditagricole.jobs/fr/nos-offres/"
+CA_AJAX_URL = "https://groupecreditagricole.jobs/wp-admin/admin-ajax.php"
+CA_FRANCE = "79"            # code pays « France » du site
+
+def rechercher_credit_agricole(config):
+    """Offres France du groupe Credit Agricole (entreprise = « Marque (Credit Agricole) »)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = _limite_iso(config)
+    s = requests.Session()
+    s.headers["User-Agent"] = _UA_NAVIGATEUR
+    m = re.search(r'"nonce":"([0-9a-f]+)"', s.get(CA_PAGE_URL, timeout=30).text)
+    if not m:
+        raise RuntimeError("Crédit Agricole : jeton (nonce) introuvable")
+    offres, page = [], 1
+    while len(offres) < config["max_offres"]:
+        r = s.post(CA_AJAX_URL, timeout=30, data={
+            "action": "get_offers", "nonce": m.group(1), "lang": "fr", "id_origine": "",
+            "locationsList": CA_FRANCE, "page": page,
+            "keywords": mots_cles_recherche(config["mots_cles"])})
+        if r.status_code != 200:
+            raise RuntimeError(f"Crédit Agricole {r.status_code}")
+        data = r.json()
+        lot = data.get("elements") or []
+        for e in lot:
+            contrat = (e.get("contract") or {}).get("label", "") or ""
+            publie = (e.get("date") or "")[:10]
+            if limite and publie and publie < limite:
+                continue
+            if not _titre_ok(e.get("title", ""), inclus, exclus, contrat):
+                continue
+            offres.append({
+                "intitule": e.get("title", ""),
+                "entreprise": {"nom": _nom_groupe(e.get("brand_name"), "Crédit Agricole")},
+                "lieuTravail": {"libelle": (e.get("location") or "France").replace(" - ", ", ")},
+                "typeContratLibelle": contrat,
+                "typeContrat": "CDI" if contrat == "CDI" else "",
+                "dateCreation": publie,
+                "description": "",          # absente de la liste (page HTML seulement)
+                "origineOffre": {"urlOrigine": e.get("link", "")},
+                "salaire": {"libelle": ""},
+                "_source": "Crédit Agricole",
+            })
+        page += 1
+        if not lot or not data.get("hasMore"):
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 16. SITES CARRIERES : toutes sources, en parallele ======================
 def sites_carrieres():
-    """[(libelle, fonction(config) -> offres)] : Workday + LVMH + BPCE."""
+    """[(libelle, fonction(config) -> offres)] : toutes les sources « sites carrieres »."""
     sites = [(f"Workday {g[0]}",
               lambda cfg, g=g: rechercher_workday(
                   cfg, g[0], g[1], g[2] if len(g) > 2 else "locationCountry"))
              for g in WORKDAY_GROUPES]
-    return sites + [("LVMH", rechercher_lvmh), ("BPCE", rechercher_bpce)]
+    sites += [(nom, lambda cfg, n=nom, b=base: rechercher_jibe(cfg, n, b))
+              for nom, base in JIBE_GROUPES]
+    sites += [(f"SmartRecruiters {i}", lambda cfg, n=nom, i=i: rechercher_smartrecruiters(cfg, n, i))
+              for nom, i in SMARTRECRUITERS_GROUPES]
+    sites += [(g[0], lambda cfg, g=g: rechercher_phenom(cfg, *g)) for g in PHENOM_GROUPES]
+    return sites + [("LVMH", rechercher_lvmh), ("BPCE", rechercher_bpce),
+                    ("Crédit Agricole", rechercher_credit_agricole)]
 
 def rechercher_sites_carrieres(config, variantes, workers=12):
     """Interroge chaque site carriere pour chaque variante, EN PARALLELE.

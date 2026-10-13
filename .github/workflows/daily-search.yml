@@ -1,15 +1,14 @@
 name: Recherche quotidienne (e-mail 20h Paris)
 
-# ~20h heure de Paris TOUTE L'ANNÉE, robuste aux runs GitHub retardés/abandonnés.
-# Les runs planifiés GitHub arrivent souvent avec 1-2 h de retard : un créneau
-# strict « == 20h » les rejetait tous. On déclenche donc toutes les 30 min de 18h
-# à 21h30 UTC, et le script accepte une FENÊTRE LARGE 20h→22h Paris ; un VERROU
-# « déjà envoyé aujourd'hui » (branche `mail-state`) garantit un seul e-mail/jour.
-# Tentatives réellement dans la fenêtre (été comme hiver) : 20h00/20h30/…/22h30
-# Paris -> 6 chances ; les autres (19h, 23h) sont ignorées tout de suite.
+# Dès 20h heure de Paris TOUTE L'ANNÉE, robuste aux runs GitHub retardés/abandonnés.
+# Constaté : GitHub n'exécute que 1-2 des créneaux planifiés par jour, avec 2 à 5 h
+# de retard (arrivée 23h-02h Paris). On déclenche donc toutes les 30 min de 18h à
+# 23h UTC, aux minutes :17/:47 (GitHub abandonne d'abord les jobs des heures pile),
+# et le script accepte une FENÊTRE LARGE 20h→06h Paris ; un VERROU « déjà envoyé
+# pour cette soirée » (branche `mail-state`) garantit un seul e-mail par soirée.
 on:
   schedule:
-    - cron: "0,30 18-21 * * *"
+    - cron: "17,47 18-23 * * *"
   workflow_dispatch:        # bouton « Run workflow » pour tester à la demande (envoi immédiat)
 
 permissions:

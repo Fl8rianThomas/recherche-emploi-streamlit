@@ -423,24 +423,25 @@ def poser_verrou(token, jour, sha):
 
 
 def main():
-    # Garde-fou « ~20h Paris toute l'année », robuste aux retards GitHub. Les runs
-    # planifiés peuvent arriver avec 1-2 h de retard : un créneau strict « == 20h »
-    # les rejetait tous (aucun mail). On accepte donc une FENÊTRE LARGE 20h→22h
-    # Paris et on envoie dès qu'un run y tombe ; le verrou garantit UN SEUL envoi
-    # par jour. Le mail part donc au plus tôt vers 20h, au pire vers 22h, mais part.
+    # Garde-fou « dès 20h Paris toute l'année », robuste aux retards GitHub. Les runs
+    # planifiés arrivent souvent avec 2 à 5 h de retard (constaté : 23h-02h Paris) :
+    # une fenêtre 20h→22h les rejetait presque tous (≈ 1 mail/semaine). On accepte
+    # donc 20h → 06h du matin et on envoie dès qu'un run y tombe. Le verrou est
+    # indexé sur la « soirée » (un run à 01h compte pour la veille), ce qui garantit
+    # UN SEUL envoi par soirée. Le mail part au plus tôt à 20h, parfois plus tard.
     # Actif seulement si CHECK_20H est défini ; un lancement manuel passe outre.
     token = os.getenv("GH_API_TOKEN")
     jour = sha = None
     if os.getenv("CHECK_20H"):
         now = datetime.now(ZoneInfo("Europe/Paris"))
-        if not (20 <= now.hour <= 22):           # fenêtre [20h00, 23h00[ Paris
+        if 6 <= now.hour < 20:                   # fenêtre [20h00, 06h00[ Paris
             print(f"Hors fenêtre d'envoi (il est {now.hour}h à Paris) — run ignoré.")
             return
-        jour = now.date().isoformat()
+        jour = (now - timedelta(hours=6)).date().isoformat()   # date de la soirée
         if token:
             dernier, sha = lire_verrou(token)
             if dernier == jour:
-                print(f"E-mail déjà envoyé aujourd'hui ({jour}) — run ignoré.")
+                print(f"E-mail déjà envoyé pour la soirée du {jour} — run ignoré.")
                 return
         else:
             print("[!] GH_API_TOKEN absent : envoi sans verrou anti-doublon.")

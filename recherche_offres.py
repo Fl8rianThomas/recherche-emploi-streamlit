@@ -7,10 +7,11 @@ import csv
 import sys
 import time
 import html
+import json
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from zoneinfo import ZoneInfo
 
 import requests
@@ -1445,7 +1446,266 @@ def rechercher_credit_agricole(config):
         time.sleep(0.2)
     return offres[: config["max_offres"]]
 
-# === 16. SITES CARRIERES : toutes sources, en parallele ======================
+# === Fiche schema.org « JobPosting » (JSON-LD) d'une page d'offre ============
+# Standard publie par la plupart des sites carrieres (pour Google Jobs) : date,
+# employeur, lieu, description, type de contrat. Sert quand la LISTE est pauvre.
+_RE_JSON_LD = re.compile(r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', re.S | re.I)
+
+def _fiche_jobposting(url):
+    """Bloc JobPosting (dict) de la page `url`, ou {} si absent / page indisponible."""
+    try:
+        r = _get_avec_retries(url, None, timeout=25, headers={"User-Agent": _UA_NAVIGATEUR})
+    except RuntimeError:
+        return {}
+    if r.status_code != 200:
+        return {}
+    for bloc in _RE_JSON_LD.findall(r.text):
+        try:
+            d = json.loads(bloc.strip())
+        except ValueError:
+            continue
+        candidats = d if isinstance(d, list) else (d.get("@graph") or [d]) if isinstance(d, dict) else []
+        for x in candidats:
+            if isinstance(x, dict) and x.get("@type") == "JobPosting":
+                return x
+    # Repli : microdonnees (itemprop="description", ex. SAP SuccessFactors) -> on
+    # extrait chaque element en suivant l'imbrication des <span>/<div> et on garde
+    # le plus long (la page en contient plusieurs, dont des quasi vides).
+    meilleur = ""
+    for m in re.finditer(r'<(span|div)\b[^>]*itemprop="description"[^>]*>', r.text):
+        profondeur, fin = 1, len(r.text)
+        for t in re.finditer(r"<(/?)(span|div)\b[^>]*?(/?)>", r.text[m.end():]):
+            if t.group(3):                         # <span ... /> : sans contenu
+                continue
+            profondeur += -1 if t.group(1) else 1
+            if profondeur == 0:
+                fin = m.end() + t.start()
+                break
+        if fin - m.end() > len(meilleur):
+            meilleur = r.text[m.end():fin]
+    return {"description": meilleur} if meilleur else {}
+
+def _lieu_jobposting(fiche, defaut=""):
+    """« Ville (CP), France » depuis jobLocation (dict ou liste) d'une fiche JobPosting.
+
+    Certains sites mettent l'adresse complete dans addressLocality (« 1973 Bd de la
+    Defense, 92000 Nanterre, France ») : on en extrait « CP Ville ». Jamais de numero
+    de rue en tete (il serait pris pour un code departement).
+    """
+    loc = fiche.get("jobLocation") or {}
+    if isinstance(loc, list):
+        loc = loc[0] if loc else {}
+    adr = (loc.get("address") or {}) if isinstance(loc, dict) else {}
+    txt = adr.get("addressLocality") or adr.get("streetAddress") or ""
+    cp = adr.get("postalCode") or ""
+    m = re.search(r"\b(\d{5})\s+([^,\d]+)", txt)
+    if m:
+        cp, ville = m.group(1), m.group(2).strip()
+    else:
+        parts = [p.strip() for p in txt.split(",")
+                 if p.strip() and normaliser(p.strip()) != "france"]
+        ville = re.sub(r"^\d+\s*", "", parts[-1]) if parts else ""
+    if not ville:
+        return defaut or "France"
+    return f"{ville} ({cp}), France" if cp else f"{ville}, France"
+
+def _employeur_jobposting(fiche):
+    org = fiche.get("hiringOrganization") or {}
+    return org.get("name", "") if isinstance(org, dict) else str(org)
+
+# === 16. SOURCE ENGIE (SAP SuccessFactors) ===================================
+ENGIE_URL = "https://jobs.engie.com"
+
+def rechercher_engie(config):
+    """Offres France d'Engie (entreprise = « Entite juridique (Engie) »)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = _limite_iso(config)
+    s = requests.Session()
+    s.headers["User-Agent"] = _UA_NAVIGATEUR
+    offres, page, pages_vides = [], 0, 0
+    while len(offres) < config["max_offres"] and page < 20:
+        corps = {"locale": "fr_FR", "pageNumber": page, "sortBy": "", "location": "France",
+                 "keywords": mots_cles_recherche(config["mots_cles"]), "facetFilters": {},
+                 "brand": "", "skills": [], "categoryId": 0, "alertId": "", "rcmCandidateId": ""}
+        r = s.post(ENGIE_URL + "/services/recruiting/v1/jobs", json=corps, timeout=30,
+                   headers={"Content-Type": "application/json", "Accept": "application/json"})
+        if r.status_code != 200:
+            raise RuntimeError(f"Engie {r.status_code}")
+        data = r.json()
+        lot = data.get("jobSearchResult") or []
+        pertinents = 0
+        for x in lot:
+            j = x.get("response") or {}
+            titre = j.get("unifiedStandardTitle") or ""
+            if inclus and not any(t in normaliser(titre) for t in inclus):
+                continue
+            pertinents += 1
+            contrat = ", ".join(j.get("filter8") or [])
+            m = re.match(r"(\d{2})/(\d{2})/(\d{4})", j.get("unifiedStandardStart") or "")
+            publie = f"{m.group(3)}-{m.group(2)}-{m.group(1)}" if m else ""   # JJ/MM/AAAA
+            if limite and publie and publie < limite:
+                continue
+            if not _titre_ok(titre, (), exclus, contrat):
+                continue
+            # unifiedUrlTitle est parfois deja encode (« %28FH%29 ») : on garde les %.
+            url = (f"{ENGIE_URL}/job/"
+                   f"{quote(j.get('unifiedUrlTitle') or j.get('urlTitle') or 'offre', safe='%-')}"
+                   f"/{j.get('id')}-fr_FR")
+            fiche = _fiche_jobposting(url)
+            offres.append({
+                "intitule": titre,
+                "entreprise": {"nom": _nom_groupe((j.get("legalEntity_obj") or [""])[0], "Engie")},
+                "lieuTravail": {"libelle": ((j.get("jobLocationShort") or [""])[0].strip()
+                                            or "France")},
+                "typeContratLibelle": contrat,
+                "typeContrat": "CDI" if contrat == "CDI" else "",
+                "dateCreation": publie,
+                "description": _html_vers_texte(html.unescape(fiche.get("description") or "")),
+                "origineOffre": {"urlOrigine": url},
+                "salaire": {"libelle": ""},
+                "_source": "Engie",
+            })
+        page += 1
+        pages_vides = 0 if pertinents else pages_vides + 1   # recherche large : cf. Workday
+        if not lot or page * len(lot) >= (data.get("totalJobs") or 0) \
+                or (inclus and pages_vides >= 2):
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 17. SOURCE RADANCY (Vinci, Veolia, L'Oreal) =============================
+# Sites carrieres « TalentBrew » : la recherche renvoie du HTML (titre + lien) ;
+# date, employeur, lieu et description viennent de la fiche JSON-LD de l'offre.
+RADANCY_GROUPES = [
+    ("Vinci", "https://jobs.vinci.com/en"),
+    ("Veolia", "https://jobs.veolia.com/fr"),
+    ("L'Oréal", "https://careers.loreal.com/en"),
+]
+RADANCY_FRANCE = "3017382"           # id GeoNames de la France (facette pays)
+_RE_RADANCY_LIEN = re.compile(
+    r'<a\b[^>]*?href="(/[^"]+)"[^>]*?data-job-id="(\d+)"[^>]*>(.*?)</a>', re.S)
+_RE_RADANCY_TITRE = re.compile(
+    r'<h\d[^>]*>(.*?)</h\d>|<span[^>]*class="[^"]*title[^"]*"[^>]*>(.*?)</span>', re.S)
+
+def rechercher_radancy(config, nom, base):
+    """Offres France d'un site carriere Radancy (entreprise = « Filiale (Groupe) »)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = _limite_iso(config)
+    hote = re.match(r"https://[^/]+", base).group(0)
+    entetes = {"User-Agent": _UA_NAVIGATEUR, "X-Requested-With": "XMLHttpRequest",
+               "Accept": "application/json, text/javascript, */*; q=0.01"}
+    offres, page, pages_vides, vus = [], 1, 0, set()
+    while len(offres) < config["max_offres"] and page <= 10:
+        params = {"CurrentPage": page, "RecordsPerPage": 50, "SearchType": 5,
+                  "Keywords": mots_cles_recherche(config["mots_cles"]),
+                  "SearchResultsModuleName": "Search Results",
+                  "SearchFiltersModuleName": "Search Filters",
+                  "FacetFilters[0].ID": RADANCY_FRANCE, "FacetFilters[0].FacetType": 2,
+                  "FacetFilters[0].Display": "France", "FacetFilters[0].IsApplied": "true"}
+        r = _get_avec_retries(base + "/search-jobs/results", params, timeout=30, headers=entetes)
+        if r.status_code != 200:
+            raise RuntimeError(f"{nom} {r.status_code}")
+        res = r.json().get("results") or ""
+        pages = re.search(r'data-total-pages="(\d+)"', res)
+        pertinents, nouveaux = 0, 0
+        for chemin, ident, interieur in _RE_RADANCY_LIEN.findall(res):
+            if ident in vus:                       # meme offre : plusieurs liens
+                continue
+            vus.add(ident)
+            nouveaux += 1
+            mt = _RE_RADANCY_TITRE.search(interieur)
+            titre = " ".join(html.unescape(re.sub(r"<[^>]+>", " ",
+                             (mt.group(1) or mt.group(2)) if mt else interieur)).split())
+            if inclus and not any(t in normaliser(titre) for t in inclus):
+                continue
+            pertinents += 1
+            if not _titre_ok(titre, (), exclus):
+                continue
+            url = hote + chemin
+            fiche = _fiche_jobposting(url)
+            contrat = fiche.get("employmentType") or ""
+            contrat = ", ".join(contrat) if isinstance(contrat, list) else str(contrat)
+            publie = (fiche.get("datePosted") or "")[:10]
+            if (limite and publie and publie < limite) or _RE_HORS_CDI.search(normaliser(contrat)):
+                continue
+            offres.append({
+                "intitule": titre,
+                "entreprise": {"nom": _nom_groupe(_employeur_jobposting(fiche), nom)},
+                "lieuTravail": {"libelle": _lieu_jobposting(fiche)},
+                "typeContratLibelle": contrat,
+                "typeContrat": "",
+                "dateCreation": publie,
+                "description": _html_vers_texte(html.unescape(fiche.get("description") or "")),
+                "origineOffre": {"urlOrigine": url},
+                "salaire": {"libelle": ""},
+                "_source": nom,
+            })
+        page += 1
+        pages_vides = 0 if pertinents else pages_vides + 1
+        if not nouveaux or page > int(pages.group(1) if pages else 1) \
+                or (inclus and pages_vides >= 2):
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 18. SOURCE DECATHLON (DigitalRecruiters) ================================
+DECATHLON_DOMAINE = "joinus.decathlon.fr"
+DIGITALRECRUITERS_URL = "https://api.digitalrecruiters.com/public/v1/careers-site/job-ads"
+
+def rechercher_decathlon(config):
+    """Offres France de Decathlon (liste DigitalRecruiters + fiche JSON-LD)."""
+    inclus, exclus = _prefiltre_titres(config)
+    limite = _limite_iso(config)
+    entetes = {"User-Agent": _UA_NAVIGATEUR, "Content-Type": "application/json",
+               "Accept": "application/json", "Origin": f"https://{DECATHLON_DOMAINE}",
+               "Referer": f"https://{DECATHLON_DOMAINE}/"}
+    offres, page, par_page, pages_vides = [], 1, 50, 0
+    while len(offres) < config["max_offres"] and page <= 10:
+        r = requests.post(DIGITALRECRUITERS_URL, timeout=30, headers=entetes,
+                          params={"domainName": DECATHLON_DOMAINE, "limit": par_page,
+                                  "page": page, "locale": "fr_FR"},
+                          json={"q": mots_cles_recherche(config["mots_cles"])})
+        if r.status_code != 200:
+            raise RuntimeError(f"Decathlon {r.status_code}")
+        data = r.json()
+        lot = data.get("items") or []
+        pertinents = 0
+        for it in lot:
+            titre = it.get("title", "") or ""
+            if inclus and not any(t in normaliser(titre) for t in inclus):
+                continue
+            pertinents += 1
+            if not _titre_ok(titre, (), exclus, it.get("contract", "")):
+                continue
+            url = f"https://{DECATHLON_DOMAINE}/fr/annonce/{it.get('url', '')}"
+            fiche = _fiche_jobposting(url)
+            publie = (fiche.get("datePosted") or "")[:10]
+            if limite and publie and publie < limite:
+                continue
+            cp = re.search(r"-(\d{5})-", it.get("url", "") or "")
+            ville = it.get("location") or ""
+            offres.append({
+                "intitule": titre,
+                "entreprise": {"nom": "Decathlon"},
+                "lieuTravail": {"libelle": f"{ville} ({cp.group(1)}), France" if cp and ville
+                                else _lieu_jobposting(fiche, ville)},
+                "typeContratLibelle": it.get("contract", "") or "",
+                "typeContrat": "CDI" if it.get("contract") == "CDI" else "",
+                "dateCreation": publie,
+                "description": _html_vers_texte(html.unescape(fiche.get("description") or "")),
+                "origineOffre": {"urlOrigine": url},
+                "salaire": {"libelle": ""},
+                "_source": "Decathlon",
+            })
+        page += 1
+        pages_vides = 0 if pertinents else pages_vides + 1   # tri par score de pertinence
+        if not lot or (page - 1) * par_page >= (data.get("count") or 0) \
+                or (inclus and pages_vides >= 2):
+            break
+        time.sleep(0.2)
+    return offres[: config["max_offres"]]
+
+# === 19. SITES CARRIERES : toutes sources, en parallele ======================
 def sites_carrieres():
     """[(libelle, fonction(config) -> offres)] : toutes les sources « sites carrieres »."""
     sites = [(f"Workday {g[0]}",
@@ -1457,8 +1717,11 @@ def sites_carrieres():
     sites += [(f"SmartRecruiters {i}", lambda cfg, n=nom, i=i: rechercher_smartrecruiters(cfg, n, i))
               for nom, i in SMARTRECRUITERS_GROUPES]
     sites += [(g[0], lambda cfg, g=g: rechercher_phenom(cfg, *g)) for g in PHENOM_GROUPES]
+    sites += [(nom, lambda cfg, n=nom, b=base: rechercher_radancy(cfg, n, b))
+              for nom, base in RADANCY_GROUPES]
     return sites + [("LVMH", rechercher_lvmh), ("BPCE", rechercher_bpce),
-                    ("Crédit Agricole", rechercher_credit_agricole)]
+                    ("Crédit Agricole", rechercher_credit_agricole),
+                    ("Engie", rechercher_engie), ("Decathlon", rechercher_decathlon)]
 
 def rechercher_sites_carrieres(config, variantes, workers=12):
     """Interroge chaque site carriere pour chaque variante, EN PARALLELE.

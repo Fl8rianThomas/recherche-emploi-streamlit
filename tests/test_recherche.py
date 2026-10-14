@@ -61,6 +61,19 @@ class TestClassementESN(unittest.TestCase):
                                          description="pour notre client"))[0])
 
 
+class TestEsnParOffre(unittest.TestCase):
+    def test_une_copie_esn_rend_toutes_les_copies_esn(self):
+        # Cas réel : copie France Travail complète (« nos clients ») vs extrait Adzuna
+        ft = offre("Product Owner Technique", "Centifolia Conseil",
+                   description="Au sein de nos clients grands comptes…") | {"_source": "France Travail"}
+        az = offre("Product Owner Technique", "Centifolia Conseil",
+                   description="Extrait court") | {"_source": "Adzuna"}
+        sig = ro.signatures_esn([ft, az])
+        self.assertTrue(ro.est_esn(az, sig))
+        gardees, _ex, _st = ro.filtrer([az, ft], None, [], ["owner"])
+        self.assertEqual(gardees, [])                     # aucune copie ne passe
+
+
 class TestGroupes(unittest.TestCase):
     lib, rx = ro.regex_groupes(ro.GRANDS_GROUPES_PAR_DEFAUT)
 

@@ -1046,7 +1046,9 @@ ZONE_TOUT, ZONE_RAYON = "🌍 France + Suisse", "🏠 Autour de chez moi"
 geo_zone = st.session_state.get("geo_zone", ZONE_TOUT)
 geo_domicile = st.session_state.get("geo_domicile", ro.DOMICILE)
 geo_rayon = st.session_state.get("geo_rayon", ro.RAYON_DOMICILE_KM)
-geo_esn = st.session_state.get("geo_esn", True)
+# Clé « geo_avec_esn » (et non plus « geo_esn », décochée par défaut dans une version
+# précédente) : une session ouverte avant la mise à jour repart bien de « cochée ».
+geo_esn = st.session_state.get("geo_avec_esn", True)
 geo_seuil = st.session_state.get("geo_seuil", ro.SEUIL_SCORE_ELEVE)
 geo_centre = ro.coords_lieu(geo_domicile)
 if geo_esn:
@@ -1058,6 +1060,11 @@ if geo_esn:
                             or ro.est_suisse(o)) and not ro.est_allemand(o)]))
 else:
     geo_base = france_items + suisse_items
+geo_memo = st.session_state.setdefault("_memo_sig_esn", {})
+if donnees_id not in geo_memo:                 # signatures ESN : 1 calcul par jeu de données
+    geo_memo.clear()
+    geo_memo[donnees_id] = ro.signatures_esn(brutes)
+geo_sig_esn = geo_memo[donnees_id]
 geo_items, geo_sans_lieu, geo_sans_competence = [], 0, 0
 for it in geo_base:
     if not it["score"]:                       # aucune de mes compétences : hors carte
@@ -1070,7 +1077,7 @@ for it in geo_base:
     km = ro.distance_km(geo_centre, g) if geo_centre else None
     if geo_zone == ZONE_RAYON and (km is None or km > geo_rayon):
         continue
-    esn = not ro.classer(it["o"])[0]
+    esn = ro.est_esn(it["o"], geo_sig_esn)    # au niveau de l'offre (toutes ses copies)
     groupe = it.get("groupe") or ro.groupe_offre(it["o"], lib_groupes, rx_groupes)
     geo_items.append({**it, "geo": g, "km": km, "esn": esn, "groupe": groupe,
                       "rang": ro.rang_carte(bool(it.get("rh")), it["score"],
@@ -1193,7 +1200,9 @@ def menu_carte(items, visibles):
     n = Counter(it["rang"] for it in items)
     st.markdown("**Niveaux**")
     for r, (emoji, lib, _c) in NIVEAUX.items():
-        st.checkbox(f"{emoji} {r}. {lib} — **{n.get(r, 0)}**", value=True, key=f"geo_n{r}")
+        compte = (f"**{n.get(r, 0)}**" if geo_esn or r not in (4, 5)
+                  else "ESN masquées")            # 4-5 ne contiennent que des ESN
+        st.checkbox(f"{emoji} {r}. {lib} — {compte}", value=True, key=f"geo_n{r}")
     st.slider("Seuil « score élevé » ⭐", min_value=3, max_value=20, step=1,
               value=ro.SEUIL_SCORE_ELEVE, key="geo_seuil",
               help="Score Optimum à partir duquel une offre compte comme « score élevé ».")
@@ -1304,9 +1313,11 @@ with onglet_geo:
                    value=ro.RAYON_DOMICILE_KM, key="geo_rayon",
                    disabled=geo_zone != ZONE_RAYON,
                    help="Actif en zone « Autour de chez moi ».")
-    c_esn.checkbox("Inclure ESN / cabinets 🏭", value=True, key="geo_esn",
-                   help="Les offres d'ESN restent sur la carte mais classées plus bas "
-                        "(niveaux 4-5 au mieux). Décoche pour les masquer.")
+    c_esn.checkbox("Inclure ESN / cabinets 🏭", value=True, key="geo_avec_esn",
+                   help="Les offres d'ESN restent sur la carte mais classées plus bas. "
+                        "Les niveaux 4 et 5 ne contiennent QUE des ESN : une offre RH + "
+                        "score élevé sans ESN est déjà au niveau 1, 2 ou 3. Décoche pour "
+                        "masquer les ESN.")
     if not geo_centre:
         st.warning(f"Domicile « {geo_domicile} » introuvable : indique une commune de plus "
                    "de 1 000 habitants ou un code postal (distances non calculées).")

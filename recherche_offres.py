@@ -850,6 +850,26 @@ def terme_exclu(titre_norm, regles):
             return mot
     return None
 
+def signatures_esn(brutes):
+    """{signature: raison} des offres dont AU MOINS UNE copie est classee ESN.
+
+    Une meme offre arrive souvent par plusieurs sources avec une description plus ou
+    moins complete (France Travail : texte entier ; Adzuna/Jooble : extrait) : la
+    copie complete peut trahir une ESN (« nos clients », « en prestation ») que
+    l'extrait cache. Toutes les copies doivent alors etre traitees comme ESN
+    (cas reel : « Product Owner Technique », Centifolia Conseil, oct. 2026).
+    """
+    sig = {}
+    for o in brutes:
+        ok, raison = classer(o)
+        if not ok:
+            sig.setdefault(signature(o), raison)
+    return sig
+
+def est_esn(o, sig_esn):
+    """True si l'offre (ou une autre copie de la meme offre) est une ESN."""
+    return signature(o) in sig_esn
+
 def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
             ignorer_esn=False):
     """Filtrage ESN + titre + ancienneté + dedoublonnage sur une liste d'offres.
@@ -874,8 +894,11 @@ def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
     exclus = regles_exclusion(exclure_titres)
     inclus = [normaliser(t) for t in (inclure_titres or []) if t.strip()]
     gardees, exclues, vues, compte, doublons = [], [], set(), {}, 0
+    sig_esn = {} if ignorer_esn else signatures_esn(brutes)
     for o in brutes:
-        garder, raison = (True, "") if ignorer_esn else classer(o)
+        # Classement au niveau de l'OFFRE (toutes ses copies) : voir signatures_esn.
+        raison = sig_esn.get(signature(o))
+        garder, raison = (False, raison) if raison else (True, "")
         titre = normaliser(o.get("intitule", ""))
         if garder and inclus and not any(t in titre for t in inclus):
             garder, raison = False, "hors périmètre (titre)"

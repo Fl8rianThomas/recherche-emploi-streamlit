@@ -358,6 +358,17 @@ def groupe_offre(o, libelles, rx):
 
 _LIB_GROUPES, _REGEX_GROUPES = regex_groupes(GRANDS_GROUPES_PAR_DEFAUT)
 
+# Exclusions de titre levees chez un grand groupe / employeur direct : « consultant »
+# vise les ESN et la regie, mais France Travail publie aussi des postes internes sous
+# ce titre (« Consultant Business Analyst Exigences » = BA Senior chez Air France).
+EXCLUSIONS_LEVEES_EMPLOYEUR_DIRECT = {"consultant"}
+
+def est_employeur_direct(o):
+    """Grand groupe (GRANDS_GROUPES_PAR_DEFAUT) ou employeur direct connu."""
+    ent = normaliser(nom_entreprise(o))
+    return bool(ent) and bool((_REGEX_GROUPES and _REGEX_GROUPES.search(ent))
+                              or REGEX_EMPLOYEURS_DIRECTS.search(ent))
+
 def classer(o):
     ent = normaliser(nom_entreprise(o))
     txt = normaliser(o.get("intitule", "") + " " + o.get("description", ""))
@@ -1075,6 +1086,9 @@ def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
                 garder, raison = False, "hors périmètre (pas de contexte SI)"
         if garder and exclus:
             term = terme_exclu(titre, exclus)
+            if term in EXCLUSIONS_LEVEES_EMPLOYEUR_DIRECT and est_employeur_direct(o):
+                term = terme_exclu(titre, [r for r in exclus
+                                           if r[0] not in EXCLUSIONS_LEVEES_EMPLOYEUR_DIRECT])
             if term:
                 garder, raison = False, f"titre exclu ({term})"
         if garder and limite is not None:

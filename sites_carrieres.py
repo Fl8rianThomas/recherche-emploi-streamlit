@@ -23,7 +23,8 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-from recherche_offres import (TRANSITOIRES, _get_avec_retries, mots_cles_recherche,
+from recherche_offres import (EXCLUSIONS_LEVEES_EMPLOYEUR_DIRECT, TRANSITOIRES,
+                              _get_avec_retries, mots_cles_recherche,
                               normaliser, regles_exclusion, terme_exclu, titre_retenu)
 
 # === 9. SOURCE WORKDAY (sites carrieres des grands groupes) =================
@@ -244,9 +245,12 @@ def _prefiltre_titres(config):
 
     Pre-filtre des sites carrieres : les memes regles sont de toute facon
     re-appliquees ensuite par filtrer() ; ici elles evitent des requetes inutiles.
+    Un site carriere est celui d'un employeur direct : les exclusions levees dans
+    ce cas (« consultant ») ne s'appliquent pas.
     """
     return ([normaliser(t) for t in config.get("inclure_titres") or [] if t.strip()],
-            regles_exclusion(config.get("exclure_titres")))
+            [r for r in regles_exclusion(config.get("exclure_titres"))
+             if r[0] not in EXCLUSIONS_LEVEES_EMPLOYEUR_DIRECT])
 
 def _titre_ok(titre, inclus, exclus, contrat=""):
     """Titre pertinent, non exclu, et pas un stage/alternance (titre ou contrat).

@@ -123,6 +123,17 @@ class TestTitresCibles(unittest.TestCase):
         self.assertFalse(ro.titre_retenu("chef de projet ferroviaire", inclus))
         self.assertTrue(ro.titre_retenu("pmo senior", inclus))
 
+    def test_consultant_garde_chez_employeur_direct(self):
+        # Cas réel (oct. 2026) : BA Senior Crew Tracking publié « Consultant ... » par Air France
+        inclus = [ro.normaliser(t.rpartition(":")[0]) for t in ro.INCLUSIONS_TITRE_PAR_DEFAUT]
+        cas = [(offre("Consultant Business Analyst Exigences (H/F)", "SOCIETE AIR FRANCE"), True),
+               (offre("Consultant AMOA / Business Analyst (F/H)", "Solutec"), False),
+               (offre("Stage - Consultant AMOA SI", "Air France"), False)]   # stage reste exclu
+        for o, attendu in cas:
+            gardees, _e, _s = ro.filtrer([o], None, ro.EXCLUSIONS_TITRE_PAR_DEFAUT, inclus,
+                                         ignorer_esn=True)
+            self.assertEqual(bool(gardees), attendu, o["intitule"])
+
     def test_debut_de_mot(self):
         self.assertFalse(ro.contient_terme("christian dior - chef de projet", "hris"))
         self.assertTrue(ro.contient_terme("business analysts", "business anal"))

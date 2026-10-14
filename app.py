@@ -1035,40 +1035,34 @@ groupes_items.sort(key=lambda it: (_rang_jour4(it), 0 if it.get("rh") else 1,
                                    0 if it.get("favori") else 1, -it["score"]))
 
 # Onglet 🗺️ Carte (onglet PRINCIPAL) : offres France + Suisse géolocalisées
-# (coordonnées de la source, sinon code postal / commune / localité suisse), codées
-# selon les critères : 💎 Perfect > ⭐ score élevé > ⭐ score moyen > autres.
-# Zone, domicile, rayon et option ESN sont des widgets de l'onglet, lus ici via leur
-# clé pour que le compteur du titre d'onglet soit à jour.
+# (coordonnées de la source, sinon code postal / commune / localité suisse),
+# classées en 7 niveaux selon la hiérarchie de l'utilisateur (ro.rang_carte) :
+# RH 👥 + score élevé + 🎯 localisation + sans ESN + grand groupe 🏢 … jusqu'à « autre ».
+# Population : titre pertinent (filtres) ET au moins une compétence (score > 0) ;
+# ESN incluses par défaut (classées plus bas). Zone, domicile, rayon, ESN, seuil et
+# niveaux affichés sont des widgets de l'onglet, lus ici via leur clé (compteurs).
 ZONE_TOUT, ZONE_RAYON = "🌍 France + Suisse", "🏠 Autour de chez moi"
-SEUIL_SCORE_HAUT, SEUIL_SCORE_MOYEN = 8, 3   # ≈ 20 % / 30 % des offres (oct. 2026)
-
-
-def _rang_critere(it):
-    """0 = 💎 Perfect, 1 = ⭐ score élevé, 2 = ⭐ score moyen, 3 = autre."""
-    if _est_perfect(it):
-        return 0
-    if it["score"] >= SEUIL_SCORE_HAUT:
-        return 1
-    return 2 if it["score"] >= SEUIL_SCORE_MOYEN else 3
-
 
 geo_zone = st.session_state.get("geo_zone", ZONE_TOUT)
 geo_domicile = st.session_state.get("geo_domicile", ro.DOMICILE)
 geo_rayon = st.session_state.get("geo_rayon", ro.RAYON_DOMICILE_KM)
+geo_esn = st.session_state.get("geo_esn", True)
+geo_seuil = st.session_state.get("geo_seuil", ro.SEUIL_SCORE_ELEVE)
 geo_centre = ro.coords_lieu(geo_domicile)
-geo_base = france_items + suisse_items
-if st.session_state.get("geo_esn"):
-    # Option de l'onglet : autour de chez soi, le marché BA est surtout tenu par des
-    # ESN (exclues partout ailleurs). Même filtrage SANS le test ESN, marquées 🏭.
+if geo_esn:
+    # Même filtrage SANS le test ESN : les ESN restent, marquées 🏭 et classées bas.
     _g_esn, _, _ = _filtrer_memo(ignorer_esn=True)
     geo_base = (_decorer([o for o in _g_esn if o.get("_source") != "jobup.ch"
                           and not ro.est_international(o) and not ro.est_suisse(o)])
                 + _decorer([o for o in _g_esn if (o.get("_source") == "jobup.ch"
                             or ro.est_suisse(o)) and not ro.est_allemand(o)]))
-    for it in geo_base:
-        it["esn"] = not ro.classer(it["o"])[0]
-geo_items, geo_sans_lieu = [], 0
+else:
+    geo_base = france_items + suisse_items
+geo_items, geo_sans_lieu, geo_sans_competence = [], 0, 0
 for it in geo_base:
+    if not it["score"]:                       # aucune de mes compétences : hors carte
+        geo_sans_competence += 1
+        continue
     g = ro.geoloc_offre(it["o"])
     if not g:
         geo_sans_lieu += 1
@@ -1076,9 +1070,16 @@ for it in geo_base:
     km = ro.distance_km(geo_centre, g) if geo_centre else None
     if geo_zone == ZONE_RAYON and (km is None or km > geo_rayon):
         continue
-    geo_items.append({**it, "geo": g, "km": km, "rang": _rang_critere(it)})
+    esn = not ro.classer(it["o"])[0]
+    groupe = it.get("groupe") or ro.groupe_offre(it["o"], lib_groupes, rx_groupes)
+    geo_items.append({**it, "geo": g, "km": km, "esn": esn, "groupe": groupe,
+                      "rang": ro.rang_carte(bool(it.get("rh")), it["score"],
+                                            bool(it.get("favori")), esn, bool(groupe),
+                                            geo_seuil)})
 geo_items.sort(key=lambda it: (it["rang"], -it["score"],
                                it["km"] if it["km"] is not None else 1e9))
+# Niveaux cochés dans le menu de la carte (tous par défaut).
+geo_visibles = [it for it in geo_items if st.session_state.get(f"geo_n{it['rang']}", True)]
 
 # Offres sauvegardées (★) — chargées une fois par session depuis la branche `favoris`,
 # puis maintenues en session_state (la liste fait foi pendant toute la visite).
@@ -1097,7 +1098,7 @@ if st.session_state.get("_fav_msg"):
 
 (onglet_geo, onglet_perfect, onglet_fr, onglet_gg, onglet_ch, onglet_fav,
  onglet_excl, onglet_dash) = st.tabs([
-    f"🗺️ Carte ({len(geo_items)})",
+    f"🗺️ Carte ({len(geo_visibles)})",
     f"💎 Perfect ({len(perfect_items)})",
     f"🎯 France ({len(france_items)})",
     f"🏢 Grands groupes ({len(groupes_items)})",
@@ -1147,27 +1148,35 @@ with onglet_gg:
         vue_liste_detail(groupes_items, "gg", "offres_grands_groupes.csv",
                          bucket_fn=_bucket_jour4)
 
-# Code couleur / forme de la carte selon les critères (rang de _rang_critere).
-RANGS = {
-    0: ("💎 Perfect", "#00E5FF"),        # losange cyan, bien visible
-    1: (f"⭐ Score ≥ {SEUIL_SCORE_HAUT}", "#FFC107"),
-    2: (f"⭐ Score {SEUIL_SCORE_MOYEN} à {SEUIL_SCORE_HAUT - 1}", "#43A047"),
-    3: ("Autres offres", "#8E8E8E"),
+# Code couleur / forme des 7 niveaux de la carte (ro.rang_carte). Emoji = même
+# couleur que le marqueur sur la carte (losange pour les niveaux 1-2, rond sinon).
+NIVEAUX = {
+    1: ("💎", "RH · score élevé · 🎯 localisation · sans ESN · grand groupe", "#00E5FF"),
+    2: ("🔷", "RH · score élevé · sans ESN · grand groupe", "#2979FF"),
+    3: ("🟡", "RH · score élevé · sans ESN", "#FFD600"),
+    4: ("🟠", "RH · score élevé · 🎯 localisation", "#FF9100"),
+    5: ("🟣", "RH · score élevé", "#D500F9"),
+    6: ("🟢", "Score élevé", "#00C853"),
+    7: ("⚪", "Autres offres", "#9E9E9E"),
 }
-# Losange (SVG en data-URL, aucun fichier externe) pour les lieux avec une offre Perfect.
-_SVG_LOSANGE = ('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">'
-                '<polygon points="32,3 61,32 32,61 3,32" fill="#00E5FF" stroke="#ffffff" '
-                'stroke-width="5"/></svg>')
-ICONE_LOSANGE = {"url": "data:image/svg+xml;base64,"
-                        + base64.b64encode(_SVG_LOSANGE.encode()).decode(),
-                 "width": 64, "height": 64, "anchorY": 32}
 
 
-def _bucket_critere(it):
-    """Tranche de la liste de l'onglet 🗺️ : même ordre que les critères."""
-    if it["rang"] == 0:
-        return "💎 Perfect — score > 2 ⭐, RH/SIRH 👥 et 🎯 département favori"
-    return RANGS[it["rang"]][0]
+def _icone_losange(couleur):
+    """Losange SVG (data-URL, aucun fichier externe) pour les niveaux 1-2."""
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">'
+           f'<polygon points="32,3 61,32 32,61 3,32" fill="{couleur}" stroke="#ffffff" '
+           'stroke-width="5"/></svg>')
+    return {"url": "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode(),
+            "width": 64, "height": 64, "anchorY": 32}
+
+
+ICONES_LOSANGE = {r: _icone_losange(NIVEAUX[r][2]) for r in (1, 2)}
+
+
+def _bucket_niveau(it):
+    """Tranche de la liste de l'onglet 🗺️ : un en-tête par niveau."""
+    emoji, lib, _c = NIVEAUX[it["rang"]]
+    return f"{emoji} Niveau {it['rang']} — {lib}"
 
 
 def _rgb(hexa, defaut=(140, 140, 140)):
@@ -1178,54 +1187,71 @@ def _rgb(hexa, defaut=(140, 140, 140)):
         return list(defaut)
 
 
-def _legende_carte(items):
-    """Bandeau : forme/couleur de chaque critère + nombre d'offres."""
+def menu_carte(items, visibles):
+    """Menu à gauche de la carte : niveaux (cocher = afficher), seuil du score
+    élevé, chiffres clés et meilleures villes."""
     n = Counter(it["rang"] for it in items)
-    puces = []
-    for r, (lib, coul) in RANGS.items():
-        forme = ("width:13px;height:13px;transform:rotate(45deg);border:2px solid #fff;"
-                 if r == 0 else "width:12px;height:12px;border-radius:50%;")
-        puces.append(f'<span style="display:inline-flex;align-items:center;gap:6px;'
-                     f'margin-right:16px"><span style="display:inline-block;{forme}'
-                     f'background:{coul}"></span>{lib} <b>{n.get(r, 0)}</b></span>')
-    puces.append('<span style="display:inline-flex;align-items:center;gap:6px">'
-                 '<span style="display:inline-block;width:12px;height:12px;border-radius:'
-                 '50%;background:#e74c3c;border:2px solid #fff"></span>Domicile</span>')
-    return ('<div style="display:flex;flex-wrap:wrap;align-items:center;row-gap:6px;'
-            'margin:.2rem 0 .5rem;font-size:.9rem">' + "".join(puces) + "</div>")
+    st.markdown("**Niveaux**")
+    for r, (emoji, lib, _c) in NIVEAUX.items():
+        st.checkbox(f"{emoji} {r}. {lib} — **{n.get(r, 0)}**", value=True, key=f"geo_n{r}")
+    st.slider("Seuil « score élevé » ⭐", min_value=3, max_value=20, step=1,
+              value=ro.SEUIL_SCORE_ELEVE, key="geo_seuil",
+              help="Score Optimum à partir duquel une offre compte comme « score élevé ».")
+    st.divider()
+    proches = sum(1 for it in items if it["km"] is not None and it["km"] <= ro.RAYON_DOMICILE_KM)
+    ch = sum(1 for it in items if it["o"].get("_source") == "jobup.ch" or ro.est_suisse(it["o"]))
+    st.markdown(
+        f"**Résumé** ({len(visibles)} affichées)  \n"
+        f"📍 {len(items)} placées · 🚩 {ch} en Suisse  \n"
+        f"👥 {sum(1 for it in items if it.get('rh'))} RH/SIRH détecté  \n"
+        f"🏢 {sum(1 for it in items if it.get('groupe'))} grands groupes  \n"
+        f"🎯 {sum(1 for it in items if it.get('favori'))} dans tes départements  \n"
+        f"🏠 {proches} à moins de {ro.RAYON_DOMICILE_KM} km  \n"
+        f"🏭 {sum(1 for it in items if it.get('esn'))} ESN / cabinets")
+    villes = Counter(champ(it["o"], "lieuTravail", "libelle").split(",")[0][:22]
+                     for it in visibles if it["rang"] <= 5)
+    if villes:
+        st.markdown("**Villes (niveaux 1 à 5)**  \n" + "  \n".join(
+            f"{v} · {k}" for v, k in villes.most_common(5)))
+    st.caption(f"Hors carte : {geo_sans_competence} sans aucune de tes compétences, "
+               f"{geo_sans_lieu} sans lieu précis.")
 
 
 def carte_offres(items, centre, domicile, rayon_km=None):
-    """Carte pydeck (16:9) : une bulle par lieu — couleur = meilleur critère du lieu,
-    taille = nombre d'offres — + 💎 losange au-dessus des lieux ayant une offre
-    Perfect, domicile, et cercle du rayon en mode « autour de chez moi ».
-    -> lieu cliqué (lat, lon) ou None. Fond Carto (sans clé), infobulle au survol."""
+    """Carte pydeck (16:9) : une bulle par lieu — couleur = meilleur niveau du lieu,
+    taille = nombre d'offres — ; losange (niveaux 1-2) au-dessus ; domicile ; cercle
+    du rayon en mode « autour de chez moi ». -> lieu cliqué (lat, lon) ou None."""
     lieux = {}
-    for it in items:                       # items déjà triés : meilleurs critères d'abord
+    for it in items:                       # items triés : meilleurs niveaux d'abord
         p = lieux.setdefault(it["geo"], {"lat": it["geo"][0], "lon": it["geo"][1],
                                          "km": it["km"], "rang": it["rang"], "titres": [],
                                          "ville": champ(it["o"], "lieuTravail", "libelle")})
         p["rang"] = min(p["rang"], it["rang"])
-        icone = "💎 " if it["rang"] == 0 else (f"⭐{it['score']} " if it["score"] else "")
-        p["titres"].append(f'{icone}{it["o"].get("intitule", "")[:60]} — '
-                           f'{ro.nom_entreprise(it["o"])[:30]}')
+        marques = (NIVEAUX[it["rang"]][0] + (f" ⭐{it['score']}" if it["score"] else "")
+                   + (" 🏭" if it.get("esn") else "") + (" 🏢" if it.get("groupe") else ""))
+        p["titres"].append(f'{marques} {it["o"].get("intitule", "")[:58]} — '
+                           f'{ro.nom_entreprise(it["o"])[:28]}')
     points = []
     for p in lieux.values():
         n = len(p["titres"])
         points.append({
             "lat": p["lat"], "lon": p["lon"], "n": n, "n_txt": str(n) if n > 1 else "",
-            "ville": html.escape(p["ville"][:45]),
+            "rang": p["rang"], "ville": html.escape(p["ville"][:45]),
             "km": f" · 🚗 {p['km']:.0f} km" if p["km"] is not None else "",
             "titres": "<br/>".join(html.escape(t) for t in p["titres"][:8])
                       + (f"<br/>… +{n - 8}" if n > 8 else ""),
-            "couleur": _rgb(RANGS[p["rang"]][1]) + [140 if p["rang"] == 3 else 225],
-            # Taille en PIXELS (lisible à tout zoom) : nombre d'offres + critère.
-            "rayon_px": min(40, (4 if p["rang"] == 3 else 6) + 2.6 * n ** 0.5),
-            "icon": ICONE_LOSANGE, "rang": p["rang"],
+            "couleur": _rgb(NIVEAUX[p["rang"]][2]) + [130 if p["rang"] == 7 else 230],
+            # Taille en PIXELS (lisible à tout zoom) : nombre d'offres + niveau.
+            "rayon_px": min(40, (3.5 if p["rang"] == 7 else 5 if p["rang"] == 6 else 7)
+                            + 2.6 * n ** 0.5),
+            "icon": ICONES_LOSANGE.get(p["rang"]),
         })
-    perfects = [p for p in points if p["rang"] == 0]
+    # Dessin dans l'ordre inverse des niveaux : le MEILLEUR niveau passe au-dessus.
+    points.sort(key=lambda p: -p["rang"])
+    losanges = [p for p in points if p["rang"] <= 2]
     maison = ([{"lat": centre[0], "lon": centre[1], "ville": html.escape(f"🏠 {domicile}"),
                 "titres": "Domicile", "km": ""}] if centre else [])
+    pixels = pdk.types.String("pixels")    # sinon pydeck lit « pixels » comme une expression JS
     couches = []
     if rayon_km and maison:
         couches.append(pdk.Layer(
@@ -1234,14 +1260,13 @@ def carte_offres(items, centre, domicile, rayon_km=None):
             get_line_color=[231, 76, 60, 170], line_width_min_pixels=2))
     couches += [
         pdk.Layer("ScatterplotLayer", id="offres", data=points, get_position="[lon, lat]",
-                  # pdk.types.String : sinon pydeck lit « pixels » comme une expression JS
-                  get_radius="rayon_px", radius_units=pdk.types.String("pixels"),
-                  get_fill_color="couleur", stroked=True, get_line_color=[255, 255, 255, 180],
-                  line_width_min_pixels=1, pickable=True, auto_highlight=True),
+                  get_radius="rayon_px", radius_units=pixels, get_fill_color="couleur",
+                  stroked=True, get_line_color=[255, 255, 255, 170], line_width_min_pixels=1,
+                  pickable=True, auto_highlight=True),
         pdk.Layer("TextLayer", data=points, get_position="[lon, lat]", get_text="n_txt",
                   get_size=12, get_color=[255, 255, 255], font_weight=700),
-        pdk.Layer("IconLayer", id="perfect", data=perfects, get_position="[lon, lat]",
-                  get_icon="icon", get_size=30, size_scale=1, size_units=pdk.types.String("pixels"),
+        pdk.Layer("IconLayer", id="losanges", data=losanges, get_position="[lon, lat]",
+                  get_icon="icon", get_size=30, size_scale=1, size_units=pixels,
                   size_min_pixels=18, size_max_pixels=34, pickable=True),
     ]
     if maison:
@@ -1261,12 +1286,12 @@ def carte_offres(items, centre, domicile, rayon_km=None):
         layers=couches, initial_view_state=vue,
         map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
         tooltip={"html": "<b>{ville}</b>{km}<br/>{titres}",
-                 "style": {"fontSize": "12px", "maxWidth": "460px"}},
+                 "style": {"fontSize": "12px", "maxWidth": "480px"}},
     )
     evt = st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object",
                           key="carte_geo", height=hauteur)
     objets = ((getattr(evt, "selection", None) or {}).get("objects") or {})
-    choix = (objets.get("offres") or []) + (objets.get("perfect") or [])
+    choix = (objets.get("offres") or []) + (objets.get("losanges") or [])
     return (choix[0]["lat"], choix[0]["lon"]) if choix else None
 
 
@@ -1279,34 +1304,35 @@ with onglet_geo:
                    value=ro.RAYON_DOMICILE_KM, key="geo_rayon",
                    disabled=geo_zone != ZONE_RAYON,
                    help="Actif en zone « Autour de chez moi ».")
-    c_esn.checkbox("Inclure ESN / cabinets 🏭", key="geo_esn",
-                   help="Beaucoup d'offres BA viennent d'ESN (exclues partout ailleurs). "
-                        "Coche pour les voir sur la carte, marquées 🏭.")
+    c_esn.checkbox("Inclure ESN / cabinets 🏭", value=True, key="geo_esn",
+                   help="Les offres d'ESN restent sur la carte mais classées plus bas "
+                        "(niveaux 4-5 au mieux). Décoche pour les masquer.")
     if not geo_centre:
         st.warning(f"Domicile « {geo_domicile} » introuvable : indique une commune de plus "
                    "de 1 000 habitants ou un code postal (distances non calculées).")
-    st.markdown(_legende_carte(geo_items), unsafe_allow_html=True)
-    n_ch = sum(1 for it in geo_items if it["o"].get("_source") == "jobup.ch"
-               or ro.est_suisse(it["o"]))
-    st.caption(f"**{len(geo_items)}** offres placées ({n_ch} en Suisse)"
-               + (f" à moins de **{geo_rayon} km** de {geo_domicile}"
-                  if geo_zone == ZONE_RAYON else "")
-               + f" · {geo_sans_lieu} sans lieu précis (« Île-de-France », « France ») non "
-               "placées. Survole une bulle pour le détail, **clique-la** pour filtrer la "
-               "liste. 🚗 = distance à vol d'oiseau depuis le domicile.")
-    if geo_zone == ZONE_RAYON and not geo_centre:
-        st.info("Zone « Autour de chez moi » : corrige d'abord le domicile.")
-    else:
-        choix = carte_offres(geo_items, geo_centre, geo_domicile,
-                             geo_rayon if geo_zone == ZONE_RAYON else None)
-        liste = [it for it in geo_items if it["geo"] == choix] if choix else geo_items
-        if choix and liste:
-            st.info(f"📍 Filtre : **{champ(liste[0]['o'], 'lieuTravail', 'libelle')}** "
-                    f"({len(liste)} offre(s)) — clique à côté des bulles pour tout revoir.")
-        if not geo_items:
-            st.info("Aucune offre à afficher : élargis le rayon ou passe en « France + Suisse ».")
+    col_menu, col_carte = st.columns([1.15, 4.85], gap="small")
+    with col_menu:
+        with st.container(height=700, key="menu_carte"):
+            menu_carte(geo_items, geo_visibles)
+    choix = None
+    with col_carte:
+        if geo_zone == ZONE_RAYON and not geo_centre:
+            st.info("Zone « Autour de chez moi » : corrige d'abord le domicile.")
         else:
-            vue_liste_detail(liste, "geo", "offres_carte.csv", bucket_fn=_bucket_critere)
+            choix = carte_offres(geo_visibles, geo_centre, geo_domicile,
+                                 geo_rayon if geo_zone == ZONE_RAYON else None)
+    liste = [it for it in geo_visibles if it["geo"] == choix] if choix else geo_visibles
+    if choix and liste:
+        st.info(f"📍 Filtre : **{champ(liste[0]['o'], 'lieuTravail', 'libelle')}** "
+                f"({len(liste)} offre(s)) — clique à côté des bulles pour tout revoir.")
+    st.caption("Survole une bulle pour le détail, **clique-la** pour filtrer la liste. "
+               "Liste triée par niveau, puis score ⭐, puis distance 🚗 (vol d'oiseau "
+               "depuis le domicile). 🏭 = ESN / cabinet · 🏢 = grand groupe.")
+    if not geo_visibles:
+        st.info("Aucune offre à afficher : coche d'autres niveaux, élargis le rayon ou "
+                "passe en « France + Suisse ».")
+    else:
+        vue_liste_detail(liste, "geo", "offres_carte.csv", bucket_fn=_bucket_niveau)
 
 with onglet_ch:
     st.markdown(_legende(suisse_items), unsafe_allow_html=True)

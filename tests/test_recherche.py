@@ -131,6 +131,25 @@ class TestGeo(unittest.TestCase):
         self.assertIsNone(ro.coords_lieu("Indre"))                       # nom de departement
 
 
+class TestRangCarte(unittest.TestCase):
+    def rang(self, rh=True, score=10, loc=False, esn=False, gg=False):
+        return ro.rang_carte(rh, score, loc, esn, gg, seuil=8)
+
+    def test_hierarchie(self):
+        self.assertEqual(self.rang(loc=True, gg=True), 1)
+        self.assertEqual(self.rang(gg=True), 2)
+        self.assertEqual(self.rang(), 3)                       # RH + élevé + sans ESN
+        self.assertEqual(self.rang(loc=True, esn=True), 4)     # ESN localisée
+        self.assertEqual(self.rang(esn=True), 5)
+        self.assertEqual(self.rang(rh=False), 6)               # score élevé seul
+        self.assertEqual(self.rang(score=5), 7)                # RH mais score < seuil
+        self.assertEqual(self.rang(esn=True, gg=True, loc=True), 4)  # ESN jamais 1-3
+
+    def test_seuil(self):
+        self.assertEqual(ro.rang_carte(False, 8, False, False, False, seuil=8), 6)
+        self.assertEqual(ro.rang_carte(False, 7, False, False, False, seuil=8), 7)
+
+
 class TestSuisse(unittest.TestCase):
     def test_localites_multilingues_et_formats(self):
         geneve = ro.coords_suisse("Genève")

@@ -696,6 +696,27 @@ def distance_km(a, b):
          + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2)
     return 2 * 6371 * math.asin(math.sqrt(h))
 
+SEUIL_SCORE_ELEVE = 8    # « score élevé » de la carte (≈ 20 % des offres, oct. 2026)
+
+def rang_carte(rh, score, localisation, esn, grand_groupe, seuil=SEUIL_SCORE_ELEVE):
+    """Niveau d'une offre sur la carte (1 = meilleur), hiérarchie de l'utilisateur :
+    1 RH + score élevé + localisation + sans ESN + grand groupe
+    2 RH + score élevé + sans ESN + grand groupe
+    3 RH + score élevé + sans ESN
+    4 RH + score élevé + localisation
+    5 RH + score élevé
+    6 score élevé
+    7 autre
+    (localisation = département favori 🎯 ; RH = domaine RH/SIRH détecté 👥)."""
+    eleve = score >= seuil
+    if rh and eleve:
+        if not esn and grand_groupe:
+            return 1 if localisation else 2
+        if not esn:
+            return 3
+        return 4 if localisation else 5
+    return 6 if eleve else 7
+
 def est_departement_favori(o, codes):
     """True si l'offre est localisee dans l'un des departements `codes`."""
     if not codes:

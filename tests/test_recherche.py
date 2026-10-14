@@ -242,6 +242,21 @@ class TestGeo(unittest.TestCase):
         self.assertIsNone(ro.geoloc_offre(offre(lieu="Île-de-France")))  # region seule
         self.assertIsNone(ro.coords_lieu("Indre"))                       # nom de departement
 
+    def test_geoloc_approx_prefecture(self):
+        # Cas réels (oct. 2026) : FT « 95 - Val-d'Oise » (Air France), « Île-de-France » seul
+        self.assertIsNone(ro.geoloc_offre(offre(lieu="95 - Val-d'Oise")))
+        self.assertEqual(ro.geoloc_approx(offre(lieu="95 - Val-d'Oise")), ro.coords_lieu("Cergy"))
+        self.assertEqual(ro.geoloc_approx(offre(lieu="Île-de-France")), ro.coords_lieu("Paris"))
+        self.assertIsNone(ro.geoloc_approx(offre(lieu="France")))
+
+    def test_homonyme_hors_region_citee(self):
+        # Vinci « Saint-Denis, Ile-de-France » : pas Saint-Denis de La Réunion (plus peuplée)
+        o = offre(lieu="Saint-Denis, Ile-de-France, France")
+        self.assertNotEqual(ro.departement_offre(o), "974")
+        self.assertIsNone(ro.geoloc_offre(o))
+        self.assertEqual(ro.geoloc_approx(o), ro.coords_lieu("Paris"))
+        self.assertEqual(ro.departement_offre(offre(lieu="Le Mans, Pays de la Loire")), "72")
+
 
 class TestRangCarte(unittest.TestCase):
     def rang(self, rh=True, score=10, loc=False, esn=False, gg=False):

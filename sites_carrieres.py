@@ -853,6 +853,7 @@ _RE_RADANCY_LIEN = re.compile(
     r'<a\b[^>]*?href="(/[^"]+)"[^>]*?data-job-id="(\d+)"[^>]*>(.*?)</a>', re.S)
 _RE_RADANCY_TITRE = re.compile(
     r'<h\d[^>]*>(.*?)</h\d>|<span[^>]*class="[^"]*title[^"]*"[^>]*>(.*?)</span>', re.S)
+_RE_RADANCY_LIEU = re.compile(r'<span[^>]*class="[^"]*job-location[^"]*"[^>]*>(.*?)</span>', re.S)
 
 def rechercher_radancy(config, nom, base):
     """Offres France d'un site carriere Radancy (entreprise = « Filiale (Groupe) »)."""
@@ -901,10 +902,16 @@ def rechercher_radancy(config, nom, base):
             publie = (fiche.get("datePosted") or "")[:10]
             if (limite and publie and publie < limite) or _RE_HORS_CDI.search(normaliser(contrat)):
                 continue
+            # Fiche parfois reduite a la rue (« 1 mail de la petite espagne », sans code
+            # postal ni ville) : le lieu de la liste (« Saint-Denis, Ile-de-France ») prime.
+            lieu = _lieu_jobposting(fiche)
+            ml = _RE_RADANCY_LIEU.search(interieur)
+            if ml and not re.search(r"\(\d{5}\)", lieu):
+                lieu = " ".join(html.unescape(re.sub(r"<[^>]+>", " ", ml.group(1))).split()) or lieu
             offres.append({
                 "intitule": titre,
                 "entreprise": {"nom": _nom_groupe(_employeur_jobposting(fiche), nom)},
-                "lieuTravail": {"libelle": _lieu_jobposting(fiche)},
+                "lieuTravail": {"libelle": lieu},
                 "typeContratLibelle": contrat,
                 "typeContrat": "",
                 "dateCreation": publie,

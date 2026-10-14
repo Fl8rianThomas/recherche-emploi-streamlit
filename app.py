@@ -1074,7 +1074,10 @@ for it in geo_base:
     if not it["score"]:                       # aucune de mes compétences : hors carte
         geo_sans_competence += 1
         continue
-    g = ro.geoloc_offre(it["o"])
+    g, approx = ro.geoloc_offre(it["o"]), False
+    if not g:                                 # département / région seuls : préfecture
+        g = ro.geoloc_approx(it["o"])
+        approx = bool(g)
     if not g:
         geo_sans_lieu += 1
         continue
@@ -1083,7 +1086,7 @@ for it in geo_base:
         continue
     esn = ro.est_esn(it["o"], geo_sig_esn)    # au niveau de l'offre (toutes ses copies)
     groupe = it.get("groupe") or ro.groupe_offre(it["o"], lib_groupes, rx_groupes)
-    geo_items.append({**it, "geo": g, "km": km, "esn": esn, "groupe": groupe,
+    geo_items.append({**it, "geo": g, "km": km, "esn": esn, "groupe": groupe, "approx": approx,
                       "rang": ro.rang_carte(bool(it.get("rh")), it["score"],
                                             bool(it.get("favori")), esn, bool(groupe),
                                             geo_seuil)})
@@ -1226,8 +1229,10 @@ def menu_carte(items, visibles):
     if villes:
         st.markdown("**Villes (niveaux 1 à 5)**  \n" + "  \n".join(
             f"{v} · {k}" for v, k in villes.most_common(5)))
+    approx = sum(1 for it in items if it.get("approx"))
     st.caption(f"Hors carte : {geo_sans_competence} sans aucune de tes compétences, "
-               f"{geo_sans_lieu} sans lieu précis.")
+               f"{geo_sans_lieu} sans lieu (« France » seul).  \n"
+               f"≈📍 {approx} placées à la préfecture (département ou région seuls).")
 
 
 def carte_offres(items, centre, domicile, rayon_km=None):
@@ -1241,7 +1246,8 @@ def carte_offres(items, centre, domicile, rayon_km=None):
                                          "ville": champ(it["o"], "lieuTravail", "libelle")})
         p["rang"] = min(p["rang"], it["rang"])
         marques = (NIVEAUX[it["rang"]][0] + (f" ⭐{it['score']}" if it["score"] else "")
-                   + (" 🏭" if it.get("esn") else "") + (" 🏢" if it.get("groupe") else ""))
+                   + (" 🏭" if it.get("esn") else "") + (" 🏢" if it.get("groupe") else "")
+                   + (" ≈📍" if it.get("approx") else ""))     # placée à la préfecture
         p["titres"].append(f'{marques} {it["o"].get("intitule", "")[:58]} — '
                            f'{ro.nom_entreprise(it["o"])[:28]}')
     points = []

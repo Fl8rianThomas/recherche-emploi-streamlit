@@ -677,13 +677,25 @@ def departement_offre(o):
     if mcp:
         cp = mcp.group(1)
         return cp[:3] if cp.startswith("97") else cp[:2]  # DOM 97x sinon 2 chiffres
+    # Homonymes : « Saint-Denis, Ile-de-France » ne doit pas tomber a La Reunion
+    # (commune la plus peuplee du nom) -> la region citee fait foi.
+    reg = _region_citee(norm)
     for part in re.split(r"[,(/;]| - ", lieu):            # « Puteaux, Ile-de-France »
         code = _COMMUNES.get(_cle_commune(part))
-        if code:
+        if code and (not reg or DEPT_REGION.get(code) == reg):
             return code
     mv = _REGEX_VILLES_DEPT.search(norm)                  # « Paris 8e » -> Paris
     if mv:
-        return _NOM_VERS_CODE.get(mv.group(0))
+        code = _NOM_VERS_CODE.get(mv.group(0))
+        if not reg or DEPT_REGION.get(code) == reg:
+            return code
+    return None
+
+def _region_citee(lieu_norm):
+    """Region française nommee dans un libelle normalise (« ..., ile-de-france »)."""
+    for reg in _REGIONS_DEPTS:
+        if normaliser(reg) in lieu_norm:
+            return reg
     return None
 
 def coords_lieu(texte):
@@ -749,7 +761,31 @@ def geoloc_offre(o):
         pass
     if o.get("_source") == "jobup.ch" or est_suisse(o):
         return coords_suisse(lt.get("libelle", ""))
-    return coords_lieu(f'{lt.get("codePostal") or ""} {lt.get("libelle", "") or ""}')
+    lieu = f'{lt.get("codePostal") or ""} {lt.get("libelle", "") or ""}'
+    reg = _region_citee(normaliser(lieu))
+    if reg and not re.search(r"\b\d{5}\b", lieu) and DEPT_REGION.get(departement_offre(o)) != reg:
+        return None                 # homonyme hors de la region citee : cf. geoloc_approx
+    return coords_lieu(lieu)
+
+# Departement du chef-lieu de chaque region (placement approximatif).
+_CAPITALE_REGION = {
+    "Auvergne-Rhône-Alpes": "69", "Bourgogne-Franche-Comté": "21", "Bretagne": "35",
+    "Centre-Val de Loire": "45", "Corse": "2A", "Grand Est": "67", "Hauts-de-France": "59",
+    "Île-de-France": "75", "Normandie": "76", "Nouvelle-Aquitaine": "33",
+    "Occitanie": "31", "Pays de la Loire": "44", "Provence-Alpes-Côte d'Azur": "13",
+}
+
+def geoloc_approx(o):
+    """(latitude, longitude) APPROCHEES quand geoloc_offre echoue : prefecture du
+    departement (« 95 - Val-d'Oise » -> Cergy), sinon chef-lieu de la region citee
+    (« Île-de-France » -> Paris), sinon None (« France », Suisse)."""
+    if o.get("_source") == "jobup.ch" or est_suisse(o):
+        return None
+    code = departement_offre(o)
+    if not code:
+        lieu = (o.get("lieuTravail") or {}).get("libelle", "") or ""
+        code = _CAPITALE_REGION.get(_region_citee(normaliser(lieu)))
+    return coords_lieu(DEPARTEMENTS.get(code, "")) if code else None
 
 def distance_km(a, b):
     """Distance a vol d'oiseau (km) entre deux points (latitude, longitude)."""

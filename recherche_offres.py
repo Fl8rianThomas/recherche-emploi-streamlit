@@ -9,6 +9,7 @@ sites_carrieres.py, qui réutilise les utilitaires de ce module.
 import os
 import re
 import csv
+import math
 import sys
 import time
 import html
@@ -111,6 +112,12 @@ PROFIL_OPTIMUM = [
 # 37 Indre-et-Loire (Tours), 41 Loir-et-Cher (Blois), 45 Loiret (Orleans),
 # 74 Haute-Savoie (Annecy), 75 Paris.
 DEPTS_FAVORIS_PAR_DEFAUT = ["37", "41", "45", "74", "75"]
+
+# Domicile de l'utilisateur : centre de l'onglet 🗺️ (carte) et des recherches
+# Adzuna « autour de chez moi » (les recherches nationales plafonnent a 200
+# resultats, dominees par Paris : les offres de la region y sont noyees).
+DOMICILE = "Lamotte-Beuvron"
+RAYON_DOMICILE_KM = 100
 
 # Grands groupes (onglet 🏢) : une offre France dont l'ENTREPRISE contient un de
 # ces noms (mot entier, accents/casse ignores) y est rangee. Editable dans l'interface.
@@ -569,15 +576,25 @@ def _cle_commune(nom):
     return re.sub(r"\s+", " ", n)
 
 def _charger_communes():
+    """-> ({cle: departement}, {cle: (latitude, longitude)}) depuis le fichier TSV
+    (cle \\t departement \\t latitude \\t longitude ; coordonnees vides pour les
+    noms de departement). Cles = communes normalisees ET codes postaux."""
+    deps, coords = {}, {}
     try:
         with open(_FICHIER_COMMUNES, encoding="utf-8") as f:
-            paires = (l.rstrip("\r\n").partition("\t") for l in f   # CRLF sous Windows
-                      if l.strip() and not l.startswith("#"))
-            return {k: v.strip() for k, _, v in paires}
-    except OSError:
-        return {}
+            for l in f:
+                if not l.strip() or l.startswith("#"):
+                    continue
+                champs = l.rstrip("\r\n").split("\t")          # CRLF sous Windows
+                k, dep = champs[0], champs[1].strip() if len(champs) > 1 else ""
+                deps[k] = dep
+                if len(champs) >= 4 and champs[2].strip() and champs[3].strip():
+                    coords[k] = (float(champs[2]), float(champs[3]))
+    except (OSError, ValueError):
+        pass
+    return deps, coords
 
-_COMMUNES = _charger_communes()
+_COMMUNES, _COORDS = _charger_communes()
 
 def departement_offre(o):
     """Devine le code departement (« 37 », « 75 »…) d'une offre, ou None.
@@ -606,6 +623,41 @@ def departement_offre(o):
     if mv:
         return _NOM_VERS_CODE.get(mv.group(0))
     return None
+
+def coords_lieu(texte):
+    """(latitude, longitude) d'un lieu libre (« Lamotte-Beuvron », « 41600 »,
+    « 41 - Blois », « Paris 8e »…), ou None. Code postal, puis commune, puis
+    chef-lieu cite dans le texte."""
+    if not (texte or "").strip():
+        return None
+    for cp in re.findall(r"\b(\d{5})\b", texte):
+        if cp in _COORDS:
+            return _COORDS[cp]
+    for part in re.split(r"[,(/;]| - ", texte):
+        k = _cle_commune(part)
+        if k in _COORDS:
+            return _COORDS[k]
+    mv = _REGEX_VILLES_DEPT.search(normaliser(texte))
+    return _COORDS.get(_cle_commune(mv.group(0))) if mv else None
+
+def geoloc_offre(o):
+    """(latitude, longitude) du lieu de l'offre, ou None : coordonnees fournies par
+    la source (France Travail, Adzuna, Jibe, Phenom), sinon code postal / commune /
+    chef-lieu de son libelle (voir coords_lieu)."""
+    lt = o.get("lieuTravail") or {}
+    try:
+        if lt.get("latitude") not in (None, "") and lt.get("longitude") not in (None, ""):
+            return float(lt["latitude"]), float(lt["longitude"])
+    except (TypeError, ValueError):
+        pass
+    return coords_lieu(f'{lt.get("codePostal") or ""} {lt.get("libelle", "") or ""}')
+
+def distance_km(a, b):
+    """Distance a vol d'oiseau (km) entre deux points (latitude, longitude)."""
+    la1, lo1, la2, lo2 = map(math.radians, (*a, *b))
+    h = (math.sin((la2 - la1) / 2) ** 2
+         + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2)
+    return 2 * 6371 * math.asin(math.sqrt(h))
 
 def est_departement_favori(o, codes):
     """True si l'offre est localisee dans l'un des departements `codes`."""
@@ -818,7 +870,8 @@ def _adzuna_vers_offre(j):
     return {
         "intitule": j.get("title", ""),
         "entreprise": {"nom": (j.get("company") or {}).get("display_name", "")},
-        "lieuTravail": {"libelle": (j.get("location") or {}).get("display_name", "")},
+        "lieuTravail": {"libelle": (j.get("location") or {}).get("display_name", ""),
+                        "latitude": j.get("latitude"), "longitude": j.get("longitude")},
         "typeContratLibelle": contrat or (j.get("contract_time") or "").replace("_", " "),
         "typeContrat": contrat,
         "dateCreation": j.get("created", ""),
@@ -861,6 +914,8 @@ def rechercher_adzuna(config, app_id, app_key):
     }
     if config.get("where_adzuna"):
         base["where"] = config["where_adzuna"]
+        if config.get("distance_adzuna"):          # rayon (km) autour de « where »
+            base["distance"] = config["distance_adzuna"]
     if config.get("jours_max"):
         base["max_days_old"] = config["jours_max"]
     if config.get("type_contrat") == "CDI":

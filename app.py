@@ -5,6 +5,8 @@ Lancement :  streamlit run app.py
 """
 import io
 import re
+import html
+import math
 import importlib
 import csv
 import os
@@ -15,6 +17,7 @@ from datetime import date, timedelta, datetime, timezone
 from zoneinfo import ZoneInfo
 
 import pandas as pd
+import pydeck as pdk
 import requests
 import streamlit as st
 from dotenv import load_dotenv
@@ -864,6 +867,10 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
                     bdg += f"⭐{it['score']} "
                 if lieu:
                     bdg += f"📍{lieu} "
+                if it.get("km") is not None:                  # onglet 🗺️ : distance
+                    bdg += f"🚗{it['km']:.0f} km "
+                if it.get("esn"):                             # onglet 🗺️ : option ESN
+                    bdg += "🏭 "
                 if d:
                     bdg += f"📅{d} "
                 label = f"{bdg}· {titre} — {ent}"
@@ -984,6 +991,32 @@ groupes_items = [it for it in france_items if it["groupe"]]
 groupes_items.sort(key=lambda it: (_rang_jour4(it), 0 if it.get("rh") else 1,
                                    0 if it.get("favori") else 1, -it["score"]))
 
+# Onglet « Autour de chez moi » : offres France géolocalisées (coordonnées de la
+# source, sinon code postal / commune du libellé) dans un rayon autour du domicile.
+# Domicile et rayon sont des widgets de l'onglet : lus ici via leur clé pour que le
+# compteur du titre d'onglet soit à jour.
+geo_domicile = st.session_state.get("geo_domicile", ro.DOMICILE)
+geo_rayon = st.session_state.get("geo_rayon", ro.RAYON_DOMICILE_KM)
+geo_centre = ro.coords_lieu(geo_domicile)
+geo_base = france_items
+if st.session_state.get("geo_esn"):
+    # Option de l'onglet : autour de chez soi, le marché BA est surtout tenu par des
+    # ESN (exclues partout ailleurs). Même filtrage SANS le test ESN, marquées 🏭.
+    _g_esn, _, _ = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
+                              ignorer_esn=True)
+    geo_base = _decorer([o for o in _g_esn if o.get("_source") != "jobup.ch"
+                         and not ro.est_international(o) and not ro.est_suisse(o)])
+    for it in geo_base:
+        it["esn"] = not ro.classer(it["o"])[0]
+geo_items, geo_sans_lieu = [], 0
+for it in geo_base:
+    g = ro.geoloc_offre(it["o"])
+    if not g:
+        geo_sans_lieu += 1
+    elif geo_centre and (km := ro.distance_km(geo_centre, g)) <= geo_rayon:
+        geo_items.append({**it, "geo": g, "km": km})
+geo_items.sort(key=lambda it: it["km"])
+
 # Offres sauvegardées (★) — chargées une fois par session depuis la branche `favoris`,
 # puis maintenues en session_state (la liste fait foi pendant toute la visite).
 if "favoris" not in st.session_state:
@@ -999,11 +1032,12 @@ if st.session_state.get("_fav_err"):
 if st.session_state.get("_fav_msg"):
     st.toast(st.session_state.pop("_fav_msg"))
 
-(onglet_perfect, onglet_fr, onglet_gg, onglet_ch, onglet_fav,
+(onglet_perfect, onglet_fr, onglet_gg, onglet_geo, onglet_ch, onglet_fav,
  onglet_excl, onglet_dash) = st.tabs([
     f"💎 Perfect ({len(perfect_items)})",
     f"🎯 France ({len(france_items)})",
     f"🏢 Grands groupes ({len(groupes_items)})",
+    f"🗺️ Autour de chez moi ({len(geo_items)})",
     f"🚩 Suisse ({len(suisse_items)})",
     f"💾 Sauvegardées ({len(favoris_items)})",
     f"🗑️ Exclues ({len(exclues)})",
@@ -1049,6 +1083,110 @@ with onglet_gg:
     else:
         vue_liste_detail(groupes_items, "gg", "offres_grands_groupes.csv",
                          bucket_fn=_bucket_jour4)
+
+def _bucket_km(it):
+    """Tranche de distance pour la liste de l'onglet 🗺️."""
+    bas = 0
+    for haut in (15, 30, 60, 100, 150, 200, 300):
+        if it["km"] <= haut:
+            return f"📍 {bas}–{haut} km"
+        bas = haut
+    return f"📍 plus de {bas} km"
+
+
+def _rgb(hexa, defaut=(140, 140, 140)):
+    """« #3b7dd8 » -> [59, 125, 216] (couleurs de ligne -> couleurs de carte)."""
+    try:
+        return [int(hexa[i:i + 2], 16) for i in (1, 3, 5)]
+    except (TypeError, ValueError):
+        return list(defaut)
+
+
+def carte_offres(items, centre, rayon_km, domicile):
+    """Carte pydeck : une bulle par lieu (taille = nombre d'offres, couleur = métier
+    majoritaire), le domicile et le cercle du rayon. -> lieu sélectionné (lat, lon)
+    ou None. Fond Carto (sans clé), infobulle au survol, clic = filtre de la liste."""
+    lieux = {}
+    for it in items:
+        p = lieux.setdefault(it["geo"], {"lat": it["geo"][0], "lon": it["geo"][1],
+                                         "km": round(it["km"]), "titres": [],
+                                         "couleurs": Counter(), "ville": ""})
+        p["titres"].append(f'{it["o"].get("intitule", "")[:60]} — '
+                           f'{ro.nom_entreprise(it["o"])[:30]}')
+        p["couleurs"][it.get("couleur")] += 1
+        p["ville"] = p["ville"] or champ(it["o"], "lieuTravail", "libelle")[:40]
+    points = []
+    for p in lieux.values():
+        n = len(p["titres"])
+        points.append({
+            "lat": p["lat"], "lon": p["lon"], "n": n, "n_txt": str(n), "km": p["km"],
+            "ville": html.escape(p["ville"]),
+            "titres": "<br/>".join(html.escape(t) for t in p["titres"][:6])
+                      + (f"<br/>… +{n - 6}" if n > 6 else ""),
+            "couleur": _rgb(COULEURS_LIGNE.get(p["couleurs"].most_common(1)[0][0])) + [215],
+            "rayon_m": 1800 + 1400 * n ** 0.5,
+        })
+    maison = [{"lat": centre[0], "lon": centre[1], "ville": html.escape(f"🏠 {domicile}"),
+               "titres": "Domicile", "km": 0, "n": 0}]
+    couches = [
+        pdk.Layer("ScatterplotLayer", data=maison, get_position="[lon, lat]",
+                  get_radius=rayon_km * 1000, filled=False, stroked=True,
+                  get_line_color=[231, 76, 60, 160], line_width_min_pixels=2),
+        pdk.Layer("ScatterplotLayer", id="offres", data=points, get_position="[lon, lat]",
+                  get_radius="rayon_m", radius_min_pixels=7, radius_max_pixels=38,
+                  get_fill_color="couleur", stroked=True, get_line_color=[255, 255, 255],
+                  line_width_min_pixels=1, pickable=True, auto_highlight=True),
+        pdk.Layer("TextLayer", data=points, get_position="[lon, lat]", get_text="n_txt",
+                  get_size=13, get_color=[255, 255, 255], font_weight=700),
+        pdk.Layer("ScatterplotLayer", id="maison", data=maison, get_position="[lon, lat]",
+                  get_radius=1200, radius_min_pixels=8, get_fill_color=[231, 76, 60],
+                  stroked=True, get_line_color=[255, 255, 255], line_width_min_pixels=2,
+                  pickable=True),
+    ]
+    zoom = max(4.5, min(10.0, 8.3 - math.log2(max(rayon_km, 10) / 50)))
+    deck = pdk.Deck(
+        layers=couches,
+        initial_view_state=pdk.ViewState(latitude=centre[0], longitude=centre[1], zoom=zoom),
+        map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+        tooltip={"html": "<b>{ville}</b> · {km} km<br/>{titres}",
+                 "style": {"fontSize": "12px", "maxWidth": "420px"}},
+    )
+    evt = st.pydeck_chart(deck, on_select="rerun", selection_mode="single-object",
+                          key="carte_geo", height=520)
+    objets = ((getattr(evt, "selection", None) or {}).get("objects") or {}).get("offres") or []
+    return (objets[0]["lat"], objets[0]["lon"]) if objets else None
+
+
+with onglet_geo:
+    c_dom, c_rayon, c_esn = st.columns([2, 3, 2])
+    c_dom.text_input("🏠 Domicile (commune ou code postal)", value=ro.DOMICILE,
+                     key="geo_domicile")
+    c_rayon.slider("Rayon (km)", min_value=10, max_value=300, step=10,
+                   value=ro.RAYON_DOMICILE_KM, key="geo_rayon")
+    c_esn.checkbox("Inclure ESN / cabinets 🏭", key="geo_esn",
+                   help="Autour de chez toi, beaucoup d'offres BA viennent d'ESN (exclues "
+                        "partout ailleurs). Coche pour les voir ici, marquées 🏭.")
+    if not geo_centre:
+        st.warning(f"Lieu « {geo_domicile} » introuvable : indique une commune de plus "
+                   "de 1 000 habitants ou un code postal.")
+    else:
+        st.markdown(_legende(geo_items), unsafe_allow_html=True)
+        st.caption(f"**{len(geo_items)}** offres France à moins de **{geo_rayon} km** de "
+                   f"{geo_domicile} (à vol d'oiseau) · {geo_sans_lieu} offres sans lieu "
+                   "précis (« Île-de-France », « France ») ne sont pas placées. Survole une "
+                   "bulle pour le détail ; **clique-la** pour filtrer la liste. En plus des "
+                   f"recherches nationales, Adzuna est interrogé autour de {ro.DOMICILE} "
+                   f"({ro.RAYON_DOMICILE_KM} km).")
+        choix = carte_offres(geo_items, geo_centre, geo_rayon, geo_domicile)
+        liste = [it for it in geo_items if it["geo"] == choix] if choix else geo_items
+        if choix and liste:
+            st.info(f"📍 Filtre : **{champ(liste[0]['o'], 'lieuTravail', 'libelle')}** "
+                    f"({len(liste)} offre(s)) — clique à côté des bulles pour tout revoir.")
+        if not geo_items:
+            st.info("Aucune offre dans ce rayon : élargis-le avec le curseur.")
+        else:
+            vue_liste_detail(liste, "geo", "offres_autour_de_chez_moi.csv",
+                             bucket_fn=_bucket_km)
 
 with onglet_ch:
     st.markdown(_legende(suisse_items), unsafe_allow_html=True)

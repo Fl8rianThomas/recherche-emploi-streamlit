@@ -80,6 +80,18 @@ def collecter_brutes():
                     brutes.append(o)
             except Exception as e:  # noqa: BLE001
                 erreurs.append(f"Adzuna « {variante} » : {e}")
+            # Autour du domicile : la recherche nationale plafonne a 200 resultats
+            # (surtout Paris) et noie la region. Jooble ne sait pas chercher par
+            # ville francaise (renvoie des offres US) : Adzuna seul. +7 appels/run.
+            try:
+                cfg = dict(ro.CONFIG, mots_cles=variante, type_contrat=TYPE_CONTRAT,
+                           max_offres=MAX_OFFRES, where_adzuna=ro.DOMICILE,
+                           distance_adzuna=ro.RAYON_DOMICILE_KM, jours_max=JOURS_MAX)
+                for o in ro.rechercher_adzuna(cfg, app_id, app_key):
+                    o["_source"], o["_variante"] = "Adzuna", f"{variante} (autour de {ro.DOMICILE})"
+                    brutes.append(o)
+            except Exception as e:  # noqa: BLE001
+                erreurs.append(f"Adzuna autour de {ro.DOMICILE} « {variante} » : {e}")
         if jooble_key:
             try:
                 cfg = dict(ro.CONFIG, mots_cles=variante, max_offres=MAX_OFFRES,

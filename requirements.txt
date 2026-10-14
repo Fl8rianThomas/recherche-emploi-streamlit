@@ -5,4 +5,5 @@ requests>=2.32.3
 python-dotenv>=1.2.2
 streamlit>=1.58,<2
 pandas>=2.2.3
+pydeck>=0.9   # carte de l'onglet 🗺️ (déjà installé avec Streamlit)
 tzdata>=2025.2

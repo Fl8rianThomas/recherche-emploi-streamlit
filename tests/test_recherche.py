@@ -113,6 +113,24 @@ class TestLieux(unittest.TestCase):
             self.assertFalse(sc._RE_LIEU_FRANCE.search(lib), lib)
 
 
+class TestGeo(unittest.TestCase):
+    def test_coords_et_distances(self):
+        dom = ro.coords_lieu("Lamotte-Beuvron")
+        self.assertIsNotNone(dom)
+        self.assertEqual(ro.coords_lieu("41600"), dom)                 # code postal
+        self.assertAlmostEqual(ro.distance_km(dom, ro.coords_lieu("Orléans")), 31, delta=3)
+        self.assertAlmostEqual(ro.distance_km(dom, ro.coords_lieu("Tours")), 103, delta=4)
+
+    def test_geoloc_offre(self):
+        # coordonnees de la source prioritaires, sinon libelle (FT « 41 - Ville »)
+        self.assertEqual(ro.geoloc_offre(offre(lieu="x") | {"lieuTravail": {
+            "libelle": "x", "latitude": 47.0, "longitude": 2.0}}), (47.0, 2.0))
+        self.assertEqual(ro.geoloc_offre(offre(lieu="41 - Lamotte-Beuvron")),
+                         ro.coords_lieu("Lamotte-Beuvron"))
+        self.assertIsNone(ro.geoloc_offre(offre(lieu="Île-de-France")))  # region seule
+        self.assertIsNone(ro.coords_lieu("Indre"))                       # nom de departement
+
+
 class TestDates(unittest.TestCase):
     def test_formats_libres(self):
         self.assertEqual(sc._date_libre("Oct 8, 2026"), "2026-10-08")

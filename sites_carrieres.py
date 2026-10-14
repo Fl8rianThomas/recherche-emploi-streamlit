@@ -472,7 +472,8 @@ def rechercher_jibe(config, nom, base):
                 "entreprise": {"nom": _nom_groupe((d.get("tags3") or [""])[0]
                                                   if nom == "AXA" else "", nom)},
                 "lieuTravail": {"libelle": f"{ville} ({cp}), France" if cp
-                                else f"{ville}, France" if ville else "France"},
+                                else f"{ville}, France" if ville else "France",
+                                "latitude": d.get("latitude"), "longitude": d.get("longitude")},
                 "typeContratLibelle": contrat,
                 "typeContrat": "CDI" if "permanent" in normaliser(contrat) else "",
                 "dateCreation": publie,
@@ -595,7 +596,8 @@ def rechercher_phenom(config, nom, base, ref, lang, pays, valeur_france):
                 "intitule": j.get("title", ""),
                 "entreprise": {"nom": _nom_groupe(j.get("company"), nom)},
                 "lieuTravail": {"libelle": ", ".join(filter(None, [
-                    ville, cp.group(1) if cp else "", "France"]))},
+                    ville, cp.group(1) if cp else "", "France"])),
+                    "latitude": j.get("latitude"), "longitude": j.get("longitude")},
                 "typeContratLibelle": contrat,
                 "typeContrat": "CDI" if j.get("contractType") == "CDI" else "",
                 "dateCreation": publie,

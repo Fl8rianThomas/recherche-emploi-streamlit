@@ -103,7 +103,8 @@ class TestTitresCibles(unittest.TestCase):
                   # Projet hors SI, test/recette, Scrum Master (non visés, oct. 2026)
                   "Chef de Projet Ferroviaire F/H", "Chef de Projets Construction ENR F/H",
                   "Global Project Manager (m/f/d)", "Testeur fonctionnel F/H", "QA Fonctionnel (H/F)",
-                  "Recetteur/Testeur Fonctionnel - CDI", "Scrum Master F/H"):
+                  "Recetteur/Testeur Fonctionnel - CDI", "Scrum Master F/H",
+                  "Ingénieur d’Affaires Senior SIRH – Segment Experts-Comptables"):
             self.assertFalse(self.garde(t), t)
 
     def test_product_manager_exige_un_contexte_numerique(self):

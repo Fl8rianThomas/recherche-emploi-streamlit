@@ -112,6 +112,8 @@ EXCLUSIONS_TITRE_PAR_DEFAUT = [
     # (ingenierie), techniciens (maintenance, support N3)
     "conducteur de travaux", "doc controller", "technicien",
     "chaine fonctionnelle", "automatisme",
+    # Commerciaux qui vendent un SIRH / ERP (« Ingénieur d'affaires Senior SIRH »)
+    "ingenieur d'affaires", "charge d'affaires",
     # Test / recette : metier voisin, non vise (oct. 2026) ; on garde les postes
     # mixtes (« Business Analyst / Testeur »).
     "testeur sauf business anal, product owner, amoa",

@@ -640,16 +640,53 @@ def coords_lieu(texte):
     mv = _REGEX_VILLES_DEPT.search(normaliser(texte))
     return _COORDS.get(_cle_commune(mv.group(0))) if mv else None
 
+# Localites suisses (GeoNames, noms FR/DE/IT/EN : Geneve / Genf / Geneva) pour
+# placer les offres de l'onglet Suisse sur la carte (voir l'en-tete du fichier).
+_FICHIER_SUISSE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "communes_suisse.tsv")
+
+def _charger_suisse():
+    coords = {}
+    try:
+        with open(_FICHIER_SUISSE, encoding="utf-8") as f:
+            for l in f:
+                if l.strip() and not l.startswith("#"):
+                    k, la, lo = l.rstrip("\r\n").split("\t")[:3]
+                    coords[k] = (float(la), float(lo))
+    except (OSError, ValueError):
+        pass
+    return coords
+
+_COORDS_CH = _charger_suisse()
+
+def coords_suisse(texte):
+    """(latitude, longitude) d'un lieu suisse libre (« Geneva, Lausanne »,
+    « EMEA > CHE > Stabio », « Grand-Lancy »), ou None : 1re localite reconnue ;
+    a defaut, le dernier mot d'un nom compose (« Grand-Lancy » -> Lancy)."""
+    for part in re.split(r"[,/;:>&|()]", html.unescape(texte or "")):
+        k = _cle_commune(part)
+        if k in _COORDS_CH:
+            return _COORDS_CH[k]
+        mots = k.split()
+        for i in range(1, len(mots)):
+            for essai in (" ".join(mots[i:]),            # « grand lancy » -> « lancy »
+                          " ".join(mots[:-i])):          # « lausanne vd » -> « lausanne »
+                if essai in _COORDS_CH:
+                    return _COORDS_CH[essai]
+    return None
+
 def geoloc_offre(o):
     """(latitude, longitude) du lieu de l'offre, ou None : coordonnees fournies par
-    la source (France Travail, Adzuna, Jibe, Phenom), sinon code postal / commune /
-    chef-lieu de son libelle (voir coords_lieu)."""
+    la source (France Travail, Adzuna, Jibe, Phenom), sinon libelle -> localites
+    suisses pour une offre en Suisse, code postal / commune / chef-lieu sinon."""
     lt = o.get("lieuTravail") or {}
     try:
         if lt.get("latitude") not in (None, "") and lt.get("longitude") not in (None, ""):
             return float(lt["latitude"]), float(lt["longitude"])
     except (TypeError, ValueError):
         pass
+    if o.get("_source") == "jobup.ch" or est_suisse(o):
+        return coords_suisse(lt.get("libelle", ""))
     return coords_lieu(f'{lt.get("codePostal") or ""} {lt.get("libelle", "") or ""}')
 
 def distance_km(a, b):

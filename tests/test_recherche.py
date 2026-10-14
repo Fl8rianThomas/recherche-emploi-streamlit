@@ -131,6 +131,20 @@ class TestGeo(unittest.TestCase):
         self.assertIsNone(ro.coords_lieu("Indre"))                       # nom de departement
 
 
+class TestSuisse(unittest.TestCase):
+    def test_localites_multilingues_et_formats(self):
+        geneve = ro.coords_suisse("Genève")
+        self.assertIsNotNone(geneve)
+        self.assertEqual(ro.coords_suisse("Geneva, Lausanne"), geneve)
+        self.assertIsNotNone(ro.coords_suisse("EMEA &gt; CHE &gt; Stabio"))
+        self.assertIsNotNone(ro.coords_suisse("Grand-Lancy"))         # -> Lancy
+        self.assertIsNotNone(ro.coords_suisse("Lausanne VD"))         # code canton
+
+    def test_offre_suisse_pas_dans_la_table_francaise(self):
+        o = offre(lieu="Basel") | {"_source": "jobup.ch"}
+        self.assertEqual(ro.geoloc_offre(o), ro.coords_suisse("Basel"))
+
+
 class TestDates(unittest.TestCase):
     def test_formats_libres(self):
         self.assertEqual(sc._date_libre("Oct 8, 2026"), "2026-10-08")

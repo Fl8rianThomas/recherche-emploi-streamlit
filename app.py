@@ -569,6 +569,7 @@ if go or actu:
     st.session_state["brutes"] = brutes
     st.session_state["erreurs"] = erreurs
     st.session_state["live"] = True
+    st.session_state["live_id"] = datetime.now().isoformat()   # identifie ces données
     # Re-rendu propre, sans le bloc de progression, pour figer la mise en page :
     # évite le "recadrement" au premier clic sur une offre.
     st.rerun()
@@ -576,6 +577,7 @@ if go or actu:
 if st.session_state.get("live"):
     # Données EN DIRECT (clic Rechercher/Actualiser cette session).
     brutes = st.session_state["brutes"]
+    donnees_id = ("live", st.session_state.get("live_id"))
     erreurs_aff = st.session_state.get("erreurs", [])
     st.caption("🟢 Données **en direct** (recherche manuelle). Recharge la page pour "
                "revenir à l'instantané automatique.")
@@ -588,6 +590,7 @@ else:
                    "recherche en direct maintenant.")
         st.stop()
     brutes = snap_offres
+    donnees_id = ("snapshot", genere_le)
     st.session_state["_info_donnees"] = (f"🗂️ Instantané du **{_fmt_dt_paris(genere_le)}** "
                                          "(rafraîchi toutes les 4 h)")
 
@@ -601,7 +604,21 @@ if not brutes:
 
 # Filtrage (ré-appliqué à chaque rerun : les filtres se modifient sans relancer
 # la recherche, et le clic sur une annonce conserve les résultats)
-gardees, exclues, stats = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres)
+def _filtrer_memo(ignorer_esn=False):
+    """ro.filtrer mémorisé en session : ~0,5 s économisées à chaque rerun tant que
+    les données (snapshot / recherche en direct) et les réglages ne changent pas."""
+    cle = (donnees_id, jours_max, tuple(exclure_titres), tuple(inclure_titres or ()),
+           ignorer_esn)
+    memo = st.session_state.setdefault("_memo_filtrer", {})
+    if cle not in memo:
+        if len(memo) >= 4:                       # garde les derniers jeux de réglages
+            memo.pop(next(iter(memo)))
+        memo[cle] = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
+                               ignorer_esn=ignorer_esn)
+    return memo[cle]
+
+
+gardees, exclues, stats = _filtrer_memo()
 
 if not gardees:
     st.warning("Aucune offre retenue avec ces critères.")
@@ -806,10 +823,21 @@ st.markdown(
 # basé sur la fenêtre bloquait l'accès au bas de page). Augmenter pour voir plus
 # d'offres et de description d'un coup d'œil.
 HAUTEUR_PANNEAU = 820
+PAGE_LISTE = 60      # offres affichées par « page » de liste (bouton « Afficher plus »)
 
 
+def _regler(cle, valeur):
+    """Rappel de bouton : enregistre une valeur en session (sélection, pagination)."""
+    st.session_state[cle] = valeur
+
+
+@st.fragment
 def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
     """Affichage façon LinkedIn : liste cliquable à gauche, détail à droite.
+
+    FRAGMENT Streamlit : un clic sur une offre ne relance QUE cette liste et son
+    détail (boutons à rappel on_click), pas toute l'app (~3 s mesurées avant :
+    filtrage + 8 onglets + ~1 100 boutons). Liste paginée par PAGE_LISTE offres.
 
     bucket_fn : fonction it -> libellé de tranche. Si fournie, un en-tête est
     inséré à chaque changement de tranche (ex. Aujourd'hui / Hier / Cette semaine
@@ -822,12 +850,16 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
         "⬇️ Télécharger (CSV)", data=_csv_items(items),
         file_name=csv_nom, mime="text/csv", key=f"dl_{cle}",
     )
-    sel_key = f"sel_{cle}"
+    sel_key, nb_key = f"sel_{cle}", f"nb_{cle}"
     sel = min(st.session_state.get(sel_key, 0), len(items) - 1)
+    # Pagination : seules les nb premières offres sont rendues (rendu = l'essentiel
+    # du temps de réponse) ; l'offre sélectionnée reste toujours visible.
+    nb = max(st.session_state.get(nb_key, PAGE_LISTE), sel + 1)
+    visibles = items[:nb]
     favset = _set_favoris()
     # Coloriage du fond des lignes par métier (classe st-key-<cle>_<i> de Streamlit).
     regles = []
-    for i, it in enumerate(items):
+    for i, it in enumerate(visibles):
         bg = COULEURS_LIGNE.get(it.get("couleur"))
         if bg:
             sel_extra = "box-shadow:inset 5px 0 0 #fff !important;" if i == sel else ""
@@ -840,7 +872,7 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
     col_liste, col_detail = st.columns([2, 3], gap="medium")
     with col_liste:
         with st.container(height=HAUTEUR_PANNEAU, key=f"scroll_{cle}_l"):
-            for i, it in enumerate(items):
+            for i, it in enumerate(visibles):
                 if bucket_fn is not None:
                     # En-tête de tranche temporelle, inséré à chaque changement
                     bucket = bucket_fn(it)
@@ -875,10 +907,16 @@ def vue_liste_detail(items, cle, csv_nom, bucket_fn=None):
                 if d:
                     bdg += f"📅{d} "
                 label = f"{bdg}· {titre} — {ent}"
-                if st.button(label, key=f"{cle}_{i}", width="stretch",
-                             type="primary" if i == sel else "secondary"):
-                    st.session_state[sel_key] = i
-                    st.rerun()
+                # Rappel on_click (pas de st.rerun) : la sélection est enregistrée
+                # AVANT la relance, que Streamlit limite d'office à ce fragment.
+                st.button(label, key=f"{cle}_{i}", width="stretch",
+                          type="primary" if i == sel else "secondary",
+                          on_click=_regler, args=(sel_key, i))
+            if len(items) > nb:
+                reste = len(items) - nb
+                st.button(f"⬇️ Afficher {min(PAGE_LISTE, reste)} offres de plus "
+                          f"({reste} restantes)", key=f"plus_{cle}", width="stretch",
+                          on_click=_regler, args=(nb_key, nb + PAGE_LISTE))
     with col_detail:
         with st.container(height=HAUTEUR_PANNEAU, key=f"scroll_{cle}_d"):
             afficher_detail(items[sel], cle)
@@ -1022,8 +1060,7 @@ geo_base = france_items + suisse_items
 if st.session_state.get("geo_esn"):
     # Option de l'onglet : autour de chez soi, le marché BA est surtout tenu par des
     # ESN (exclues partout ailleurs). Même filtrage SANS le test ESN, marquées 🏭.
-    _g_esn, _, _ = ro.filtrer(brutes, jours_max, exclure_titres, inclure_titres,
-                              ignorer_esn=True)
+    _g_esn, _, _ = _filtrer_memo(ignorer_esn=True)
     geo_base = (_decorer([o for o in _g_esn if o.get("_source") != "jobup.ch"
                           and not ro.est_international(o) and not ro.est_suisse(o)])
                 + _decorer([o for o in _g_esn if (o.get("_source") == "jobup.ch"

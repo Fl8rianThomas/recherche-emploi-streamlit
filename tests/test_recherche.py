@@ -83,14 +83,40 @@ class TestTitresCibles(unittest.TestCase):
     def test_postes_cibles_gardes(self):
         for t in ("Business Analyst SIRH", "Business Analyts F/H", "Product Owner Data",
                   "Chef de projet MOA F/H", "Analyste fonctionnel Paie", "Business Data Analyst",
-                  "System Analyst", "Chef de projet SIRH", "Business Process Owner"):
+                  "System Analyst", "Chef de projet SIRH", "Business Process Owner",
+                  "Proxy PO Junior - API et produits digitaux", "Chargé d'Analyse Métiers/ PMO",
+                  "Product Manager SaaS B2B"):
             self.assertTrue(self.garde(t), t)
 
     def test_postes_hors_sujet_ecartes(self):
         for t in ("Finance Business Partner", "Financial Analyst", "Credit Risk Analyst",
                   "Analyste SOC N3", "Business Developer F/H", "Business Unit Manager",
-                  "Marketing Analyst"):
+                  "Marketing Analyst",
+                  # Audit du 2026-10-14 (2) : homonymes hors SI et stages déguisés
+                  "Conducteur de Travaux AMOA - H/F", "Doc Controller AMOA - Bâtiment",
+                  "Ingénieur(e) chaine fonctionnelle auto-directeur", "Technicien support fonctionnel N3",
+                  "Ingénieur analyse fonctionnelle / automatisme", "Finance Business Analyst - Internship",
+                  "PFE – Vers des technosols fonctionnels"):
             self.assertFalse(self.garde(t), t)
+
+    def test_product_manager_exige_un_contexte_numerique(self):
+        inclus = [ro.normaliser(t.rpartition(":")[0]) for t in ro.INCLUSIONS_TITRE_PAR_DEFAUT]
+        cas = {"Senior Product Manager Emmi Caffè Latte": ("", False),
+               "Product Manager Marquage et Dénudage": ("Gamme de machines industrielles", False),
+               "Product Manager": ("Vous pilotez la roadmap de notre application", True),
+               "Product Owner": ("", True)}     # « owner » n'est pas soumis au contexte
+        for titre, (desc, attendu) in cas.items():
+            gardees, _e, _s = ro.filtrer([offre(titre, description=desc)], None,
+                                         ro.EXCLUSIONS_TITRE_PAR_DEFAUT, inclus)
+            self.assertEqual(bool(gardees), attendu, titre)
+
+    def test_debut_de_mot(self):
+        self.assertFalse(ro.contient_terme("christian dior - chef de projet", "hris"))
+        self.assertTrue(ro.contient_terme("business analysts", "business anal"))
+        self.assertTrue(ro.contient_terme("stages ete", "stage"))
+        self.assertTrue(ro.contient_terme("salesforce proxy po apprentice", "apprenti"))
+        self.assertFalse(ro.contient_terme("international project manager", "internship"))
+        self.assertFalse(ro.contient_terme("chef de projet amoa", "moa"))   # « amoa » listé à part
 
 
 class TestClassementESN(unittest.TestCase):
@@ -250,6 +276,16 @@ class TestFiltrer(unittest.TestCase):
                                               ["analyst", "business"])
         self.assertEqual([o["intitule"] for o in gardees], ["Business Analyst SIRH"])
         self.assertEqual(stats["doublons"], 1)
+
+    def test_doublons_suffixes_et_raison_sociale(self):
+        # Copies réelles (oct. 2026) : « (CDI) » ajouté par l'agrégateur, raison sociale variable
+        for a, b in ((offre("Product Owner CRM (F/H)", "MACIF"), offre("Product owner crm f/h (CDI)", "Macif")),
+                     (offre("Product Owner WMS (H/F)", "ARES"), offre("Product owner wms - f/h", "Groupe Ares")),
+                     (offre("Infrastructure Product Owner (F/H)", "Thales"),
+                      offre("Infrastructure Product Owner (F/H) (CDI)", "THALES SA"))):
+            self.assertEqual(ro.signature(a), ro.signature(b))
+        self.assertNotEqual(ro.signature(offre("Product Owner", "Crédit Agricole")),
+                            ro.signature(offre("Product Owner", "Crédit Mutuel")))
 
 
 class TestCreneauEmail(unittest.TestCase):

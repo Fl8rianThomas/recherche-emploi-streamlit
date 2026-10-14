@@ -9,6 +9,7 @@ sites_carrieres.py, qui réutilise les utilitaires de ce module.
 import os
 import re
 import csv
+import functools
 import math
 import sys
 import time
@@ -63,7 +64,9 @@ SYNONYMES_PAR_DEFAUT = [
 INCLUSIONS_TITRE_PAR_DEFAUT = [
     "owner:orange",            # product owner, proxy PO, process owner, epic owner
     "product manager:orange",  # PO digital (on EVITE "produit" -> chef de produit
-                               # marketing / chef de rayon = hors sujet)
+                               # marketing / chef de rayon = hors sujet) ; exige un
+                               # contexte numerique (cf. INCLUSIONS_CONTEXTE_NUMERIQUE)
+    "proxy po:orange",         # « Proxy PO Junior » (abreviation, pas de « owner »)
     "business anal:bleu",      # Business Analyst / Analysis / Analyste (+ « Analyts »)
     "business data analyst:bleu",
     "business process:bleu",   # Business Process Analyst / Expert / Owner
@@ -73,6 +76,7 @@ INCLUSIONS_TITRE_PAR_DEFAUT = [
     "analyste fonctionnel:bleu",
     "functional analyst:bleu",
     "analyste metier:bleu",
+    "analyse metier:bleu",     # « Chargé d'analyse métier »
     "analyste d'affaires:bleu",
     "analyste moa:bleu",
     "amoa:bleu",
@@ -93,6 +97,11 @@ EXCLUSIONS_TITRE_PAR_DEFAUT = [
     "chef de rayon",        # responsable de rayon (supermarche), hors sujet
     # Hors CDI vise : stages, alternances (deja ecartes cote sites carrieres)
     "stage", "stagiaire", "alternance", "alternant", "apprenti",
+    "internship", "trainee", "pfe",    # PFE = projet de fin d'etudes (stage)
+    # Homonymes hors SI : AMOA du BTP, « chaine fonctionnelle » / automatisme
+    # (ingenierie), techniciens (maintenance, support N3)
+    "conducteur de travaux", "doc controller", "technicien",
+    "chaine fonctionnelle", "automatisme",
     # Data Analyst : metier voisin, non vise (demande de l'utilisateur) ; on garde
     # les postes mixtes (« Business Data Analyst », « Data Analyst / Business Analyst »).
     "data analyst sauf business, fonctionnel, product owner",
@@ -366,12 +375,24 @@ def classer(o):
         return False, "indice ESN dans le texte"
     return True, ""
 
+# Dedoublonnage : une meme offre arrive avec « (CDI) » / « (IT) » ajoutes par
+# l'agregateur, et sous « ISAGRI » / « Groupe Isagri » / « ISAGRI SAS ».
+_RE_SUFFIXES_TITRE = re.compile(r"\((cdi|it)\)|(?<![a-z0-9])cdi(?![a-z0-9])")
+_MOTS_RAISON_SOCIALE = {
+    "sa", "sas", "sasu", "sarl", "sca", "inc", "ltd", "gmbh", "ag", "group", "groupe",
+    "france", "fra", "services", "service", "holding", "international", "siege",
+    "solutions", "recrutement", "recruitment", "the", "de", "la", "le", "les", "des",
+    "du", "et",
+}
+
 def signature(o):
     titre = normaliser(o.get("intitule", ""))
     titre = re.sub(r"[\(\[]?\s*[hfmnd](\s*/\s*[hfmnd])+\s*[\)\]]?", " ", titre)
+    titre = _RE_SUFFIXES_TITRE.sub(" ", titre)
     titre = re.sub(r"[^a-z0-9]+", " ", titre)   # ponctuation/% -> dedup + robuste
     titre = re.sub(r"\s+", " ", titre).strip()
-    return titre + "||" + normaliser(nom_entreprise(o))
+    ent = re.sub(r"[^a-z0-9]+", " ", normaliser(nom_entreprise(o))).split()
+    return titre + "||" + " ".join(m for m in ent if m not in _MOTS_RAISON_SOCIALE)
 
 # Detecteur d'offre redigee en ALLEMAND (pour ne garder, en Suisse, que les
 # offres francophones + anglophones). Mots-outils + vocabulaire d'annonce DE +
@@ -918,10 +939,46 @@ def regles_exclusion(termes):
             regles.append((mot.strip(), [s.strip() for s in sauf.split(",") if s.strip()]))
     return regles
 
+@functools.lru_cache(maxsize=512)
+def _regex_debut_mot(terme):
+    return re.compile(r"(?<![a-z0-9])" + re.escape(terme))
+
+def contient_terme(titre_norm, terme):
+    """terme present au DEBUT d'un mot du titre (normalises tous les deux).
+
+    « hris » ne matche plus « Christian », « moa » plus « Samoa », mais « stage »
+    couvre « stages » et « apprenti » couvre « apprentice » (prefixe).
+    """
+    return bool(_regex_debut_mot(terme).search(titre_norm))
+
+def termes_inclus(titre_norm, inclus):
+    """Mots d'inclusion (normalises) presents dans le titre."""
+    return [t for t in inclus if contient_terme(titre_norm, t)]
+
+# Mots d'inclusion trop larges a eux seuls : « Product Manager » est aussi un metier
+# marketing / industrie (gamme de cafe, raccords sanitaires...). Seuls, ils exigent
+# un contexte numerique dans le titre ou la description.
+INCLUSIONS_CONTEXTE_NUMERIQUE = {"product manager"}
+_RE_CONTEXTE_NUMERIQUE = re.compile(
+    r"(?<![a-z0-9])(si|it|dsi|informatique|logiciels?|software|saas|applications?|"
+    r"applicatifs?|erp|crm|sap|salesforce|servicenow|digital|digitale|digitaux|"
+    r"numeriques?|donnees|data|api|agile|scrum|backlog|user stor(y|ies)|sprints?|"
+    r"specifications?|recette|web|e-?commerce|plateformes?|platforms?|"
+    r"systemes? d.information|outils? metier|ia|ai|intelligence artificielle|cloud|"
+    r"azure|aws|tech|technical product|ux)(?![a-z0-9])")
+
+def manque_contexte_numerique(o, trouves):
+    """True si l'offre n'est retenue que par un mot large sans aucun contexte SI."""
+    if not trouves or not set(trouves) <= INCLUSIONS_CONTEXTE_NUMERIQUE:
+        return False
+    txt = normaliser(o.get("intitule", "")) + " " + normaliser(o.get("description", "") or "")
+    return not _RE_CONTEXTE_NUMERIQUE.search(txt)
+
 def terme_exclu(titre_norm, regles):
     """Premier mot d'exclusion present dans le titre (hors exceptions), ou None."""
     for mot, sauf in regles:
-        if mot in titre_norm and not any(s in titre_norm for s in sauf):
+        if contient_terme(titre_norm, mot) and not any(contient_terme(titre_norm, s)
+                                                        for s in sauf):
             return mot
     return None
 
@@ -975,8 +1032,12 @@ def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
         raison = sig_esn.get(signature(o))
         garder, raison = (False, raison) if raison else (True, "")
         titre = normaliser(o.get("intitule", ""))
-        if garder and inclus and not any(t in titre for t in inclus):
-            garder, raison = False, "hors périmètre (titre)"
+        if garder and inclus:
+            trouves = termes_inclus(titre, inclus)
+            if not trouves:
+                garder, raison = False, "hors périmètre (titre)"
+            elif manque_contexte_numerique(o, trouves):
+                garder, raison = False, "hors périmètre (pas de contexte SI)"
         if garder and exclus:
             term = terme_exclu(titre, exclus)
             if term:

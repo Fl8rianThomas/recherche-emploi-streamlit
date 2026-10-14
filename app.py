@@ -694,12 +694,12 @@ LUNDI = (date.today() - timedelta(days=date.today().weekday())).isoformat()
 BA_TERMES = ("business anal", "business data analyst", "business process", "system analyst",
              "systems analyst", "analyste fonctionnel", "functional analyst", "analyste metier",
              "analyste d'affaires", "analyste moa", "amoa", "moa", "fonctionnel", "sirh", "hris",
-             "it business partner")
+             "it business partner", "analyse metier")
 
 
 def _est_ba(o):
     titre = ro.normaliser(o.get("intitule", ""))
-    return any(t in titre for t in BA_TERMES)
+    return bool(ro.termes_inclus(titre, BA_TERMES))
 
 
 def _bucket_jour(it):
@@ -933,7 +933,7 @@ def _couleur_offre(o):
     titre = ro.normaliser(o.get("intitule", ""))
     for mot in (inclure_titres or []):
         c = couleurs_mot.get(mot)
-        if c and ro.normaliser(mot) in titre:
+        if c and ro.contient_terme(titre, ro.normaliser(mot)):
             return c
     return None
 

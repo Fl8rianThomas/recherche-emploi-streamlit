@@ -24,7 +24,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 from recherche_offres import (TRANSITOIRES, _get_avec_retries, mots_cles_recherche,
-                              normaliser, regles_exclusion, terme_exclu)
+                              normaliser, regles_exclusion, terme_exclu, termes_inclus)
 
 # === 9. SOURCE WORKDAY (sites carrieres des grands groupes) =================
 # Beaucoup de grands groupes publient leurs offres sur Workday, qui expose une API
@@ -253,7 +253,7 @@ def _titre_ok(titre, inclus, exclus, contrat=""):
 
     exclus : regles issues de regles_exclusion (via _prefiltre_titres)."""
     tn = normaliser(titre)
-    if inclus and not any(t in tn for t in inclus):
+    if inclus and not termes_inclus(tn, inclus):
         return False
     if _RE_HORS_CDI.search(tn + " " + normaliser(contrat)):
         return False
@@ -288,7 +288,7 @@ def rechercher_workday(config, nom, url_site, facette="locationCountry"):
         for j in lot:
             titre = j.get("title", "") or ""
             age = _workday_age_jours(j.get("postedOn"))
-            if inclus and not any(t in normaliser(titre) for t in inclus):
+            if inclus and not termes_inclus(normaliser(titre), inclus):
                 continue
             pertinents += 1
             if not _titre_ok(titre, (), exclus):
@@ -800,7 +800,7 @@ def rechercher_engie(config):
         for x in lot:
             j = x.get("response") or {}
             titre = j.get("unifiedStandardTitle") or ""
-            if inclus and not any(t in normaliser(titre) for t in inclus):
+            if inclus and not termes_inclus(normaliser(titre), inclus):
                 continue
             pertinents += 1
             contrat = ", ".join(j.get("filter8") or [])
@@ -885,7 +885,7 @@ def rechercher_radancy(config, nom, base):
             mt = _RE_RADANCY_TITRE.search(interieur)
             titre = " ".join(html.unescape(re.sub(r"<[^>]+>", " ",
                              (mt.group(1) or mt.group(2)) if mt else interieur)).split())
-            if inclus and not any(t in normaliser(titre) for t in inclus):
+            if inclus and not termes_inclus(normaliser(titre), inclus):
                 continue
             pertinents += 1
             if not _titre_ok(titre, (), exclus):
@@ -946,7 +946,7 @@ def rechercher_digitalrecruiters(config, nom, domaine):
         pertinents = 0
         for it in lot:
             titre = it.get("title", "") or ""
-            if inclus and not any(t in normaliser(titre) for t in inclus):
+            if inclus and not termes_inclus(normaliser(titre), inclus):
                 continue
             pertinents += 1
             cp = re.search(r"-(\d{5})-[a-z0-9-]+$", it.get("url", "") or "")

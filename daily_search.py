@@ -25,6 +25,7 @@ import requests
 from dotenv import load_dotenv
 
 import recherche_offres as ro
+import sites_carrieres as sc
 
 BREVO_URL = "https://api.brevo.com/v3/smtp/email"
 
@@ -93,7 +94,7 @@ def collecter_brutes():
     cfg = dict(ro.CONFIG, max_offres=MAX_OFFRES, jours_max=JOURS_MAX,
                inclure_titres=_inclusions_mots(),
                exclure_titres=ro.EXCLUSIONS_TITRE_PAR_DEFAUT)
-    offres, errs = ro.rechercher_sites_carrieres(cfg, ro.SYNONYMES_PAR_DEFAUT)
+    offres, errs = sc.rechercher_sites_carrieres(cfg, ro.SYNONYMES_PAR_DEFAUT)
     brutes += offres
     erreurs += errs
     return brutes, erreurs
@@ -430,22 +431,42 @@ def poser_verrou(token, jour, sha):
         return False
 
 
-def alertes_snapshot(token):
-    """Sources devenues muettes d'après le dernier instantané (branche `data`).
+SNAPSHOT_AGE_MAX_H = 10   # au-delà (snapshots GitHub en retard/abandonnés) : collecte en direct
 
-    L'historique des volumes par source n'existe que dans le snapshot (toutes les
-    4 h) ; on le relaie ici pour que l'alerte arrive aussi dans l'e-mail. [] sinon.
+
+def lire_snapshot(token):
+    """Dernier instantané (branche `data`) -> dict, ou None s'il est illisible.
+
+    L'e-mail réutilise les offres du snapshot (publié toutes les 4 h) au lieu de
+    tout re-télécharger : ~3 min de GitHub Actions en moins par envoi, et un
+    contenu identique à celui de l'app. Contient aussi les « sources muettes ».
     """
     try:
         r = requests.get(f"{REPO_API}/contents/offres_snapshot.json?ref=data", timeout=60,
                          headers={**_lock_headers(token), "Accept": "application/vnd.github.raw"})
-        if r.status_code != 200:
-            return []
-        return [f"{s} : muette depuis 3 passages du snapshot (site modifié ?)"
-                for s in r.json().get("sources_muettes") or []]
+        return r.json() if r.status_code == 200 else None
     except Exception as e:  # noqa: BLE001
-        print("[!] lecture alertes snapshot :", e)
-        return []
+        print("[!] lecture snapshot :", e)
+        return None
+
+
+def offres_du_jour(token):
+    """(offres brutes, erreurs) : snapshot récent si possible, sinon collecte en direct."""
+    snap = lire_snapshot(token) if token else None
+    alertes = [f"{s} : muette depuis 3 passages du snapshot (site modifié ?)"
+               for s in (snap or {}).get("sources_muettes") or []]
+    try:
+        age_h = (datetime.now(timezone.utc)
+                 - datetime.fromisoformat(snap["genere_le"])).total_seconds() / 3600
+    except (TypeError, KeyError, ValueError):
+        age_h = None
+    if age_h is not None and age_h <= SNAPSHOT_AGE_MAX_H and snap.get("offres"):
+        print(f"Instantané du {snap['genere_le']} utilisé ({age_h:.1f} h).")
+        return snap["offres"], list(snap.get("erreurs") or []) + alertes
+    print("Instantané " + (f"trop ancien ({age_h:.1f} h)" if age_h is not None else "illisible")
+          + " : collecte en direct.")
+    brutes, erreurs = collecter_brutes()
+    return brutes, erreurs + alertes
 
 
 def main():
@@ -472,9 +493,7 @@ def main():
         else:
             print("[!] GH_API_TOKEN absent : envoi sans verrou anti-doublon.")
 
-    brutes, erreurs = collecter_brutes()
-    if token:
-        erreurs += alertes_snapshot(token)
+    brutes, erreurs = offres_du_jour(token)
     items, stats = decorer_france(brutes)
     print(f"{stats['brutes']} brutes -> {len(items)} offres France.")
     for e in erreurs:

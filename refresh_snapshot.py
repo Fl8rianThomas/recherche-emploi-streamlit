@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 import recherche_offres as ro
+import sites_carrieres as sc
 import daily_search as ds
 
 load_dotenv(override=True)
@@ -57,7 +58,7 @@ def main():
 
     # Volumes bruts par source (sites carrières : avant tout filtre) + historique
     # des passages précédents -> détection des sources devenues muettes.
-    volumes = ro.volumes_bruts()
+    volumes = sc.volumes_bruts()
     for src in SOURCES_API:
         volumes[src] = sum(1 for o in brutes if o.get("_source") == src)
     try:

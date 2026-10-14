@@ -1,0 +1,26 @@
+name: Tests
+
+# À chaque push qui touche le code : tests des fonctions pures (filtres, lieux,
+# dates, groupes). Sans réseau ni secret, ~30 s. Un échec = croix rouge sur le commit.
+on:
+  push:
+    paths:
+      - "**.py"
+      - "requirements.txt"
+      - "communes_departements.tsv"
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - run: python -m unittest discover -s tests -v

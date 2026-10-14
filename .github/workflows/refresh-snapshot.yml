@@ -4,9 +4,11 @@ name: Snapshot offres (toutes les 4 h)
 # instantané JSON sur la branche `data`. L'app lit ce fichier → données
 # rafraîchies toutes les 4 h sans interroger les API à chaque visite.
 # Quota Adzuna : ~20-28 appels/run × 6 ≈ 120-168/jour (< 250/jour gratuit).
+# Minute 23 (pas « 0 ») : GitHub retarde ou abandonne d'abord les jobs planifiés
+# aux heures pile, les plus chargées.
 on:
   schedule:
-    - cron: "0 */4 * * *"
+    - cron: "23 */4 * * *"
   workflow_dispatch:
 
 permissions:

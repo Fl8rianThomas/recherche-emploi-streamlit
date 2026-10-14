@@ -12,28 +12,53 @@ on:
   workflow_dispatch:        # bouton « Run workflow » pour tester à la demande (envoi immédiat)
 
 permissions:
-  contents: write           # le verrou anti-doublon écrit mail_lock.json sur `data`
+  contents: write           # verrou anti-doublon : mail_lock.json sur la branche `mail-state`
 
 jobs:
   recherche:
     runs-on: ubuntu-latest
     steps:
+      # Tri rapide AVANT toute installation (~10 s au lieu de ~40 s par run planifié) :
+      # hors créneau 20h→06h Paris, ou e-mail déjà envoyé pour cette soirée -> arrêt.
+      # daily_search.py refait les mêmes contrôles (filet de sécurité).
+      - name: Créneau et verrou
+        id: tri
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then echo "go=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          h=$(TZ=Europe/Paris date +%-H)
+          if [ "$h" -ge 6 ] && [ "$h" -lt 20 ]; then
+            echo "Hors fenêtre d'envoi (${h}h à Paris) — arrêt."; echo "go=0" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          soiree=$(TZ=Europe/Paris date -d '6 hours ago' +%F)
+          dernier=$(gh api "repos/${{ github.repository }}/contents/mail_lock.json?ref=mail-state" -q .content 2>/dev/null \
+            | base64 -d 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("dernier_envoi",""))' 2>/dev/null || true)
+          if [ "$dernier" = "$soiree" ]; then
+            echo "E-mail déjà envoyé pour la soirée du $soiree — arrêt."; echo "go=0" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "go=1" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v5
+        if: steps.tri.outputs.go == '1'
 
       - uses: actions/setup-python@v6
+        if: steps.tri.outputs.go == '1'
         with:
           python-version: "3.13"
           cache: pip
 
       - run: pip install -r requirements.txt
+        if: steps.tri.outputs.go == '1'
 
       - name: Lancer la recherche et envoyer l'e-mail
+        if: steps.tri.outputs.go == '1'
         env:
           # Garde-fou 20h Paris uniquement pour les runs planifiés ; un déclenchement
           # manuel (workflow_dispatch) envoie tout de suite, sans contrôle d'heure.
           CHECK_20H: ${{ github.event_name == 'schedule' && '1' || '' }}
-          # Jeton intégré du workflow : sert au verrou anti-doublon (lecture/écriture
-          # de mail_lock.json sur la branche `data`). Aucun secret à configurer.
+          # Jeton intégré du workflow : verrou anti-doublon (mail_lock.json sur la
+          # branche `mail-state`) + lecture de l'instantané (branche `data`).
           GH_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FT_CLIENT_ID: ${{ secrets.FT_CLIENT_ID }}
           FT_CLIENT_SECRET: ${{ secrets.FT_CLIENT_SECRET }}

@@ -20,15 +20,18 @@ import streamlit as st
 from dotenv import load_dotenv
 
 import recherche_offres as ro
+import sites_carrieres as sc
 
-# Après un push, Streamlit Cloud ré-exécute le NOUVEL app.py mais peut garder
-# l'ANCIEN module recherche_offres en mémoire -> AttributeError (vu le 2026-10-13 :
-# « no attribute GRANDS_GROUPES_PAR_DEFAUT » pendant ~50 min). On le recharge dès
-# que son fichier a changé (comparaison de date de modification, coût négligeable).
-_mtime_ro = os.path.getmtime(ro.__file__)
-if getattr(ro, "_mtime_charge", None) != _mtime_ro:
+# Après un push, Streamlit Cloud ré-exécute le NOUVEL app.py mais peut garder les
+# ANCIENS modules en mémoire -> AttributeError (vu le 2026-10-13 : « no attribute
+# GRANDS_GROUPES_PAR_DEFAUT » pendant ~50 min). On les recharge dès qu'un des deux
+# fichiers a changé (date de modification) : le cœur d'abord, puis sites_carrieres
+# qui en importe des fonctions.
+_mtimes = (os.path.getmtime(ro.__file__), os.path.getmtime(sc.__file__))
+if getattr(sc, "_mtimes_charges", None) != _mtimes:
     ro = importlib.reload(ro)
-    ro._mtime_charge = _mtime_ro
+    sc = importlib.reload(sc)
+    sc._mtimes_charges = _mtimes
 
 # Instantané publié toutes les 4 h par GitHub Actions (branche `data`). L'app le
 # lit à l'ouverture → données rafraîchies en arrière-plan, sans interroger les API.
@@ -130,7 +133,7 @@ def chercher_sites_carrieres(mots_cles, max_offres, jours_max, inclure_titres,
     """
     config = dict(ro.CONFIG, max_offres=max_offres, jours_max=jours_max or None,
                   inclure_titres=list(inclure_titres), exclure_titres=list(exclure_titres))
-    return ro.rechercher_sites_carrieres(config, [mots_cles])
+    return sc.rechercher_sites_carrieres(config, [mots_cles])
 
 
 @st.cache_data(show_spinner=False, ttl=600)  # relit l'instantané au plus toutes les 10 min

@@ -128,7 +128,7 @@ def decorer_france(brutes):
         items.append({
             "o": o, "score": sc,
             "recent": bool(d) and d >= seuil_recent,
-            "rh": ro.comprend_rh(comp),
+            "rh": ro.est_domaine_rh(o),
             "po": ro.est_product_owner(o),
             "favori": ro.est_departement_favori(o, favoris),
         })

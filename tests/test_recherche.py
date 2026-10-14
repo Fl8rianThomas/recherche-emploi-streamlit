@@ -44,6 +44,34 @@ class TestExclusions(unittest.TestCase):
         self.assertEqual(regles, [("chef de projet", ["amoa", "fonctionnel"])])
 
 
+class TestDomaineRH(unittest.TestCase):
+    """Audit du 2026-10-14 : faux positifs RH relevés sur les offres réelles."""
+    def test_faux_positifs(self):
+        for desc in ("Poste basé en Auvergne-Rhône-Alpes", "dans le Bas-Rhin",
+                     "une vingtaine de collaborateurs",            # « gta » dans vingtaine
+                     "le vœu le plus cher de Christian Dior",     # « hris » dans christian
+                     "Entretien RH puis entretien manager", "un RH de proximité t'accompagnera",
+                     "contacté par l'équipe RH", "une politique RH axée formation",
+                     "27 jours de congés payés, RTT"):            # « payes » ≠ paye
+            o = offre("Business Analyst", description=desc)
+            self.assertFalse(ro.est_domaine_rh(o), desc)
+            self.assertEqual(ro.score_optimum(o, ["rh:5", "gta:5", "hris:5", "paye:3"])[1], [], desc)
+
+    def test_vrais_rh(self):
+        cas = [offre("Analyste fonctionnel SAP HR"), offre("AMOA SIRH & paye"),
+               offre("Business Analyst", description="Évolution des outils RH du groupe"),
+               offre("Product Owner", description="outils internes dédiés aux ressources humaines"),
+               offre("Business Analyst", description="projet de transformation RH/SIRH"),
+               offre("Product Manager", description="module de paie et gestion des temps")]
+        for o in cas:
+            self.assertTrue(ro.est_domaine_rh(o), o["intitule"] + " / " + o["description"])
+
+    def test_mot_entier_et_pluriel(self):
+        o = offre("Business Analyst", description="Secteur des banques et assurances")
+        self.assertEqual(sorted(ro.score_optimum(o, ["banque:3", "assurance:3"])[1]),
+                         ["assurance", "banque"])
+
+
 class TestTitresCibles(unittest.TestCase):
     """Audit du 2026-10-14 : intitulés de poste précis au lieu de « analyst »/« business »."""
     def garde(self, titre):

@@ -944,7 +944,7 @@ def _decorer(offres):
     for o in offres:
         sc, comp = ro.score_optimum(o, profil_optimum)
         items.append({"o": o, "score": sc, "comp": comp,
-                      "recent": _est_recente(o), "rh": ro.comprend_rh(comp),
+                      "recent": _est_recente(o), "rh": ro.est_domaine_rh(o),
                       "po": ro.est_product_owner(o), "ba": _est_ba(o),
                       "couleur": _couleur_offre(o),
                       "favori": ro.est_departement_favori(o, depts_favoris)})

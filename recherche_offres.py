@@ -107,7 +107,7 @@ EXCLUSIONS_TITRE_PAR_DEFAUT = [
 # Editable dans l'interface.
 PROFIL_OPTIMUM = [
     # Domaine RH (coeur d'expertise) - poids tres fort
-    "ressources humaines:5", "rh:5", "sirh:5", "human resources:5",
+    "ressources humaines:5", "rh:5", "hr:5", "sirh:5", "human resources:5", "paie:3", "paye:3",
     "hris:5", "hcm:5", "gpec:5", "administration du personnel:5",
     "gestion du personnel:5", "talentsoft:5",
     "gta:5",
@@ -826,23 +826,83 @@ def score_optimum(o, profil):
     competence trouvee dans le titre compte double (signal plus fort que la
     description, souvent un simple extrait cote Adzuna/Jooble).
     Retourne (score, competences_trouvees) ou competences_trouvees liste les termes.
+
+    Comparaison par MOT ENTIER (pluriel en s/x accepté) : avant, « rh » était trouvé
+    dans « Rhône », « gta » dans « vingtaine », « hris » dans « Christian » (audit
+    du 2026-10-14). Les termes RH génériques (« rh », « ressources humaines »)
+    trouvés seulement dans la description ne comptent qu'en contexte métier RH
+    (voir _RE_RH_CONTEXTE) : « entretien RH », « équipe RH » ne sont pas un domaine.
     """
     titre = normaliser(o.get("intitule", ""))
-    txt = titre + " " + normaliser(o.get("description") or "")
+    desc = _desc_sans_bruit(o)
+    contexte_rh = None                         # calculé à la demande (description)
     trouves = []
     score = 0
     for brut in profil:
         terme, poids = _competence_poids(brut)
-        c = normaliser(terme)
-        if not c:
+        rx = _regex_mot(terme)
+        if rx is None:
             continue
-        if c in titre:
+        if rx.search(titre):
             trouves.append(terme)
             score += poids * 2
-        elif c in txt:
+        elif rx.search(desc):
+            if normaliser(terme) in RH_GENERIQUES:
+                if contexte_rh is None:
+                    contexte_rh = bool(_RE_RH_CONTEXTE.search(desc))
+                if not contexte_rh:
+                    continue
             trouves.append(terme)
             score += poids
     return score, trouves
+
+_regex_mots = {}
+
+def _regex_mot(terme):
+    """Regex « mot entier » (pluriel s/x toléré) d'un terme normalisé, en cache."""
+    c = normaliser(terme).strip()
+    if not c:
+        return None
+    if c not in _regex_mots:
+        _regex_mots[c] = re.compile(r"(?<![a-z0-9])" + re.escape(c) + r"(?:s|x)?(?![a-z0-9])")
+    return _regex_mots[c]
+
+# --- Domaine RH (icône 👥) ----------------------------------------------------
+# Termes RH sans ambiguïté : comptent partout (titre ou description).
+RH_FORTS = {"sirh", "hris", "hcm", "gpec", "gta", "talentsoft", "core hr", "paie", "paye", "payroll",
+            "administration du personnel", "gestion du personnel", "gestion des temps",
+            "gestion des talents", "talent management", "successfactors", "workday hcm"}
+# Termes RH génériques : dans le TITRE ils suffisent ; dans la description, seulement
+# en contexte métier (« outils RH », « transformation RH », « dédiés aux ressources
+# humaines »), pas dans « entretien RH », « équipe RH », « politique RH »…
+RH_GENERIQUES = {"rh", "ressources humaines", "human resources", "hr"}
+_RE_RH_CONTEXTE = re.compile(
+    r"\b(outils?|logiciels?|applications?|solutions?|systemes?|si|processus|projets?|donnees"
+    r"|domaine|metiers?|fonctions?|transformation|digitalisation|perimetre|referentiels?"
+    r"|modules?|produits?|plateformes?)\s+(rh|ressources humaines|human resources|hr)\b"
+    r"|\b(rh|hr)\s*/\s*(sirh|paie)\b|aux ressources humaines")
+
+# Expressions d'annonce sans rapport avec le métier, retirées avant l'analyse :
+# « congés payés » contient « payes » (-> « paye », terme RH fort).
+_RE_BRUIT = re.compile(r"\bconges?\s+payes?\b")
+
+def _desc_sans_bruit(o):
+    """Description normalisée, sans les expressions d'annonce trompeuses."""
+    return _RE_BRUIT.sub(" ", normaliser(o.get("description") or ""))
+
+def est_domaine_rh(o):
+    """True si l'offre relève vraiment du domaine RH/SIRH (icône 👥).
+
+    Titre : un terme RH (fort ou générique). Description : un terme RH FORT, ou un
+    terme générique en contexte métier (voir RH_GENERIQUES / _RE_RH_CONTEXTE).
+    """
+    titre = normaliser(o.get("intitule", ""))
+    desc = _desc_sans_bruit(o)
+    if any(_regex_mot(t).search(titre) for t in RH_FORTS | RH_GENERIQUES):
+        return True
+    if any(_regex_mot(t).search(desc) for t in RH_FORTS):
+        return True
+    return bool(_RE_RH_CONTEXTE.search(desc))
 
 def regles_exclusion(termes):
     """Lignes d'exclusion -> [(mot, [exceptions])] normalises.

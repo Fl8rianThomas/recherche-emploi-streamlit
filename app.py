@@ -690,7 +690,11 @@ HIER = (date.today() - timedelta(days=1)).isoformat()
 LUNDI = (date.today() - timedelta(days=date.today().weekday())).isoformat()
 
 # Détection « profil Business Analyst » d'après le titre (même logique que la légende).
-BA_TERMES = ("analyst", "business", "amoa", "fonctionnel")
+# Famille « BA » (chip BA de la légende) : mêmes intitulés que les inclusions bleues.
+BA_TERMES = ("business anal", "business data analyst", "business process", "system analyst",
+             "systems analyst", "analyste fonctionnel", "functional analyst", "analyste metier",
+             "analyste d'affaires", "analyste moa", "amoa", "moa", "fonctionnel", "sirh", "hris",
+             "it business partner")
 
 
 def _est_ba(o):
@@ -957,7 +961,7 @@ def _legende(items):
     npo = sum(1 for it in items if it.get("po"))
     nfav = sum(1 for it in items if it.get("favori"))
     nba = sum(1 for it in items if it.get("ba"))
-    hex_ba = COULEURS_LIGNE.get(couleurs_mot.get("analyst") or couleurs_mot.get("business"), "#3b7dd8")
+    hex_ba = COULEURS_LIGNE.get(couleurs_mot.get("business anal") or couleurs_mot.get("amoa"), "#3b7dd8")
     hex_po = COULEURS_LIGNE.get(couleurs_mot.get("owner") or couleurs_mot.get("product manager"), "#dd7a1c")
 
     def pill(contenu, bg=None):

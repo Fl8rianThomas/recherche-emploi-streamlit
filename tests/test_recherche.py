@@ -44,6 +44,27 @@ class TestExclusions(unittest.TestCase):
         self.assertEqual(regles, [("chef de projet", ["amoa", "fonctionnel"])])
 
 
+class TestTitresCibles(unittest.TestCase):
+    """Audit du 2026-10-14 : intitulés de poste précis au lieu de « analyst »/« business »."""
+    def garde(self, titre):
+        gardees, _e, _s = ro.filtrer([offre(titre)], None, ro.EXCLUSIONS_TITRE_PAR_DEFAUT,
+                                     [ro.normaliser(t.rpartition(":")[0] or t)
+                                      for t in ro.INCLUSIONS_TITRE_PAR_DEFAUT])
+        return bool(gardees)
+
+    def test_postes_cibles_gardes(self):
+        for t in ("Business Analyst SIRH", "Business Analyts F/H", "Product Owner Data",
+                  "Chef de projet MOA F/H", "Analyste fonctionnel Paie", "Business Data Analyst",
+                  "System Analyst", "Chef de projet SIRH", "Business Process Owner"):
+            self.assertTrue(self.garde(t), t)
+
+    def test_postes_hors_sujet_ecartes(self):
+        for t in ("Finance Business Partner", "Financial Analyst", "Credit Risk Analyst",
+                  "Analyste SOC N3", "Business Developer F/H", "Business Unit Manager",
+                  "Marketing Analyst"):
+            self.assertFalse(self.garde(t), t)
+
+
 class TestClassementESN(unittest.TestCase):
     def test_esn_par_nom(self):
         self.assertEqual(ro.classer(offre(entreprise="Capgemini"))[1], "ESN (nom)")

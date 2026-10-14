@@ -57,14 +57,29 @@ SYNONYMES_PAR_DEFAUT = [
 # L'ordre compte pour la couleur : la 1re couleur trouvee dans le titre gagne
 # (PO en tete -> une offre « Business Analyst / Product Owner » est violette).
 # NB : "owner"/"produit" ciblent PO & Chef de produit sans attraper "production".
+# Intitules de POSTE precis (audit du 2026-10-14) : « analyst » et « business » seuls
+# laissaient passer ~90 offres hors sujet (Financial / Credit / Risk / SOC Analyst,
+# Business Developer, Business Unit Manager, Finance Business Partner…).
 INCLUSIONS_TITRE_PAR_DEFAUT = [
-    "owner:orange",            # product owner, proxy product owner
+    "owner:orange",            # product owner, proxy PO, process owner, epic owner
     "product manager:orange",  # PO digital (on EVITE "produit" -> chef de produit
                                # marketing / chef de rayon = hors sujet)
-    "analyst:bleu",            # couvre analyst + analyste
-    "business:bleu",
+    "business anal:bleu",      # Business Analyst / Analysis / Analyste (+ « Analyts »)
+    "business data analyst:bleu",
+    "business process:bleu",   # Business Process Analyst / Expert / Owner
+    "it business partner:bleu",
+    "system analyst:bleu",     # System(s) Analyst
+    "systems analyst:bleu",
+    "analyste fonctionnel:bleu",
+    "functional analyst:bleu",
+    "analyste metier:bleu",
+    "analyste d'affaires:bleu",
+    "analyste moa:bleu",
     "amoa:bleu",
-    "fonctionnel:bleu",
+    "moa:bleu",                # Chef de projet MOA (absent avant : seul « amoa » passait)
+    "fonctionnel:bleu",        # chef de projet / administrateur / référent fonctionnel
+    "sirh:bleu",
+    "hris:bleu",
 ]
 
 # Mots dont la presence dans le TITRE exclut l'offre (metiers voisins / hors sujet).

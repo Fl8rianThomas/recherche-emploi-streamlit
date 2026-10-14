@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import recherche_offres as ro  # noqa: E402
 import sites_carrieres as sc   # noqa: E402
 import refresh_snapshot as rs  # noqa: E402
+import daily_search as ds      # noqa: E402
 
 
 def offre(titre="Business Analyst", entreprise="Acme", lieu="", description="", date=""):
@@ -136,6 +137,20 @@ class TestFiltrer(unittest.TestCase):
                                               ["analyst", "business"])
         self.assertEqual([o["intitule"] for o in gardees], ["Business Analyst SIRH"])
         self.assertEqual(stats["doublons"], 1)
+
+
+class TestCreneauEmail(unittest.TestCase):
+    def soiree(self, texte):
+        from datetime import datetime
+        return ds.soiree_envoi(datetime.fromisoformat(texte))
+
+    def test_creneau_17h_06h(self):
+        self.assertIsNone(self.soiree("2026-10-14 16:59"))          # trop tôt
+        self.assertEqual(self.soiree("2026-10-14 17:00"), "2026-10-14")
+        self.assertEqual(self.soiree("2026-10-14 23:30"), "2026-10-14")
+        self.assertEqual(self.soiree("2026-10-15 01:30"), "2026-10-14")  # compte pour la veille
+        self.assertEqual(self.soiree("2026-10-15 05:59"), "2026-10-14")
+        self.assertIsNone(self.soiree("2026-10-15 06:00"))          # matin : hors créneau
 
 
 class TestSourcesMuettes(unittest.TestCase):

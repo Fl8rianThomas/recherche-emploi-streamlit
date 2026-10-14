@@ -355,7 +355,7 @@ def envoyer(html_corps, n):
 
 
 # --- Verrou anti-doublon de l'e-mail quotidien -----------------------------
-# La fenêtre d'envoi est large (20h→22h Paris, voir main) pour résister aux runs
+# La fenêtre d'envoi est large (17h→06h Paris, voir main) pour résister aux runs
 # GitHub retardés ; ce verrou garantit qu'UN SEUL e-mail part par jour. On mémorise
 # la date (Paris) du dernier envoi dans un petit fichier, lu/écrit via l'API GitHub
 # avec le GITHUB_TOKEN du workflow (env GH_API_TOKEN). Stocké sur une branche
@@ -432,6 +432,8 @@ def poser_verrou(token, jour, sha):
 
 
 SNAPSHOT_AGE_MAX_H = 10   # au-delà (snapshots GitHub en retard/abandonnés) : collecte en direct
+HEURE_ENVOI = 17          # début du créneau d'envoi (heure de Paris) ; à aligner avec le
+                          # tri shell de .github/workflows/daily-search.yml
 
 
 def lire_snapshot(token):
@@ -469,22 +471,32 @@ def offres_du_jour(token):
     return brutes, erreurs + alertes
 
 
+def soiree_envoi(maintenant):
+    """Date (AAAA-MM-JJ) de la « soirée » d'envoi si `maintenant` (heure de Paris)
+    tombe dans le créneau [HEURE_ENVOI, 06h00[, sinon None. Un run à 01h compte
+    pour la veille : c'est la clé du verrou « un seul e-mail par soirée »."""
+    if 6 <= maintenant.hour < HEURE_ENVOI:
+        return None
+    return (maintenant - timedelta(hours=6)).date().isoformat()
+
+
 def main():
-    # Garde-fou « dès 20h Paris toute l'année », robuste aux retards GitHub. Les runs
-    # planifiés arrivent souvent avec 2 à 5 h de retard (constaté : 23h-02h Paris) :
-    # une fenêtre 20h→22h les rejetait presque tous (≈ 1 mail/semaine). On accepte
-    # donc 20h → 06h du matin et on envoie dès qu'un run y tombe. Le verrou est
+    # Garde-fou « dès 17h Paris toute l'année » (souhait de l'utilisateur, oct. 2026),
+    # robuste aux retards GitHub. Les runs planifiés arrivent souvent avec 2 à 5 h
+    # de retard : une fenêtre étroite les rejetait presque tous (≈ 1 mail/semaine).
+    # On accepte donc 17h → 06h du matin et on envoie dès qu'un run y tombe ; le
+    # workflow déclenche dès 15h pour qu'un run retardé tombe vers 17h. Le verrou est
     # indexé sur la « soirée » (un run à 01h compte pour la veille), ce qui garantit
-    # UN SEUL envoi par soirée. Le mail part au plus tôt à 20h, parfois plus tard.
-    # Actif seulement si CHECK_20H est défini ; un lancement manuel passe outre.
+    # UN SEUL envoi par soirée. Le mail part au plus tôt à 17h, parfois plus tard.
+    # Actif seulement si CHECK_CRENEAU est défini ; un lancement manuel passe outre.
     token = os.getenv("GH_API_TOKEN")
     jour = sha = None
-    if os.getenv("CHECK_20H"):
+    if os.getenv("CHECK_CRENEAU"):
         now = datetime.now(ZoneInfo("Europe/Paris"))
-        if 6 <= now.hour < 20:                   # fenêtre [20h00, 06h00[ Paris
+        jour = soiree_envoi(now)
+        if jour is None:
             print(f"Hors fenêtre d'envoi (il est {now.hour}h à Paris) — run ignoré.")
             return
-        jour = (now - timedelta(hours=6)).date().isoformat()   # date de la soirée
         if token:
             dernier, sha = lire_verrou(token)
             if dernier == jour:

@@ -413,14 +413,45 @@ _MOTS_RAISON_SOCIALE = {
     "du", "et",
 }
 
+def cle_entreprise(nom):
+    """« ISAGRI SAS » / « Groupe Isagri » -> « isagri » (sans forme juridique)."""
+    mots = re.sub(r"[^a-z0-9]+", " ", normaliser(nom)).split()
+    return " ".join(m for m in mots if m not in _MOTS_RAISON_SOCIALE)
+
 def signature(o):
     titre = normaliser(o.get("intitule", ""))
     titre = re.sub(r"[\(\[]?\s*[hfmnd](\s*/\s*[hfmnd])+\s*[\)\]]?", " ", titre)
     titre = _RE_SUFFIXES_TITRE.sub(" ", titre)
     titre = re.sub(r"[^a-z0-9]+", " ", titre)   # ponctuation/% -> dedup + robuste
     titre = re.sub(r"\s+", " ", titre).strip()
-    ent = re.sub(r"[^a-z0-9]+", " ", normaliser(nom_entreprise(o))).split()
-    return titre + "||" + " ".join(m for m in ent if m not in _MOTS_RAISON_SOCIALE)
+    return titre + "||" + cle_entreprise(nom_entreprise(o))
+
+# Categorie d'entreprise INSEE (PME / ETI / GE) via l'API publique « Recherche
+# d'entreprises » (sans cle, ~7 requetes/s). GE = grande entreprise (>= 5 000 salaries
+# ou CA > 1,5 Md€). Interrogee par le job snapshot, mise en cache dans le snapshot.
+API_ENTREPRISES = "https://recherche-entreprises.api.gouv.fr/search"
+_RANG_CATEGORIE = {"PME": 1, "ETI": 2, "GE": 3}
+
+def meilleure_categorie(nom, resultats):
+    """Categorie la plus haute parmi les resultats de l'API dont le nom contient les
+    2 premiers mots significatifs de `nom`. « Eiffage » : la holding sortie en 1er
+    est classee PME, la societe du groupe GE -> GE."""
+    mots = cle_entreprise(nom).split()[:2]
+    meilleure = None
+    for x in resultats if mots else []:
+        nom_x = f' {cle_entreprise((x.get("nom_complet") or "") + " " + (x.get("sigle") or ""))} '
+        cat = x.get("categorie_entreprise")
+        if all(f" {m} " in nom_x for m in mots) and cat in _RANG_CATEGORIE:
+            if meilleure is None or _RANG_CATEGORIE[cat] > _RANG_CATEGORIE[meilleure]:
+                meilleure = cat
+    return meilleure
+
+def categorie_entreprise(nom):
+    """« GE » / « ETI » / « PME » d'apres l'INSEE, ou None (introuvable)."""
+    r = _get_avec_retries(API_ENTREPRISES, {"q": nom, "per_page": 5})
+    if r.status_code != 200:
+        raise RuntimeError(f"Recherche d'entreprises {r.status_code}")
+    return meilleure_categorie(nom, r.json().get("results") or [])
 
 # Detecteur d'offre redigee en ALLEMAND (pour ne garder, en Suisse, que les
 # offres francophones + anglophones). Mots-outils + vocabulaire d'annonce DE +
@@ -798,24 +829,32 @@ def distance_km(a, b):
 
 SEUIL_SCORE_ELEVE = 8    # « score élevé » de la carte (≈ 20 % des offres, oct. 2026)
 
-def rang_carte(rh, score, localisation, esn, grand_groupe, seuil=SEUIL_SCORE_ELEVE):
-    """Niveau d'une offre sur la carte (1 = meilleur), hiérarchie de l'utilisateur :
-    1 RH + score élevé + localisation + sans ESN + grand groupe
-    2 RH + score élevé + sans ESN + grand groupe
-    3 RH + score élevé + sans ESN
-    4 RH + score élevé + localisation
-    5 RH + score élevé
-    6 score élevé
-    7 autre
-    (localisation = département favori 🎯 ; RH = domaine RH/SIRH détecté 👥)."""
+def rang_carte(rh, score, localisation, esn, grand_groupe, seuil=SEUIL_SCORE_ELEVE, ge=False):
+    """Niveau d'une offre sur la carte (1 = meilleur), hiérarchie de l'utilisateur.
+
+    Cinq paliers de criteres, chacun dedouble « RH et GE » (impair) puis « RH ou GE »
+    (pair) :
+    1-2   score élevé + localisation + sans ESN + grand groupe
+    3-4   score élevé + sans ESN + grand groupe
+    5-6   score élevé + sans ESN
+    7-8   score élevé + localisation
+    9-10  score élevé
+    11    score élevé (ni RH ni GE)
+    12    autre
+    (localisation = département favori 🎯 ; RH = domaine RH/SIRH détecté 👥 ;
+    GE = grande entreprise selon l'INSEE 🏛️ ; grand groupe = secteurs ciblés 🏢)."""
     eleve = score >= seuil
-    if rh and eleve:
-        if not esn and grand_groupe:
-            return 1 if localisation else 2
-        if not esn:
-            return 3
-        return 4 if localisation else 5
-    return 6 if eleve else 7
+    if not eleve:
+        return 12
+    if not (rh or ge):
+        return 11
+    if not esn and grand_groupe:
+        palier = 1 if localisation else 2
+    elif not esn:
+        palier = 3
+    else:
+        palier = 4 if localisation else 5
+    return 2 * palier - (1 if rh and ge else 0)
 
 def est_departement_favori(o, codes):
     """True si l'offre est localisee dans l'un des departements `codes`."""

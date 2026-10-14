@@ -1040,7 +1040,7 @@ groupes_items.sort(key=lambda it: (_rang_jour4(it), 0 if it.get("rh") else 1,
 
 # Onglet 🗺️ Carte (onglet PRINCIPAL) : offres France + Suisse géolocalisées
 # (coordonnées de la source, sinon code postal / commune / localité suisse),
-# classées en 7 niveaux selon la hiérarchie de l'utilisateur (ro.rang_carte) :
+# classées en 12 niveaux selon la hiérarchie de l'utilisateur (ro.rang_carte) :
 # RH 👥 + score élevé + 🎯 localisation + sans ESN + grand groupe 🏢 … jusqu'à « autre ».
 # Population : titre pertinent (filtres) ET au moins une compétence (score > 0) ;
 # ESN incluses par défaut (classées plus bas). Zone, domicile, rayon, ESN, seuil et
@@ -1086,14 +1086,16 @@ for it in geo_base:
         continue
     esn = ro.est_esn(it["o"], geo_sig_esn)    # au niveau de l'offre (toutes ses copies)
     groupe = it.get("groupe") or ro.groupe_offre(it["o"], lib_groupes, rx_groupes)
+    ge = it["o"].get("_categorie") == "GE"    # grande entreprise INSEE (posée par le snapshot)
     geo_items.append({**it, "geo": g, "km": km, "esn": esn, "groupe": groupe, "approx": approx,
+                      "ge": ge,
                       "rang": ro.rang_carte(bool(it.get("rh")), it["score"],
                                             bool(it.get("favori")), esn, bool(groupe),
-                                            geo_seuil)})
+                                            geo_seuil, ge=ge)})
 geo_items.sort(key=lambda it: (it["rang"], -it["score"],
                                it["km"] if it["km"] is not None else 1e9))
 # Niveaux cochés dans le menu de la carte (tous par défaut).
-geo_visibles = [it for it in geo_items if st.session_state.get(f"geo_n{it['rang']}", True)]
+geo_visibles = [it for it in geo_items if st.session_state.get(f"geo_niv{it['rang']}", True)]
 
 # Offres sauvegardées (★) — chargées une fois par session depuis la branche `favoris`,
 # puis maintenues en session_state (la liste fait foi pendant toute la visite).
@@ -1162,17 +1164,34 @@ with onglet_gg:
         vue_liste_detail(groupes_items, "gg", "offres_grands_groupes.csv",
                          bucket_fn=_bucket_jour4)
 
-# Code couleur / forme des 7 niveaux de la carte (ro.rang_carte). Emoji = même
-# couleur que le marqueur sur la carte (losange pour les niveaux 1-2, rond sinon).
+# Code couleur / forme des 12 niveaux de la carte (ro.rang_carte) : DÉGRADÉ ordonné
+# (palette « plasma » : jaune vif = meilleur -> violet sombre, qui s'efface sur le fond
+# noir) ; gris pour « autres ». Losange pour les niveaux 1-2, rond sinon. Le symbole
+# est coloré dans le menu par CSS (_css_niveaux) et dans l'infobulle de la carte.
 NIVEAUX = {
-    1: ("💎", "RH · score élevé · 🎯 localisation · sans ESN · grand groupe", "#00E5FF"),
-    2: ("🔷", "RH · score élevé · sans ESN · grand groupe", "#2979FF"),
-    3: ("🟡", "RH · score élevé · sans ESN", "#FFD600"),
-    4: ("🟠", "RH · score élevé · 🎯 localisation", "#FF9100"),
-    5: ("🟣", "RH · score élevé", "#D500F9"),
-    6: ("🟢", "Score élevé", "#00C853"),
-    7: ("⚪", "Autres offres", "#9E9E9E"),
+    1: ("◆", "RH et GE · score élevé · 🎯 localisation · sans ESN · grand groupe", "#f4ed27"),
+    2: ("◆", "RH ou GE · score élevé · 🎯 localisation · sans ESN · grand groupe", "#fccd25"),
+    3: ("●", "RH et GE · score élevé · sans ESN · grand groupe", "#fdae32"),
+    4: ("●", "RH ou GE · score élevé · sans ESN · grand groupe", "#f79342"),
+    5: ("●", "RH et GE · score élevé · sans ESN", "#ed7a52"),
+    6: ("●", "RH ou GE · score élevé · sans ESN", "#e06363"),
+    7: ("●", "RH et GE · score élevé · 🎯 localisation", "#d04d73"),
+    8: ("●", "RH ou GE · score élevé · 🎯 localisation", "#bd3786"),
+    9: ("●", "RH et GE · score élevé", "#a72197"),
+    10: ("●", "RH ou GE · score élevé", "#8e0ca4"),
+    11: ("●", "Score élevé", "#7201a8"),
+    12: ("●", "Autres offres", "#9E9E9E"),
 }
+NIVEAU_SCORE, NIVEAU_AUTRES = 11, 12
+NIVEAUX_ESN = (7, 8, 9, 10)          # paliers qui ne contiennent que des ESN
+
+
+def _css_niveaux():
+    """Symbole coloré devant chaque case « Niveau » du menu (classe st-key-<clé>)."""
+    regles = "".join(f".st-key-geo_niv{r} label p::before{{content:'{g}\\00a0';color:{c};"
+                     "font-size:1.15em;}"
+                     for r, (g, _lib, c) in NIVEAUX.items())
+    st.markdown(f"<style>{regles}</style>", unsafe_allow_html=True)
 
 
 def _icone_losange(couleur):
@@ -1189,8 +1208,8 @@ ICONES_LOSANGE = {r: _icone_losange(NIVEAUX[r][2]) for r in (1, 2)}
 
 def _bucket_niveau(it):
     """Tranche de la liste de l'onglet 🗺️ : un en-tête par niveau."""
-    emoji, lib, _c = NIVEAUX[it["rang"]]
-    return f"{emoji} Niveau {it['rang']} — {lib}"
+    glyphe, lib, _c = NIVEAUX[it["rang"]]
+    return f"{glyphe} Niveau {it['rang']} — {lib}"
 
 
 def _rgb(hexa, defaut=(140, 140, 140)):
@@ -1205,11 +1224,12 @@ def menu_carte(items, visibles):
     """Menu à gauche de la carte : niveaux (cocher = afficher), seuil du score
     élevé, chiffres clés et meilleures villes."""
     n = Counter(it["rang"] for it in items)
+    _css_niveaux()
     st.markdown("**Niveaux**")
-    for r, (emoji, lib, _c) in NIVEAUX.items():
-        compte = (f"**{n.get(r, 0)}**" if geo_esn or r not in (4, 5)
-                  else "ESN masquées")            # 4-5 ne contiennent que des ESN
-        st.checkbox(f"{emoji} {r}. {lib} — {compte}", value=True, key=f"geo_n{r}")
+    for r, (_g, lib, _c) in NIVEAUX.items():
+        compte = (f"**{n.get(r, 0)}**" if geo_esn or r not in NIVEAUX_ESN
+                  else "ESN masquées")
+        st.checkbox(f"{r}. {lib} — {compte}", value=True, key=f"geo_niv{r}")
     st.slider("Seuil « score élevé » ⭐", min_value=3, max_value=20, step=1,
               value=ro.SEUIL_SCORE_ELEVE, key="geo_seuil",
               help="Score Optimum à partir duquel une offre compte comme « score élevé ».")
@@ -1220,14 +1240,15 @@ def menu_carte(items, visibles):
         f"**Résumé** ({len(visibles)} affichées)  \n"
         f"📍 {len(items)} placées · 🚩 {ch} en Suisse  \n"
         f"👥 {sum(1 for it in items if it.get('rh'))} RH/SIRH détecté  \n"
+        f"🏛️ {sum(1 for it in items if it.get('ge'))} grandes entreprises (GE, INSEE)  \n"
         f"🏢 {sum(1 for it in items if it.get('groupe'))} grands groupes  \n"
         f"🎯 {sum(1 for it in items if it.get('favori'))} dans tes départements  \n"
         f"🏠 {proches} à moins de {ro.RAYON_DOMICILE_KM} km  \n"
         f"🏭 {sum(1 for it in items if it.get('esn'))} ESN / cabinets")
     villes = Counter(champ(it["o"], "lieuTravail", "libelle").split(",")[0][:22]
-                     for it in visibles if it["rang"] <= 5)
+                     for it in visibles if it["rang"] < NIVEAU_SCORE)
     if villes:
-        st.markdown("**Villes (niveaux 1 à 5)**  \n" + "  \n".join(
+        st.markdown(f"**Villes (niveaux 1 à {NIVEAU_SCORE - 1})**  \n" + "  \n".join(
             f"{v} · {k}" for v, k in villes.most_common(5)))
     approx = sum(1 for it in items if it.get("approx"))
     st.caption(f"Hors carte : {geo_sans_competence} sans aucune de tes compétences, "
@@ -1245,11 +1266,14 @@ def carte_offres(items, centre, domicile, rayon_km=None):
                                          "km": it["km"], "rang": it["rang"], "titres": [],
                                          "ville": champ(it["o"], "lieuTravail", "libelle")})
         p["rang"] = min(p["rang"], it["rang"])
-        marques = (NIVEAUX[it["rang"]][0] + (f" ⭐{it['score']}" if it["score"] else "")
-                   + (" 🏭" if it.get("esn") else "") + (" 🏢" if it.get("groupe") else "")
+        glyphe, _lib, couleur = NIVEAUX[it["rang"]]
+        marques = ((f"⭐{it['score']}" if it["score"] else "")
+                   + (" 🏭" if it.get("esn") else "") + (" 🏛️" if it.get("ge") else "")
+                   + (" 🏢" if it.get("groupe") else "")
                    + (" ≈📍" if it.get("approx") else ""))     # placée à la préfecture
-        p["titres"].append(f'{marques} {it["o"].get("intitule", "")[:58]} — '
-                           f'{ro.nom_entreprise(it["o"])[:28]}')
+        # Ligne déjà en HTML : symbole coloré (dégradé) + texte échappé.
+        p["titres"].append(f'<span style="color:{couleur}">{glyphe}</span> ' + html.escape(
+            f'{marques} {it["o"].get("intitule", "")[:58]} — {ro.nom_entreprise(it["o"])[:28]}'))
     points = []
     for p in lieux.values():
         n = len(p["titres"])
@@ -1257,11 +1281,12 @@ def carte_offres(items, centre, domicile, rayon_km=None):
             "lat": p["lat"], "lon": p["lon"], "n": n, "n_txt": str(n) if n > 1 else "",
             "rang": p["rang"], "ville": html.escape(p["ville"][:45]),
             "km": f" · 🚗 {p['km']:.0f} km" if p["km"] is not None else "",
-            "titres": "<br/>".join(html.escape(t) for t in p["titres"][:8])
+            "titres": "<br/>".join(p["titres"][:8])               # déjà échappés
                       + (f"<br/>… +{n - 8}" if n > 8 else ""),
-            "couleur": _rgb(NIVEAUX[p["rang"]][2]) + [130 if p["rang"] == 7 else 230],
+            "couleur": _rgb(NIVEAUX[p["rang"]][2]) + [130 if p["rang"] == NIVEAU_AUTRES else 230],
             # Taille en PIXELS (lisible à tout zoom) : nombre d'offres + niveau.
-            "rayon_px": min(40, (3.5 if p["rang"] == 7 else 5 if p["rang"] == 6 else 7)
+            "rayon_px": min(40, (3.5 if p["rang"] == NIVEAU_AUTRES
+                                 else 5 if p["rang"] == NIVEAU_SCORE else 7)
                             + 2.6 * n ** 0.5),
             "icon": ICONES_LOSANGE.get(p["rang"]),
         })
@@ -1348,7 +1373,7 @@ with onglet_geo:
                 f"({len(liste)} offre(s)) — clique à côté des bulles pour tout revoir.")
     st.caption("Survole une bulle pour le détail, **clique-la** pour filtrer la liste. "
                "Liste triée par niveau, puis score ⭐, puis distance 🚗 (vol d'oiseau "
-               "depuis le domicile). 🏭 = ESN / cabinet · 🏢 = grand groupe.")
+               "depuis le domicile). 🏭 = ESN / cabinet · 🏛️ = grande entreprise (GE, INSEE) · 🏢 = grand groupe.")
     if not geo_visibles:
         st.info("Aucune offre à afficher : coche d'autres niveaux, élargis le rayon ou "
                 "passe en « France + Suisse ».")

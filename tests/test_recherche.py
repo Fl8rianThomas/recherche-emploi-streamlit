@@ -260,22 +260,46 @@ class TestGeo(unittest.TestCase):
 
 
 class TestRangCarte(unittest.TestCase):
-    def rang(self, rh=True, score=10, loc=False, esn=False, gg=False):
-        return ro.rang_carte(rh, score, loc, esn, gg, seuil=8)
+    def rang(self, rh=True, ge=True, score=10, loc=False, esn=False, gg=False):
+        return ro.rang_carte(rh, score, loc, esn, gg, seuil=8, ge=ge)
 
     def test_hierarchie(self):
+        # Chaque palier : « RH et GE » (impair) puis « RH ou GE » (pair)
         self.assertEqual(self.rang(loc=True, gg=True), 1)
-        self.assertEqual(self.rang(gg=True), 2)
-        self.assertEqual(self.rang(), 3)                       # RH + élevé + sans ESN
-        self.assertEqual(self.rang(loc=True, esn=True), 4)     # ESN localisée
-        self.assertEqual(self.rang(esn=True), 5)
-        self.assertEqual(self.rang(rh=False), 6)               # score élevé seul
-        self.assertEqual(self.rang(score=5), 7)                # RH mais score < seuil
-        self.assertEqual(self.rang(esn=True, gg=True, loc=True), 4)  # ESN jamais 1-3
+        self.assertEqual(self.rang(ge=False, loc=True, gg=True), 2)   # RH seul
+        self.assertEqual(self.rang(rh=False, loc=True, gg=True), 2)   # GE seule
+        self.assertEqual(self.rang(gg=True), 3)
+        self.assertEqual(self.rang(rh=False, gg=True), 4)
+        self.assertEqual(self.rang(), 5)                              # sans ESN
+        self.assertEqual(self.rang(ge=False), 6)
+        self.assertEqual(self.rang(loc=True, esn=True), 7)            # ESN localisée
+        self.assertEqual(self.rang(rh=False, loc=True, esn=True), 8)
+        self.assertEqual(self.rang(esn=True), 9)
+        self.assertEqual(self.rang(ge=False, esn=True), 10)
+        self.assertEqual(self.rang(rh=False, ge=False), 11)           # score élevé seul
+        self.assertEqual(self.rang(score=5), 12)                      # score < seuil
+        self.assertEqual(self.rang(esn=True, gg=True, loc=True), 7)   # ESN jamais 1-6
 
     def test_seuil(self):
-        self.assertEqual(ro.rang_carte(False, 8, False, False, False, seuil=8), 6)
-        self.assertEqual(ro.rang_carte(False, 7, False, False, False, seuil=8), 7)
+        self.assertEqual(ro.rang_carte(False, 8, False, False, False, seuil=8), 11)
+        self.assertEqual(ro.rang_carte(False, 7, False, False, False, seuil=8), 12)
+
+
+class TestCategorieEntreprise(unittest.TestCase):
+    """Réponses réelles de l'API Recherche d'entreprises (oct. 2026), sans réseau."""
+    def test_meilleure_categorie_parmi_les_homonymes(self):
+        res = [{"nom_complet": "EIFFAGE (EIFFAGE)", "categorie_entreprise": "PME"},
+               {"nom_complet": "EIFFAGE", "categorie_entreprise": "GE"},
+               {"nom_complet": "FONDATION D'ENTREPRISE", "categorie_entreprise": "GE"}]
+        self.assertEqual(ro.meilleure_categorie("Eiffage", res), "GE")
+
+    def test_nom_non_correspondant_ignore(self):
+        res = [{"nom_complet": "FREE WORKERS CLUB", "categorie_entreprise": "GE"}]
+        self.assertIsNone(ro.meilleure_categorie("Free-Work", res))
+        self.assertIsNone(ro.meilleure_categorie("", res))
+
+    def test_cle_entreprise(self):
+        self.assertEqual(ro.cle_entreprise("ISAGRI SAS"), ro.cle_entreprise("Groupe Isagri"))
 
 
 class TestSuisse(unittest.TestCase):

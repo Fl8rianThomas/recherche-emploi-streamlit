@@ -65,9 +65,9 @@ INCLUSIONS_TITRE_PAR_DEFAUT = [
     "owner:orange",            # product owner, proxy PO, process owner, epic owner
     "product manager:orange",  # PO digital (on EVITE "produit" -> chef de produit
                                # marketing / chef de rayon = hors sujet) ; exige un
-                               # contexte numerique (cf. INCLUSIONS_CONTEXTE_NUMERIQUE)
+                               # contexte SI (cf. INCLUSIONS_CONTEXTE_SI)
     "proxy po:orange",         # « Proxy PO Junior » (abreviation, pas de « owner »)
-    "business anal:bleu",      # Business Analyst / Analysis / Analyste (+ « Analyts »)
+    "business anal:bleu",     # Business Analyst / Analysis / Analyste (+ « Analyts »)
     "business data analyst:bleu",
     "business process:bleu",   # Business Process Analyst / Expert / Owner
     "it business partner:bleu",
@@ -84,6 +84,16 @@ INCLUSIONS_TITRE_PAR_DEFAUT = [
     "fonctionnel:bleu",        # chef de projet / administrateur / référent fonctionnel
     "sirh:bleu",
     "hris:bleu",
+    # Gestion de projet SI (oct. 2026), en dernier pour que « Chef de projet AMOA »
+    # reste bleu. Seuls, ces mots exigent un contexte SI (cf. INCLUSIONS_CONTEXTE_SI) :
+    # « Chef de projet ERP » oui, « Chef de projet ferroviaire » non.
+    "chef de projet:vert",
+    "cheffe de projet:vert",
+    "chef(fe) de projet:vert",
+    "chef-fe de projet:vert",
+    "responsable de projet:vert",
+    "project manager:vert",
+    "pmo:vert",
 ]
 
 # Mots dont la presence dans le TITRE exclut l'offre (metiers voisins / hors sujet).
@@ -102,6 +112,11 @@ EXCLUSIONS_TITRE_PAR_DEFAUT = [
     # (ingenierie), techniciens (maintenance, support N3)
     "conducteur de travaux", "doc controller", "technicien",
     "chaine fonctionnelle", "automatisme",
+    # Test / recette : metier voisin, non vise (oct. 2026) ; on garde les postes
+    # mixtes (« Business Analyst / Testeur »).
+    "testeur sauf business anal, product owner, amoa",
+    "recetteur sauf business anal, product owner, amoa",
+    "qa fonctionnel sauf business anal, product owner",
     # Data Analyst : metier voisin, non vise (demande de l'utilisateur) ; on garde
     # les postes mixtes (« Business Data Analyst », « Data Analyst / Business Analyst »).
     "data analyst sauf business, fonctionnel, product owner",
@@ -955,24 +970,44 @@ def termes_inclus(titre_norm, inclus):
     """Mots d'inclusion (normalises) presents dans le titre."""
     return [t for t in inclus if contient_terme(titre_norm, t)]
 
-# Mots d'inclusion trop larges a eux seuls : « Product Manager » est aussi un metier
-# marketing / industrie (gamme de cafe, raccords sanitaires...). Seuls, ils exigent
-# un contexte numerique dans le titre ou la description.
-INCLUSIONS_CONTEXTE_NUMERIQUE = {"product manager"}
-_RE_CONTEXTE_NUMERIQUE = re.compile(
+# Mots d'inclusion trop larges a eux seuls : « Product Manager » / « PMO » existent
+# aussi en marketing, industrie, BTP (gamme de cafe, raccords sanitaires...), et
+# « chef de projet » partout. Seuls, ils exigent un contexte SI :
+#   "texte" : dans le titre OU la description ;
+#   "titre" : dans le titre seul (plus strict : une description d'industrie cite
+#             volontiers ses logiciels -> « Chef de projet ferroviaire » passerait).
+INCLUSIONS_CONTEXTE_SI = {
+    "product manager": "texte", "pmo": "texte",
+    "chef de projet": "titre", "cheffe de projet": "titre", "chef(fe) de projet": "titre",
+    "chef-fe de projet": "titre", "responsable de projet": "titre", "project manager": "titre",
+}
+_RE_CONTEXTE_SI = re.compile(
     r"(?<![a-z0-9])(si|it|dsi|informatique|logiciels?|software|saas|applications?|"
     r"applicatifs?|erp|crm|sap|salesforce|servicenow|digital|digitale|digitaux|"
     r"numeriques?|donnees|data|api|agile|scrum|backlog|user stor(y|ies)|sprints?|"
     r"specifications?|recette|web|e-?commerce|plateformes?|platforms?|"
     r"systemes? d.information|outils? metier|ia|ai|intelligence artificielle|cloud|"
-    r"azure|aws|tech|technical product|ux)(?![a-z0-9])")
+    r"azure|aws|tech|technical product|ux|cyber[a-z]*|developpeurs?|developers?|"
+    r"business analysts?)(?![a-z0-9])")
 
-def manque_contexte_numerique(o, trouves):
-    """True si l'offre n'est retenue que par un mot large sans aucun contexte SI."""
-    if not trouves or not set(trouves) <= INCLUSIONS_CONTEXTE_NUMERIQUE:
+def manque_contexte_si(titre_norm, trouves, desc_norm=None):
+    """True si l'offre n'est retenue que par des mots larges sans contexte SI.
+
+    desc_norm=None (pre-filtre des sites carrieres, fiche pas encore lue) : seuls
+    les mots « titre » peuvent etre juges ; les mots « texte » passent.
+    """
+    if not trouves or not set(trouves) <= INCLUSIONS_CONTEXTE_SI.keys():
         return False
-    txt = normaliser(o.get("intitule", "")) + " " + normaliser(o.get("description", "") or "")
-    return not _RE_CONTEXTE_NUMERIQUE.search(txt)
+    if _RE_CONTEXTE_SI.search(titre_norm):
+        return False
+    if any(INCLUSIONS_CONTEXTE_SI[t] == "texte" for t in trouves):
+        return desc_norm is not None and not _RE_CONTEXTE_SI.search(desc_norm)
+    return True
+
+def titre_retenu(titre_norm, inclus):
+    """Pre-filtre sur le titre seul : un mot d'inclusion, en contexte SI si requis."""
+    trouves = termes_inclus(titre_norm, inclus)
+    return bool(trouves) and not manque_contexte_si(titre_norm, trouves)
 
 def terme_exclu(titre_norm, regles):
     """Premier mot d'exclusion present dans le titre (hors exceptions), ou None."""
@@ -1036,7 +1071,7 @@ def filtrer(brutes, jours_max=None, exclure_titres=None, inclure_titres=None,
             trouves = termes_inclus(titre, inclus)
             if not trouves:
                 garder, raison = False, "hors périmètre (titre)"
-            elif manque_contexte_numerique(o, trouves):
+            elif manque_contexte_si(titre, trouves, normaliser(o.get("description", "") or "")):
                 garder, raison = False, "hors périmètre (pas de contexte SI)"
         if garder and exclus:
             term = terme_exclu(titre, exclus)

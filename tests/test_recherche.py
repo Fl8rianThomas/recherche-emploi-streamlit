@@ -85,7 +85,10 @@ class TestTitresCibles(unittest.TestCase):
                   "Chef de projet MOA F/H", "Analyste fonctionnel Paie", "Business Data Analyst",
                   "System Analyst", "Chef de projet SIRH", "Business Process Owner",
                   "Proxy PO Junior - API et produits digitaux", "Chargé d'Analyse Métiers/ PMO",
-                  "Product Manager SaaS B2B"):
+                  "Product Manager SaaS B2B",
+                  # Gestion de projet SI (oct. 2026)
+                  "Chef de projet ERP F/H", "Chef-fe de projet si - plm f/h", "IT Project Manager",
+                  "Responsable de Projet ERP Groupe (H/F)", "Business Analyst / Testeur (H/F)"):
             self.assertTrue(self.garde(t), t)
 
     def test_postes_hors_sujet_ecartes(self):
@@ -96,7 +99,11 @@ class TestTitresCibles(unittest.TestCase):
                   "Conducteur de Travaux AMOA - H/F", "Doc Controller AMOA - Bâtiment",
                   "Ingénieur(e) chaine fonctionnelle auto-directeur", "Technicien support fonctionnel N3",
                   "Ingénieur analyse fonctionnelle / automatisme", "Finance Business Analyst - Internship",
-                  "PFE – Vers des technosols fonctionnels"):
+                  "PFE – Vers des technosols fonctionnels",
+                  # Projet hors SI, test/recette, Scrum Master (non visés, oct. 2026)
+                  "Chef de Projet Ferroviaire F/H", "Chef de Projets Construction ENR F/H",
+                  "Global Project Manager (m/f/d)", "Testeur fonctionnel F/H", "QA Fonctionnel (H/F)",
+                  "Recetteur/Testeur Fonctionnel - CDI", "Scrum Master F/H"):
             self.assertFalse(self.garde(t), t)
 
     def test_product_manager_exige_un_contexte_numerique(self):
@@ -104,11 +111,17 @@ class TestTitresCibles(unittest.TestCase):
         cas = {"Senior Product Manager Emmi Caffè Latte": ("", False),
                "Product Manager Marquage et Dénudage": ("Gamme de machines industrielles", False),
                "Product Manager": ("Vous pilotez la roadmap de notre application", True),
-               "Product Owner": ("", True)}     # « owner » n'est pas soumis au contexte
+               "Product Owner": ("", True),     # « owner » n'est pas soumis au contexte
+               "PMO Senior": ("un portefeuille de projets cybersécurité", True),
+               "PMO": ("Suivi de chantier et des sous-traitants", False),
+               "Chef de projet ferroviaire": ("Maîtrise des logiciels de planification", False)}
         for titre, (desc, attendu) in cas.items():
             gardees, _e, _s = ro.filtrer([offre(titre, description=desc)], None,
                                          ro.EXCLUSIONS_TITRE_PAR_DEFAUT, inclus)
             self.assertEqual(bool(gardees), attendu, titre)
+        # Pré-filtre des sites carrières (titre seul) : « titre » jugé, « texte » laissé passer
+        self.assertFalse(ro.titre_retenu("chef de projet ferroviaire", inclus))
+        self.assertTrue(ro.titre_retenu("pmo senior", inclus))
 
     def test_debut_de_mot(self):
         self.assertFalse(ro.contient_terme("christian dior - chef de projet", "hris"))

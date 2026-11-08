@@ -13,6 +13,9 @@ __pycache__/
 venv/
 env/
 
+# Réglages locaux de Claude Code (propres à chaque poste)
+.claude/settings.local.json
+
 # OS / éditeurs
 .DS_Store
 Thumbs.db

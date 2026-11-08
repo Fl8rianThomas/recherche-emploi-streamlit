@@ -11,7 +11,7 @@ ordinateur**. Compte environ **1 h 30** la première fois.
 
 | Étape | Durée |
 |---|---|
-| 1. Créer ta copie du projet | 10 min |
+| 1. Créer ta copie du projet | 5 min |
 | 2. Créer tes clés d'accès aux sites d'offres | 30 min |
 | 3. Donner tes clés à GitHub et lancer une 1re collecte | 10 min |
 | 4. Régler la recherche sur ton métier | 20 min |
@@ -23,28 +23,17 @@ une adresse e-mail.
 
 ---
 
-## Étape 1 — Créer ta copie du projet (10 min)
+## Étape 1 — Créer ta copie du projet (5 min)
 
-Tu as reçu le projet sous forme de fichier **`recherche-emploi.zip`**.
+1. Accepte l'invitation GitHub reçue par e-mail : elle te donne accès **en lecture**
+   au projet partagé (`Infinited-Organization/recherche-emploi`).
+2. Sur la page du projet, clique sur **Fork** (en haut à droite).
+3. **Owner** : choisis ton compte. **Repository name** : laisse `recherche-emploi`.
+   Clique sur **Create fork**.
 
-1. Décompresse-le : clic droit sur le fichier → **Extraire tout**.
-2. Sur GitHub, clique sur **+** (en haut à droite) → **New repository**.
-3. Remplis :
-   - **Repository name** : `recherche-emploi`
-   - Visibilité : **Private**
-   - ne coche rien d'autre (pas de README, pas de .gitignore).
-4. Clique sur **Create repository**.
-5. Sur la page du dépôt vide, clique sur le lien **uploading an existing file**.
-6. Ouvre le dossier décompressé, sélectionne **tout son contenu** (Ctrl + A), y
-   compris le dossier **`.github`**, et fais-le glisser dans la page GitHub.
-7. Attends la fin de l'envoi, puis clique sur **Commit changes**.
-
-Vérifie que le dossier **`.github/workflows`** apparaît bien dans ton dépôt : sans
-lui, la collecte des offres et l'e-mail du soir ne se lancent pas.
-
-Ce dépôt est **à toi** : tu y modifies ce que tu veux, sans toucher au projet
-d'origine. Note son nom complet, du type **`ton-pseudo/recherche-emploi`** : il
-servira à l'étape 5.
+Ce *fork* est **ta** copie : tu y modifies ce que tu veux, sans toucher au projet
+partagé. Note son nom complet, du type **`ton-pseudo/recherche-emploi`** : il servira
+à l'étape 5.
 
 ## Étape 2 — Créer tes clés d'accès (30 min)
 
@@ -85,7 +74,8 @@ Deux réglages obligatoires dans **Brevo**, sinon l'e-mail ne part pas :
 | `MAIL_FROM` | ton adresse d'expéditeur, vérifiée dans Brevo |
 | `MAIL_TO` | l'adresse où recevoir l'e-mail du soir (peut être la même) |
 
-3. Va dans l'onglet **Actions**. Si GitHub demande d'activer les workflows, accepte.
+3. Va dans l'onglet **Actions**. Sur un *fork*, les automatismes sont désactivés au
+   départ : clique sur **I understand my workflows, go ahead and enable them**.
 4. Clique à gauche sur **Snapshot offres (toutes les 4 h)** → **Run workflow** →
    **Run workflow**. Attends environ 4 min : une coche verte ✓ = la première collecte
    est faite. Elle se relancera ensuite toute seule toutes les 4 h.
@@ -178,9 +168,15 @@ montrer à quelqu'un : bouton **Share** en haut à droite de l'app → son e-mai
 
 ## Bon à savoir
 
-- **Proposer une amélioration du projet d'origine**, ou récupérer une nouvelle
-  version : contacte son auteur. Tu n'as pas accès à son dépôt, et tes modifications
-  restent dans le tien.
+- **Récupérer les nouveautés** du projet partagé : sur la page de ta copie, bouton
+  **Sync fork** → **Update branch**. Si GitHub signale un conflit (vous avez modifié
+  les mêmes lignes, souvent tes réglages), garde ta version de tes réglages.
+- **Proposer une amélioration** au projet partagé : fais-la dans ta copie, puis
+  **Contribute** → **Open pull request**. C'est une demande : l'auteur l'accepte ou
+  non. Tu ne peux pas modifier le projet partagé directement.
+- **Ta copie dépend du projet partagé** : si ton accès est retiré ou si le projet est
+  supprimé, GitHub supprime aussi ta copie. Pour une copie totalement indépendante,
+  demande à l'auteur.
 - **Coût** : gratuit. Un dépôt privé dispose de 2 000 min de GitHub Actions par
   mois ; ce projet en consomme au plus environ 1 300.
 - **Tes réglages dans l'app** (filtres, seuils) ne sont pas sauvegardés : pour les

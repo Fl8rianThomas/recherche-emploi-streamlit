@@ -11,7 +11,7 @@ ordinateur**. Compte environ **1 h 30** la première fois.
 
 | Étape | Durée |
 |---|---|
-| 1. Créer ta copie du projet | 5 min |
+| 1. Créer ta copie du projet | 10 min |
 | 2. Créer tes clés d'accès aux sites d'offres | 30 min |
 | 3. Donner tes clés à GitHub et lancer une 1re collecte | 10 min |
 | 4. Régler la recherche sur ton métier | 20 min |
@@ -23,20 +23,28 @@ une adresse e-mail.
 
 ---
 
-## Étape 1 — Créer ta copie du projet (5 min)
+## Étape 1 — Créer ta copie du projet (10 min)
 
-1. Accepte l'invitation GitHub reçue par e-mail (accès au dépôt d'origine).
-2. Sur la page du dépôt, clique sur le bouton vert **Use this template** →
-   **Create a new repository**.
+Tu as reçu le projet sous forme de fichier **`recherche-emploi.zip`**.
+
+1. Décompresse-le : clic droit sur le fichier → **Extraire tout**.
+2. Sur GitHub, clique sur **+** (en haut à droite) → **New repository**.
 3. Remplis :
    - **Repository name** : `recherche-emploi`
    - Visibilité : **Private**
-   - **Include all branches** : laisse **décoché** (tu pars de zéro, sans les
-     offres ni les favoris de quelqu'un d'autre).
+   - ne coche rien d'autre (pas de README, pas de .gitignore).
 4. Clique sur **Create repository**.
+5. Sur la page du dépôt vide, clique sur le lien **uploading an existing file**.
+6. Ouvre le dossier décompressé, sélectionne **tout son contenu** (Ctrl + A), y
+   compris le dossier **`.github`**, et fais-le glisser dans la page GitHub.
+7. Attends la fin de l'envoi, puis clique sur **Commit changes**.
 
-Ta copie est indépendante : ce que tu y changes ne touche pas l'original. Note son
-nom complet, du type **`ton-pseudo/recherche-emploi`** : il servira à l'étape 5.
+Vérifie que le dossier **`.github/workflows`** apparaît bien dans ton dépôt : sans
+lui, la collecte des offres et l'e-mail du soir ne se lancent pas.
+
+Ce dépôt est **à toi** : tu y modifies ce que tu veux, sans toucher au projet
+d'origine. Note son nom complet, du type **`ton-pseudo/recherche-emploi`** : il
+servira à l'étape 5.
 
 ## Étape 2 — Créer tes clés d'accès (30 min)
 
@@ -170,6 +178,9 @@ montrer à quelqu'un : bouton **Share** en haut à droite de l'app → son e-mai
 
 ## Bon à savoir
 
+- **Proposer une amélioration du projet d'origine**, ou récupérer une nouvelle
+  version : contacte son auteur. Tu n'as pas accès à son dépôt, et tes modifications
+  restent dans le tien.
 - **Coût** : gratuit. Un dépôt privé dispose de 2 000 min de GitHub Actions par
   mois ; ce projet en consomme au plus environ 1 300.
 - **Tes réglages dans l'app** (filtres, seuils) ne sont pas sauvegardés : pour les

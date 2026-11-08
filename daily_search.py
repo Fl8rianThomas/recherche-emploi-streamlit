@@ -373,7 +373,10 @@ def envoyer(html_corps, n):
 # avec le GITHUB_TOKEN du workflow (env GH_API_TOKEN). Stocké sur une branche
 # DÉDIÉE `mail-state` (créée au besoin) — surtout PAS `data`, que le snapshot
 # force-push et écraserait toutes les 4 h.
-REPO_API = "https://api.github.com/repos/dylanhatte/recherche-emploi"
+# GITHUB_REPOSITORY (« propriétaire/nom ») est fourni automatiquement par GitHub Actions :
+# une copie du projet dans un autre dépôt utilise donc SON propre dépôt.
+REPO_API = ("https://api.github.com/repos/"
+            + os.getenv("GITHUB_REPOSITORY", "dylanhatte/recherche-emploi"))
 LOCK_BRANCH = "mail-state"
 LOCK_API = f"{REPO_API}/contents/mail_lock.json"
 

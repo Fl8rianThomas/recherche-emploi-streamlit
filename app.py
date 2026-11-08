@@ -41,20 +41,13 @@ if getattr(sc, "_mtimes_charges", None) != _mtimes:
 # - Dépôt PUBLIC : URL brute (raw) directe, sans jeton.
 # - Dépôt PRIVÉ : API GitHub authentifiée (jeton GH_TOKEN dans les Secrets), via le
 #   media type « raw » qui gère les fichiers > 1 Mo.
-SNAPSHOT_URL = ("https://raw.githubusercontent.com/dylanhatte/"
-                "recherche-emploi/data/offres_snapshot.json")
-SNAPSHOT_API_URL = ("https://api.github.com/repos/dylanhatte/recherche-emploi/"
-                    "contents/offres_snapshot.json?ref=data")
-
 # Offres sauvegardées (★) : petit fichier favoris.json sur une branche DÉDIÉE
 # `favoris` (créée au besoin), lu ET écrit via l'API GitHub. Surtout PAS `data` :
 # le snapshot la force-push toutes les 4 h et effaçait les sauvegardes. Nécessite
 # un jeton GH_TOKEN avec le droit « Contents : Read and Write ». Chaque offre est
 # stockée EN ENTIER pour rester affichable après sa sortie du flux des snapshots.
-REPO_API = "https://api.github.com/repos/dylanhatte/recherche-emploi"
+# URL construites APRÈS la lecture des Secrets (GH_REPO), voir plus bas.
 FAVORIS_BRANCHE = "favoris"
-FAVORIS_API_URL = f"{REPO_API}/contents/favoris.json?ref={FAVORIS_BRANCHE}"
-FAVORIS_PUT_URL = f"{REPO_API}/contents/favoris.json"
 
 st.set_page_config(page_title="Recherche d'offres", page_icon="🔎", layout="wide")
 load_dotenv(override=True)
@@ -69,6 +62,15 @@ try:
             os.environ.setdefault(_cle, _val)
 except Exception:  # noqa: BLE001 — aucun secrets.toml configuré (cas local courant)
     pass
+
+# Dépôt GitHub « propriétaire/nom » qui héberge le snapshot et les favoris. Une copie
+# du projet (autre utilisateur) le renseigne dans ses Secrets Streamlit : GH_REPO.
+GH_REPO = os.getenv("GH_REPO", "dylanhatte/recherche-emploi")
+SNAPSHOT_URL = f"https://raw.githubusercontent.com/{GH_REPO}/data/offres_snapshot.json"
+SNAPSHOT_API_URL = f"https://api.github.com/repos/{GH_REPO}/contents/offres_snapshot.json?ref=data"
+REPO_API = f"https://api.github.com/repos/{GH_REPO}"
+FAVORIS_API_URL = f"{REPO_API}/contents/favoris.json?ref={FAVORIS_BRANCHE}"
+FAVORIS_PUT_URL = f"{REPO_API}/contents/favoris.json"
 
 
 # === Recuperation par source (mise en cache par criteres) ===================

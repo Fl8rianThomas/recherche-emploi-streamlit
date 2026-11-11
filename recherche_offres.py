@@ -152,12 +152,12 @@ PROFIL_OPTIMUM = [
 # Departements favoris (Optimum) : une offre qui s'y trouve recoit l'icone 🎯.
 # 37 Indre-et-Loire (Tours), 41 Loir-et-Cher (Blois), 45 Loiret (Orleans),
 # 74 Haute-Savoie (Annecy), 75 Paris.
-DEPTS_FAVORIS_PAR_DEFAUT = ["37", "41", "45", "74", "75"]
+DEPTS_FAVORIS_PAR_DEFAUT = ["45", "75"]
 
 # Domicile de l'utilisateur : centre de l'onglet 🗺️ (carte) et des recherches
 # Adzuna « autour de chez moi » (les recherches nationales plafonnent a 200
 # resultats, dominees par Paris : les offres de la region y sont noyees).
-DOMICILE = "Lamotte-Beuvron"
+DOMICILE = "Orléans"
 RAYON_DOMICILE_KM = 100
 
 # Grands groupes (onglet 🏢) : une offre France dont l'ENTREPRISE contient un de
